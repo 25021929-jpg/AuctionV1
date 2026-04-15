@@ -1,4 +1,4 @@
-package src.main.java.com.auction.model;
+package com.auction.model;
 
 public class Seller extends User {
     private double rating; // Điểm uy tín của người bán

@@ -1,4 +1,4 @@
-package src.main.java.com.auction.model;
+package com.auction.model;
 
 public enum Role {
     BIDDER, // Người mua
