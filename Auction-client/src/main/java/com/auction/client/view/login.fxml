@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<!--căn giữa tất cả, k/c giữa các dòng, màu nền -->
+<VBox xmlns:fx="http://javafx.com/fxml"
+      alignment="CENTER"
+      spacing="15"
+      style="-fx-background-color: #f0f4f8;">
+
+    <!--Tạo khoảng cách 40px ở 4 phía-->
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="🏷 Đăng Nhập"
+           style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+    <!--nội dung, cỡ chữ, chữ đậm, chữ xanh đen-->
+
+    <TextField promptText="Tên đăng nhập"
+               maxWidth="300"
+               style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <PasswordField promptText="Mật khẩu"
+                   maxWidth="300"
+                   style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <Label style="-fx-text-fill: red; -fx-font-size: 12px;"/>
+
+    <Button text="Đăng nhập"
+            maxWidth="300"
+            style="-fx-background-color: #3498db; -fx-text-fill: white;
+                   -fx-font-size: 14px; -fx-padding: 10px; -fx-cursor: hand;"/>
+
+    <Hyperlink text="Chưa có tài khoản? Đăng ký ngay"
+               style="-fx-font-size: 12px;"/>
+
+</VBox>

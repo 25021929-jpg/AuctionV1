@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<!-- Layout chính, xếp dọc, căn giữa -->
+<VBox xmlns:fx="http://javafx.com/fxml"
+      alignment="CENTER"
+      spacing="15"
+      style="-fx-background-color: #f0f4f8;">
+
+    <!-- Tạo khoảng trống xung quanh nội dung -->
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <!-- Tiêu đề ứng dụng -->
+    <Label text="🏷 Đăng ký tài khoản"
+           style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+    <!-- Ô nhập họ tên -->
+    <TextField promptText="Họ và tên"
+               maxWidth="300"
+               style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Ô nhập tên đăng nhập -->
+    <TextField promptText="Tên đăng nhập"
+               maxWidth="300"
+               style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Ô nhập email -->
+    <TextField promptText="Email"
+               maxWidth="300"
+               style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Ô nhập mật khẩu - tự ẩn ký tự -->
+    <PasswordField promptText="Mật khẩu"
+                   maxWidth="300"
+                   style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Ô nhập lại mật khẩu -->
+    <PasswordField promptText="Nhập lại mật khẩu"
+                   maxWidth="300"
+                   style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Chọn vai trò -->
+    <ComboBox promptText="Chọn vai trò (Bidder / Seller)"
+              maxWidth="300"
+              style="-fx-font-size: 14px;"/>
+
+    <!-- Hiển thị lỗi nếu có -->
+    <Label style="-fx-text-fill: red; -fx-font-size: 12px;"/>
+
+    <!-- Nút đăng ký -->
+    <Button text="Đăng ký"
+            maxWidth="300"
+            style="-fx-background-color: #2ecc71; -fx-text-fill: white;
+                   -fx-font-size: 14px; -fx-padding: 10px; -fx-cursor: hand;"/>
+
+    <!-- Link quay lại đăng nhập -->
+    <Hyperlink text="Đã có tài khoản? Đăng nhập ngay"
+               style="-fx-font-size: 12px;"/>
+
+</VBox>
