@@ -1,20 +1,20 @@
 package com.auction.client;
 
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
-
     @Override
-    public void start(Stage stage) {
-        Label label = new Label("AuctionV1 đang chạy! 🎉");
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 400, 300);
-        stage.setTitle("AuctionV1");
+    public void start(Stage stage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/com/auction/client/view/login.fxml")
+        );
+        Scene scene = new Scene(loader.load(), 450, 650);
         stage.setScene(scene);
+        stage.setTitle("TVP Auction");
+        stage.setResizable(false);
         stage.show();
     }
 

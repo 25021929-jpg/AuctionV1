@@ -6,24 +6,25 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-public class LoginController {
+public class RegisterController {
     @FXML private TextField usernameField;
+    @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
-    @FXML private Button loginButton;
+    @FXML private PasswordField confirmPasswordField;
+    @FXML private Button registerButton;
 
     @FXML
-    public void handleLogin() {
-        String username = usernameField.getText(); // Lấy chữ trong ô Username
-        String password = passwordField.getText();
+    public void handleRegister() {
         // TODO: gọi service xử lý
     }
 
-    public void goToRegister() {
+    @FXML
+    public void goToLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/auction/client/view/register.fxml")
+                    getClass().getResource("/com/auction/client/view/login.fxml")
             );
-            Stage stage = (Stage) loginButton.getScene().getWindow();
+            Stage stage = (Stage) registerButton.getScene().getWindow();
             Scene scene = new Scene(loader.load(), 450, 650);
             stage.setScene(scene);
         } catch (Exception e) {
