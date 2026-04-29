@@ -1,0 +1,78 @@
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-background-color: linear-gradient(to bottom right, #eef4ff, #f8fbff);
+}
+
+.page-container {
+    -fx-alignment: center;
+    -fx-padding: 30;
+}
+
+.auth-card {
+    -fx-background-color: white;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #e2e8f0;
+    -fx-padding: 30;
+    -fx-spacing: 16;
+    -fx-alignment: center;
+    -fx-pref-width: 390;
+    -fx-max-width: 390;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0.22, 0, 6);
+}
+
+.title-label {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.subtitle-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+}
+
+.input-field {
+    -fx-pref-width: 290;
+    -fx-pref-height: 42;
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #dbe2ea;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 0 12 0 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1e293b;
+}
+
+.input-field:focused {
+    -fx-background-color: white;
+    -fx-border-color: #3b82f6;
+}
+
+.button {
+    -fx-pref-height: 42px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.primary-button {
+    -fx-pref-width: 290;
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.secondary-button {
+    -fx-pref-width: 290;
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #334155;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #cbd5e1;
+}
