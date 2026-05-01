@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox fx:controller="com.auction.client.feature.auth.controller.RegisterController" spacing="16" styleClass="auth-card" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+
+    <Label styleClass="title-label" text="Đăng ký" />
+    <Label styleClass="subtitle-label" text="Chức năng đang được hoàn thiện." wrapText="true" />
+
+    <Button onAction="#handleBackToLogin" styleClass="secondary-button" text="Quay lại đăng nhập" />
+</VBox>

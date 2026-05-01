@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.auction</groupId>
+        <artifactId>AuctionV1</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>Auction-client</artifactId>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <!-- JDK 25 (project SDK) requires OpenJFX ≥ 23; 25.x aligns with JDK 25 -->
+        <javafx.version>25.0.1</javafx.version>
+    </properties>
+
+    <dependencies>
+        <!-- JavaFX -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!-- dùng chung -->
+        <dependency>
+            <groupId>com.auction</groupId>
+            <artifactId>Auction-shared</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>com.auction.client.MainClient</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

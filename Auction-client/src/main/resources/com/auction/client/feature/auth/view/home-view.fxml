@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane styleClass="auth-container" stylesheets="/com/auction/client/css/app-style.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="com.auction.client.feature.auth.controller.HomeController">
+
+    <VBox styleClass="auth-card">
+
+        <Label styleClass="title-label" text="Trang chủ" />
+        <Label styleClass="subtitle-label" text="Chào mừng bạn đến với hệ thống đấu giá trực tuyến" />
+
+        <Button onAction="#handleLogout" prefHeight="59.0" prefWidth="100.0" styleClass="home-button" text="Đăng xuất" />
+
+    </VBox>
+</StackPane>

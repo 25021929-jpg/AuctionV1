@@ -1,4 +1,4 @@
-package com.auction.client.service;
+package com.auction.client.feature.auth.dto;
 
 
 public class AuthResponse {

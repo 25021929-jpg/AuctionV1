@@ -1,5 +1,4 @@
-package com.auction.client.service;
-import com.auction.model.*;
+package com.auction.client.feature.auth.service;
 
 public final class AuthValidator {
     //Một class riêng biệt để kiểm tra format người dùng nhập vào đăng nhập có hợp lệ hay không
@@ -46,6 +45,6 @@ public final class AuthValidator {
     }
 }
 //Note: -Isblank() là phiên bản xịn hơn của isEmpty() khi nó vừa kiểm tra có ký tự nào hay không
-//vừa kiểm tra xem ca ký tự có hoàn toàn là khoảng trắng hay không
+//vừa kiểm tra xem ký tự có hoàn toàn là khoảng trắng hay không
 //-Trong Java, việc so sánh chuỗi .equals("Valid") đôi khi dễ bị gõ nhầm chữ hoa/chữ thường.
 // Cách phổ biến hơn trong các hàm validate là: Nếu có lỗi thì trả về chuỗi báo lỗi, nếu không có lỗi thì trả về null.
