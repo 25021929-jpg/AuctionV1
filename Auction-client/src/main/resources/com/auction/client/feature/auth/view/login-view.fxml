@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane styleClass="page-container" stylesheets="@../../../css/app-style.css" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.12" fx:controller="com.auction.client.feature.auth.controller.LoginController">
+
+    <VBox styleClass="auth-card">
+
+        <Label styleClass="title-label" text="Đăng nhập" />
+        <Label styleClass="subtitle-label" text="Chào mừng bạn quay lại hệ thống đấu giá" />
+
+        <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field" />
+
+        <PasswordField fx:id="txtPassword" promptText="Mật khẩu" styleClass="input-field" />
+
+        <Button onAction="#handleLogin" styleClass="primary-button" text="Đăng nhập" />
+
+        <Button onAction="#handleGoToRegister" styleClass="secondary-button" text="Chuyển sang đăng ký" />
+
+    </VBox>
+</StackPane>
