@@ -4,21 +4,25 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.image.*?>
+<?import javafx.scene.effect.*?>
 
+<!--fx:controller: kết nối giao diện này với file Java xử lý logic (LoginController)-->
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.auction.client.controller.RegisterController"
+      fx:controller="com.auction.client.auth.controller.LoginController"
       alignment="CENTER"
       spacing="12"
       style="-fx-background-color: linear-gradient(to bottom, #1a1a2e, #16213e, #0f3460);">
 
+    <!--tạo khoảng cách  đệm (lề trong) cho giao diện-->
     <padding>
         <Insets top="50" right="60" bottom="50" left="60"/>
     </padding>
 
-    <!-- Logo-->
-    <ImageView fitWidth="100" fitHeight="100" preserveRatio="true" opacity="0.7">
+    <!-- Logo -->
+    <ImageView fitWidth="100" fitHeight="100" preserveRatio="true"
+               opacity="0.7">
         <image>
-            <Image url="@../images/logo.png"/>
+            <Image url="@../../images/logo.png"/>
         </image>
     </ImageView>
 
@@ -28,24 +32,17 @@
                   -fx-letter-spacing: 3px;"/>
 
     <!-- Tiêu đề màn hình -->
-    <Label text="ĐĂNG KÝ"
-           style="-fx-font-size: 13px; -fx-text-fill: #aaaaaa;
+    <Label text="ĐĂNG NHẬP"
+           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #e2b96f;
                   -fx-letter-spacing: 2px;"/>
+
+    <!--tạo khoảng trắng-->
+    <VBox spacing="0" maxWidth="320">
+        <padding><Insets top="15"/></padding>
+    </VBox>
 
     <!-- Username -->
     <TextField fx:id="usernameField" promptText="Tên đăng nhập"
-               maxWidth="320"
-               style="-fx-background-color: rgba(255,255,255,0.08);
-                      -fx-text-fill: white;
-                      -fx-prompt-text-fill: #888888;
-                      -fx-font-size: 14px;
-                      -fx-padding: 12px 16px;
-                      -fx-border-color: #e2b96f;
-                      -fx-border-width: 0 0 1 0;
-                      -fx-background-radius: 6;"/>
-
-    <!-- Email -->
-    <TextField fx:id="emailField" promptText="Email"
                maxWidth="320"
                style="-fx-background-color: rgba(255,255,255,0.08);
                       -fx-text-fill: white;
@@ -68,24 +65,12 @@
                           -fx-border-width: 0 0 1 0;
                           -fx-background-radius: 6;"/>
 
-    <!-- Confirm Password -->
-    <PasswordField fx:id="confirmPasswordField" promptText="Xác nhận mật khẩu"
-                   maxWidth="320"
-                   style="-fx-background-color: rgba(255,255,255,0.08);
-                          -fx-text-fill: white;
-                          -fx-prompt-text-fill: #888888;
-                          -fx-font-size: 14px;
-                          -fx-padding: 12px 16px;
-                          -fx-border-color: #e2b96f;
-                          -fx-border-width: 0 0 1 0;
-                          -fx-background-radius: 6;"/>
-
     <!-- Label lỗi -->
     <Label fx:id="errorLabel"
            style="-fx-text-fill: #ff6b6b; -fx-font-size: 12px;"/>
 
-    <!-- Button đăng ký -->
-    <Button fx:id="registerButton" text="ĐĂNG KÝ" onAction="#handleRegister"
+    <!-- Button đăng nhập, onAction="#handleLogin": chạy vào hàm handleLogin() trong file LoginController -->
+    <Button fx:id="loginButton" text="ĐĂNG NHẬP" onAction="#handleLogin"
             maxWidth="320"
             style="-fx-background-color: linear-gradient(to right, #e2b96f, #c9973d);
                    -fx-text-fill: #1a1a2e;
@@ -95,9 +80,9 @@
                    -fx-background-radius: 25;
                    -fx-cursor: hand;"/>
 
-    <!-- Hyperlink -->
-    <Hyperlink text="Đã có tài khoản? Đăng nhập ngay"
-               onAction="#goToLogin"
+    <!-- Hyperlink: để chuyển sag màn hình đăng kí -->
+    <Hyperlink text="Chưa có tài khoản? Đăng ký ngay"
+               onAction="#goToRegister"
                style="-fx-text-fill: #e2b96f; -fx-font-size: 12px;
                       -fx-border-color: transparent;"/>
 

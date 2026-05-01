@@ -1,4 +1,4 @@
-package com.auction.client;
+package com.auction.client.app;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +9,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/auction/client/view/login.fxml")
+                getClass().getResource("/main/resources/com/aution/client/auth/view/login.fxml")
         );
         Scene scene = new Scene(loader.load(), 450, 650);
         stage.setScene(scene);

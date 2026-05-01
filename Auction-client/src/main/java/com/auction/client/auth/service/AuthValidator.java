@@ -1,4 +1,4 @@
-package com.auction.client.service;
+package com.auction.client.auth.service;
 
 public class AuthValidator {
     //Một class riêng biệt để kiểm tra format người dùng nhập vào đăng nhập có hợp lệ hay không

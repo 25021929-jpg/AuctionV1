@@ -1,4 +1,4 @@
-package com.auction.client.controller;
+package com.auction.client.auth.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,7 +22,7 @@ public class RegisterController {
     public void goToLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/auction/client/view/login.fxml")
+                    getClass().getResource("/main/resources/com/aution/client/auth/view/login.fxml")
             );
             Stage stage = (Stage) registerButton.getScene().getWindow();
             Scene scene = new Scene(loader.load(), 450, 650);
