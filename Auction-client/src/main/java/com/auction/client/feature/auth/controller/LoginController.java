@@ -2,6 +2,7 @@ package com.auction.client.feature.auth.controller;
 
 import com.auction.client.core.ui.AlertHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -31,5 +32,11 @@ public class LoginController {
     @FXML
     private void handleGoToRegister() {
         SceneNavigator.switchScene("/com/auction/client/view/register-view.fxml", "Đăng ký");
+    }
+
+    public void handleNavigateRegister(ActionEvent actionEvent) {
+    }
+    public void handleForgotPassword(ActionEvent actionEvent) {
+
     }
 }

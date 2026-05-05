@@ -1,183 +1,183 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<?import javafx.scene.control.*?>-->
+<!--<?import javafx.scene.image.*?>-->
+<!--<?import javafx.scene.layout.*?>-->
 
-<BorderPane xmlns="http://javafx.com/javafx/17.0.12"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.auction.client.feature.auth.controller.HomeController"
-            stylesheets="@/com/auction/client/css/app-style.css"
-            prefWidth="1200" prefHeight="760"
-            style="-fx-background-color: #020B18;">
+<!--<BorderPane xmlns="http://javafx.com/javafx/17.0.12"-->
+<!--            xmlns:fx="http://javafx.com/fxml/1"-->
+<!--            fx:controller="com.auction.client.feature.auth.controller.HomeController"-->
+<!--            stylesheets="@/com/auction/client/css/app-style.css"-->
+<!--            prefWidth="1200" prefHeight="760"-->
+<!--            style="-fx-background-color: #020B18;">-->
 
-    <!-- ═══ TOP NAV ═══ -->
-    <top>
-        <HBox styleClass="nav-bar" prefHeight="60" alignment="CENTER_LEFT" spacing="0"
-              style="-fx-padding: 0 24px;">
+<!--    &lt;!&ndash; ═══ TOP NAV ═══ &ndash;&gt;-->
+<!--    <top>-->
+<!--        <HBox styleClass="nav-bar" prefHeight="60" alignment="CENTER_LEFT" spacing="0"-->
+<!--              style="-fx-padding: 0 24px;">-->
 
-            <!-- Logo + Name -->
-            <HBox spacing="12" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">
-                    <image><Image url="@/com/auction/client/css/logo.png"/></image>
-                </ImageView>
-                <Label text="TVP AUCTION"
-                       style="-fx-font-size: 16px; -fx-font-weight: bold;
-                              -fx-text-fill: #E8EEF7;
-                              -fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 8, 0, 0, 0);"/>
-            </HBox>
+<!--            &lt;!&ndash; Logo + Name &ndash;&gt;-->
+<!--            <HBox spacing="12" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">-->
+<!--                <ImageView fitWidth="32" fitHeight="32" preserveRatio="true">-->
+<!--                    <image><Image url="@/com/auction/client/css/logo.png"/></image>-->
+<!--                </ImageView>-->
+<!--                <Label text="TVP AUCTION"-->
+<!--                       style="-fx-font-size: 16px; -fx-font-weight: bold;-->
+<!--                              -fx-text-fill: #E8EEF7;-->
+<!--                              -fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 8, 0, 0, 0);"/>-->
+<!--            </HBox>-->
 
-            <!-- Nav tabs -->
-            <HBox spacing="4">
-                <Button text="Tổng quan" styleClass="nav-item-active" onAction="#handleNavDashboard"/>
-                <Button text="Đấu giá" styleClass="nav-item" onAction="#handleNavAuctions"/>
-                <Button text="Tài sản" styleClass="nav-item" onAction="#handleNavAssets"/>
-                <Button text="Lịch sử" styleClass="nav-item" onAction="#handleNavHistory"/>
-            </HBox>
+<!--            &lt;!&ndash; Nav tabs &ndash;&gt;-->
+<!--            <HBox spacing="4">-->
+<!--                <Button text="Tổng quan" styleClass="nav-item-active" onAction="#handleNavDashboard"/>-->
+<!--                <Button text="Đấu giá" styleClass="nav-item" onAction="#handleNavAuctions"/>-->
+<!--                <Button text="Tài sản" styleClass="nav-item" onAction="#handleNavAssets"/>-->
+<!--                <Button text="Lịch sử" styleClass="nav-item" onAction="#handleNavHistory"/>-->
+<!--            </HBox>-->
 
-            <!-- User + Logout -->
-            <HBox spacing="12" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                <Label fx:id="usernameLabel" text="Người dùng"
-                       style="-fx-text-fill: #B8C8DC; -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                <Button fx:id="logoutBtn" text="Đăng xuất" styleClass="btn-secondary"
-                        style="-fx-font-size: 12px; -fx-pref-height: 34px; -fx-padding: 6 16;"
-                        onAction="#handleLogout"/>
-            </HBox>
-        </HBox>
-    </top>
+<!--            &lt;!&ndash; User + Logout &ndash;&gt;-->
+<!--            <HBox spacing="12" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">-->
+<!--                <Label fx:id="usernameLabel" text="Người dùng"-->
+<!--                       style="-fx-text-fill: #B8C8DC; -fx-font-size: 13px; -fx-font-weight: bold;"/>-->
+<!--                <Button fx:id="logoutBtn" text="Đăng xuất" styleClass="btn-secondary"-->
+<!--                        style="-fx-font-size: 12px; -fx-pref-height: 34px; -fx-padding: 6 16;"-->
+<!--                        onAction="#handleLogout"/>-->
+<!--            </HBox>-->
+<!--        </HBox>-->
+<!--    </top>-->
 
-    <!-- ═══ MAIN ═══ -->
-    <center>
-        <HBox>
-            <!-- Sidebar -->
-            <VBox spacing="4" prefWidth="220"
-                  style="-fx-background-color: #051529;
-                         -fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;
-                         -fx-border-width: 0 1 0 0;
-                         -fx-padding: 20 10;">
+<!--    &lt;!&ndash; ═══ MAIN ═══ &ndash;&gt;-->
+<!--    <center>-->
+<!--        <HBox>-->
+<!--            &lt;!&ndash; Sidebar &ndash;&gt;-->
+<!--            <VBox spacing="4" prefWidth="220"-->
+<!--                  style="-fx-background-color: #051529;-->
+<!--                         -fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;-->
+<!--                         -fx-border-width: 0 1 0 0;-->
+<!--                         -fx-padding: 20 10;">-->
 
-                <Label text="MENU" style="-fx-text-fill: #2A4A6A; -fx-font-size: 10px;
-                                           -fx-font-weight: bold; -fx-padding: 0 10 10 10;"/>
-                <Button text="📊  Tổng quan" prefWidth="200" styleClass="nav-item-active"
-                        onAction="#handleNavDashboard"/>
-                <Button text="🔨  Phiên đấu giá" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavAuctions"/>
-                <Button text="📦  Tài sản của tôi" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavMyAssets"/>
-                <Button text="💰  Ví của tôi" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavWallet"/>
-                <Button text="📋  Lịch sử" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavHistory"/>
-                <Pane VBox.vgrow="ALWAYS"/>
-                <Pane styleClass="divider"/>
-                <Button text="⚙️  Cài đặt" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavSettings"/>
-            </VBox>
+<!--                <Label text="MENU" style="-fx-text-fill: #2A4A6A; -fx-font-size: 10px;-->
+<!--                                           -fx-font-weight: bold; -fx-padding: 0 10 10 10;"/>-->
+<!--                <Button text="📊  Tổng quan" prefWidth="200" styleClass="nav-item-active"-->
+<!--                        onAction="#handleNavDashboard"/>-->
+<!--                <Button text="🔨  Phiên đấu giá" prefWidth="200" styleClass="nav-item"-->
+<!--                        onAction="#handleNavAuctions"/>-->
+<!--                <Button text="📦  Tài sản của tôi" prefWidth="200" styleClass="nav-item"-->
+<!--                        onAction="#handleNavMyAssets"/>-->
+<!--                <Button text="💰  Ví của tôi" prefWidth="200" styleClass="nav-item"-->
+<!--                        onAction="#handleNavWallet"/>-->
+<!--                <Button text="📋  Lịch sử" prefWidth="200" styleClass="nav-item"-->
+<!--                        onAction="#handleNavHistory"/>-->
+<!--                <Pane VBox.vgrow="ALWAYS"/>-->
+<!--                <Pane styleClass="divider"/>-->
+<!--                <Button text="⚙️  Cài đặt" prefWidth="200" styleClass="nav-item"-->
+<!--                        onAction="#handleNavSettings"/>-->
+<!--            </VBox>-->
 
-            <!-- Content -->
-            <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true"
-                        style="-fx-background-color: transparent; -fx-background: transparent;
-                               -fx-border-color: transparent;">
-                <VBox spacing="20" style="-fx-padding: 24px 28px;">
+<!--            &lt;!&ndash; Content &ndash;&gt;-->
+<!--            <ScrollPane HBox.hgrow="ALWAYS" fitToWidth="true"-->
+<!--                        style="-fx-background-color: transparent; -fx-background: transparent;-->
+<!--                               -fx-border-color: transparent;">-->
+<!--                <VBox spacing="20" style="-fx-padding: 24px 28px;">-->
 
-                    <!-- Header -->
-                    <HBox alignment="CENTER_LEFT">
-                        <VBox spacing="4" HBox.hgrow="ALWAYS">
-                            <Label text="TỔNG QUAN"
-                                   style="-fx-font-size: 18px; -fx-font-weight: bold;
-                                          -fx-text-fill: #4FC3F7; -fx-letter-spacing: 2px;"/>
-                            <Label fx:id="welcomeLabel" text="Chào mừng trở lại!"
-                                   styleClass="subtitle"/>
-                        </VBox>
-                        <Label fx:id="currentTimeLabel" text="--:--"
-                               style="-fx-font-size: 14px; -fx-text-fill: #4FC3F7; -fx-font-weight: bold;"/>
-                    </HBox>
+<!--                    &lt;!&ndash; Header &ndash;&gt;-->
+<!--                    <HBox alignment="CENTER_LEFT">-->
+<!--                        <VBox spacing="4" HBox.hgrow="ALWAYS">-->
+<!--                            <Label text="TỔNG QUAN"-->
+<!--                                   style="-fx-font-size: 18px; -fx-font-weight: bold;-->
+<!--                                          -fx-text-fill: #4FC3F7; -fx-letter-spacing: 2px;"/>-->
+<!--                            <Label fx:id="welcomeLabel" text="Chào mừng trở lại!"-->
+<!--                                   styleClass="subtitle"/>-->
+<!--                        </VBox>-->
+<!--                        <Label fx:id="currentTimeLabel" text="&#45;&#45;:&#45;&#45;"-->
+<!--                               style="-fx-font-size: 14px; -fx-text-fill: #4FC3F7; -fx-font-weight: bold;"/>-->
+<!--                    </HBox>-->
 
-                    <!-- Stat Cards -->
-                    <HBox spacing="14">
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"
-                              style="-fx-padding: 18px 20px;">
-                            <Label text="PHIÊN ĐANG MỞ" styleClass="stat-label"/>
-                            <Label fx:id="activeAuctionsCount" text="24" styleClass="stat-value"/>
-                            <Label text="▲ 3 mới hôm nay"
-                                   style="-fx-text-fill: #00E5A0; -fx-font-size: 12px;"/>
-                        </VBox>
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"
-                              style="-fx-padding: 18px 20px;">
-                            <Label text="GIÁ THẦU CỦA TÔI" styleClass="stat-label"/>
-                            <Label fx:id="myBidsCount" text="7" styleClass="stat-value"/>
-                            <Label text="2 đang dẫn đầu"
-                                   style="-fx-text-fill: #4FC3F7; -fx-font-size: 12px;"/>
-                        </VBox>
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"
-                              style="-fx-padding: 18px 20px;">
-                            <Label text="ĐÃ THẮNG" styleClass="stat-label"/>
-                            <Label fx:id="wonCount" text="3" styleClass="stat-value"/>
-                            <Label text="Tổng: 45.000.000đ"
-                                   style="-fx-text-fill: #C8A84B; -fx-font-size: 12px;"/>
-                        </VBox>
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"
-                              style="-fx-padding: 18px 20px;">
-                            <Label text="SỐ DƯ VÍ" styleClass="stat-label"/>
-                            <Label fx:id="walletBalance" text="12.5M"
-                                   style="-fx-font-size: 26px; -fx-font-weight: bold;
-                                          -fx-text-fill: #00E5A0;"/>
-                            <Label text="VNĐ khả dụng" styleClass="stat-label"/>
-                        </VBox>
-                    </HBox>
+<!--                    &lt;!&ndash; Stat Cards &ndash;&gt;-->
+<!--                    <HBox spacing="14">-->
+<!--                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"-->
+<!--                              style="-fx-padding: 18px 20px;">-->
+<!--                            <Label text="PHIÊN ĐANG MỞ" styleClass="stat-label"/>-->
+<!--                            <Label fx:id="activeAuctionsCount" text="24" styleClass="stat-value"/>-->
+<!--                            <Label text="▲ 3 mới hôm nay"-->
+<!--                                   style="-fx-text-fill: #00E5A0; -fx-font-size: 12px;"/>-->
+<!--                        </VBox>-->
+<!--                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"-->
+<!--                              style="-fx-padding: 18px 20px;">-->
+<!--                            <Label text="GIÁ THẦU CỦA TÔI" styleClass="stat-label"/>-->
+<!--                            <Label fx:id="myBidsCount" text="7" styleClass="stat-value"/>-->
+<!--                            <Label text="2 đang dẫn đầu"-->
+<!--                                   style="-fx-text-fill: #4FC3F7; -fx-font-size: 12px;"/>-->
+<!--                        </VBox>-->
+<!--                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"-->
+<!--                              style="-fx-padding: 18px 20px;">-->
+<!--                            <Label text="ĐÃ THẮNG" styleClass="stat-label"/>-->
+<!--                            <Label fx:id="wonCount" text="3" styleClass="stat-value"/>-->
+<!--                            <Label text="Tổng: 45.000.000đ"-->
+<!--                                   style="-fx-text-fill: #C8A84B; -fx-font-size: 12px;"/>-->
+<!--                        </VBox>-->
+<!--                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8"-->
+<!--                              style="-fx-padding: 18px 20px;">-->
+<!--                            <Label text="SỐ DƯ VÍ" styleClass="stat-label"/>-->
+<!--                            <Label fx:id="walletBalance" text="12.5M"-->
+<!--                                   style="-fx-font-size: 26px; -fx-font-weight: bold;-->
+<!--                                          -fx-text-fill: #00E5A0;"/>-->
+<!--                            <Label text="VNĐ khả dụng" styleClass="stat-label"/>-->
+<!--                        </VBox>-->
+<!--                    </HBox>-->
 
-                    <!-- Auction Table -->
-                    <VBox styleClass="card" spacing="0" style="-fx-padding: 0;">
-                        <HBox alignment="CENTER_LEFT" style="-fx-padding: 16px 20px;" spacing="10">
-                            <Label text="PHIÊN ĐẤU GIÁ ĐANG MỞ"
-                                   style="-fx-font-size: 14px; -fx-font-weight: bold;
-                                          -fx-text-fill: #E8EEF7;" HBox.hgrow="ALWAYS"/>
-                            <Button text="Xem tất cả" styleClass="btn-link"
-                                    style="-fx-font-size: 12px;" onAction="#handleViewAllAuctions"/>
-                        </HBox>
-                        <Pane styleClass="divider"/>
-                        <TableView fx:id="auctionTable" prefHeight="260" styleClass="table-view"
-                                   style="-fx-border-width: 0; -fx-background-insets: 0; -fx-padding: 0;">
-                            <columns>
-                                <TableColumn fx:id="colId" text="MÃ PHIÊN" prefWidth="100"/>
-                                <TableColumn fx:id="colName" text="TÀI SẢN" prefWidth="280"/>
-                                <TableColumn fx:id="colCurrentPrice" text="GIÁ HIỆN TẠI" prefWidth="160"/>
-                                <TableColumn fx:id="colEndTime" text="KẾT THÚC" prefWidth="160"/>
-                                <TableColumn fx:id="colStatus" text="TRẠNG THÁI" prefWidth="140"/>
-                            </columns>
-                            <placeholder>
-                                <Label text="Không có phiên nào đang mở" styleClass="subtitle"/>
-                            </placeholder>
-                        </TableView>
-                    </VBox>
+<!--                    &lt;!&ndash; Auction Table &ndash;&gt;-->
+<!--                    <VBox styleClass="card" spacing="0" style="-fx-padding: 0;">-->
+<!--                        <HBox alignment="CENTER_LEFT" style="-fx-padding: 16px 20px;" spacing="10">-->
+<!--                            <Label text="PHIÊN ĐẤU GIÁ ĐANG MỞ"-->
+<!--                                   style="-fx-font-size: 14px; -fx-font-weight: bold;-->
+<!--                                          -fx-text-fill: #E8EEF7;" HBox.hgrow="ALWAYS"/>-->
+<!--                            <Button text="Xem tất cả" styleClass="btn-link"-->
+<!--                                    style="-fx-font-size: 12px;" onAction="#handleViewAllAuctions"/>-->
+<!--                        </HBox>-->
+<!--                        <Pane styleClass="divider"/>-->
+<!--                        <TableView fx:id="auctionTable" prefHeight="260" styleClass="table-view"-->
+<!--                                   style="-fx-border-width: 0; -fx-background-insets: 0; -fx-padding: 0;">-->
+<!--                            <columns>-->
+<!--                                <TableColumn fx:id="colId" text="MÃ PHIÊN" prefWidth="100"/>-->
+<!--                                <TableColumn fx:id="colName" text="TÀI SẢN" prefWidth="280"/>-->
+<!--                                <TableColumn fx:id="colCurrentPrice" text="GIÁ HIỆN TẠI" prefWidth="160"/>-->
+<!--                                <TableColumn fx:id="colEndTime" text="KẾT THÚC" prefWidth="160"/>-->
+<!--                                <TableColumn fx:id="colStatus" text="TRẠNG THÁI" prefWidth="140"/>-->
+<!--                            </columns>-->
+<!--                            <placeholder>-->
+<!--                                <Label text="Không có phiên nào đang mở" styleClass="subtitle"/>-->
+<!--                            </placeholder>-->
+<!--                        </TableView>-->
+<!--                    </VBox>-->
 
-                    <!-- Quick Actions -->
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button text="🔨 Tham gia đấu giá" styleClass="btn-primary"
-                                style="-fx-pref-height: 40px; -fx-font-size: 13px; -fx-padding: 0 24px;"
-                                onAction="#handleJoinAuction"/>
-                        <Button text="📦 Đăng tài sản" styleClass="btn-secondary"
-                                style="-fx-pref-height: 40px;" onAction="#handleRegisterAsset"/>
-                        <Button text="💰 Nạp tiền" styleClass="btn-secondary"
-                                style="-fx-pref-height: 40px;" onAction="#handleTopUpWallet"/>
-                    </HBox>
+<!--                    &lt;!&ndash; Quick Actions &ndash;&gt;-->
+<!--                    <HBox spacing="12" alignment="CENTER_LEFT">-->
+<!--                        <Button text="🔨 Tham gia đấu giá" styleClass="btn-primary"-->
+<!--                                style="-fx-pref-height: 40px; -fx-font-size: 13px; -fx-padding: 0 24px;"-->
+<!--                                onAction="#handleJoinAuction"/>-->
+<!--                        <Button text="📦 Đăng tài sản" styleClass="btn-secondary"-->
+<!--                                style="-fx-pref-height: 40px;" onAction="#handleRegisterAsset"/>-->
+<!--                        <Button text="💰 Nạp tiền" styleClass="btn-secondary"-->
+<!--                                style="-fx-pref-height: 40px;" onAction="#handleTopUpWallet"/>-->
+<!--                    </HBox>-->
 
-                </VBox>
-            </ScrollPane>
-        </HBox>
-    </center>
+<!--                </VBox>-->
+<!--            </ScrollPane>-->
+<!--        </HBox>-->
+<!--    </center>-->
 
-    <!-- ═══ STATUS BAR ═══ -->
-    <bottom>
-        <HBox prefHeight="28" alignment="CENTER_LEFT" spacing="16"
-              style="-fx-background-color: #020B18;
-                     -fx-border-color: rgba(21,101,255,0.15) transparent transparent transparent;
-                     -fx-border-width: 1 0 0 0; -fx-padding: 0 20px;">
-            <Label text="● TRỰC TUYẾN"
-                   style="-fx-text-fill: #00E5A0; -fx-font-size: 10px; -fx-font-weight: bold;"/>
-            <Label text="|" style="-fx-text-fill: #1A2A3A;"/>
-            <Label text="TVP AUCTION v1.0"
-                   style="-fx-text-fill: #2A3A4A; -fx-font-size: 10px;"/>
-        </HBox>
-    </bottom>
+<!--    &lt;!&ndash; ═══ STATUS BAR ═══ &ndash;&gt;-->
+<!--    <bottom>-->
+<!--        <HBox prefHeight="28" alignment="CENTER_LEFT" spacing="16"-->
+<!--              style="-fx-background-color: #020B18;-->
+<!--                     -fx-border-color: rgba(21,101,255,0.15) transparent transparent transparent;-->
+<!--                     -fx-border-width: 1 0 0 0; -fx-padding: 0 20px;">-->
+<!--            <Label text="● TRỰC TUYẾN"-->
+<!--                   style="-fx-text-fill: #00E5A0; -fx-font-size: 10px; -fx-font-weight: bold;"/>-->
+<!--            <Label text="|" style="-fx-text-fill: #1A2A3A;"/>-->
+<!--            <Label text="TVP AUCTION v1.0"-->
+<!--                   style="-fx-text-fill: #2A3A4A; -fx-font-size: 10px;"/>-->
+<!--        </HBox>-->
+<!--    </bottom>-->
 
-</BorderPane>
+<!--</BorderPane>-->
