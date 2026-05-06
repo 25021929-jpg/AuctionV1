@@ -4,35 +4,28 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.net.URL;
+import java.io.IOException;
 
 public class SceneNavigator {
-
     private static Stage mainStage;
 
+    // Gọi hàm này ở App khởi đầu để lưu lại Stage chính
     public static void setStage(Stage stage) {
         mainStage = stage;
     }
 
-    public static void switchScene(String fxmlPath, String title) {
+    public static void switchScene(String fxmlPath) {
         try {
-            URL url = SceneNavigator.class.getResource(fxmlPath);
-
-            if (url == null) {
-                System.out.println("Không tìm thấy FXML: " + fxmlPath);
-                return;
-            }
-
-            FXMLLoader loader = new FXMLLoader(url);
+            // Quan trọng: getResource tìm file trong thư mục resources
+            FXMLLoader loader = new FXMLLoader(SceneNavigator.class.getResource(fxmlPath));
             Parent root = loader.load();
-
             Scene scene = new Scene(root);
-            mainStage.setTitle(title);
             mainStage.setScene(scene);
+            mainStage.centerOnScreen();
             mainStage.show();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
+            AlertHelper.showError("Lỗi hệ thống", "Không thể tải giao diện: " + fxmlPath);
         }
     }
 }
