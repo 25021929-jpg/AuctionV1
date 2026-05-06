@@ -1,25 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         xsi:schemaLocation="
+         http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+    <!-- Phiên bản model của Maven -->
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Định danh project -->
     <groupId>com.auction</groupId>
     <artifactId>AuctionV1</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <!-- Vì đây là project cha chứa nhiều module -->
     <packaging>pom</packaging>
 
+    <!-- Danh sách module con -->
     <modules>
-        <module>Auction-client</module>
-        <module>Auction-shared</module>
-        <module>Auction-server</module>
+        <module>auction-shared</module>
+        <module>auction-server</module>
+        <module>auction-client</module>
     </modules>
 
+    <!-- Cấu hình Java version dùng chung -->
     <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

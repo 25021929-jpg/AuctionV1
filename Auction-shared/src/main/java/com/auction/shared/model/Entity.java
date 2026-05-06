@@ -1,4 +1,4 @@
-package com.auction.model.entity;
+package com.auction.shared.model;
 
 import java.time.LocalDateTime;
 

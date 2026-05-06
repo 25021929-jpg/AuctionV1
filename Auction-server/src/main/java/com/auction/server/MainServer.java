@@ -1,37 +1,44 @@
 package com.auction.server;
 
-import com.auction.server.config.ServerConfig;
-import com.auction.server.database.DatabaseConnection;
-import com.auction.server.database.DatabaseInitializer;
-import java.util.logging.Logger;
+import com.auction.server.feature.auth.controller.AuthController;
+import com.auction.server.feature.auth.dto.AuthResponse;
+import com.auction.server.feature.auth.dto.LoginRequest;
+import com.auction.server.feature.auth.dto.RegisterRequest;
 
 public class MainServer {
 
-    private static final Logger log = Logger.getLogger(MainServer.class.getName());
-
     public static void main(String[] args) {
-        log.info("🚀 Auction Server đang khởi động...");
+        AuthController authController = new AuthController();
 
-        ServerConfig config = ServerConfig.getInstance();
-        log.info("Port: " + config.getPort() + " | Dev mode: " + config.isDevMode());
+        // Test đăng ký
+        RegisterRequest registerRequest = new RegisterRequest(
+                "hoang01",
+                "123456",
+                "Vu Hoang"
+        );
 
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        if (!db.isHealthy()) {
-            log.severe("❌ Không kết nối được database. Dừng lại.");
-            System.exit(1);
+        AuthResponse registerResponse = authController.register(registerRequest);
+
+        System.out.println("REGISTER:");
+        System.out.println(registerResponse.isSuccess());
+        System.out.println(registerResponse.getMessage());
+
+        // Test đăng nhập
+        LoginRequest loginRequest = new LoginRequest(
+                "hoang01",
+                "123456"
+        );
+
+        AuthResponse loginResponse = authController.login(loginRequest);
+
+        System.out.println("LOGIN:");
+        System.out.println(loginResponse.isSuccess());
+        System.out.println(loginResponse.getMessage());
+
+        if (loginResponse.getUser() != null) {
+            System.out.println(loginResponse.getUser().getUsername());
+            System.out.println(loginResponse.getUser().getFullName());
+            System.out.println(loginResponse.getUser().getRole());
         }
-
-        DatabaseInitializer.run();
-
-        log.info("✅ Server sẵn sàng trên port " + config.getPort());
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("🛑 Server đang tắt...");
-            DatabaseConnection.getInstance().shutdown();
-            log.info("👋 Server đã tắt sạch.");
-        }));
-
-        try { Thread.currentThread().join(); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 }
