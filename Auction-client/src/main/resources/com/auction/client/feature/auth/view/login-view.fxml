@@ -1,84 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
 
-<HBox xmlns="http://javafx.com/javafx/17.0.12"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.feature.auth.controller.LoginController"
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox prefHeight="600" prefWidth="900" style="-fx-background-color: #020B18;"
       stylesheets="@/com/auction/client/css/app-style.css"
-      prefWidth="900" prefHeight="600"
-      style="-fx-background-color: #020B18;">
+      xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.feature.auth.controller.LoginController">
 
     <!-- LEFT — Branding -->
-    <VBox prefWidth="380" prefHeight="600" alignment="CENTER" spacing="20"
-          style="-fx-background-color: #051529;
-                 -fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;
-                 -fx-border-width: 0 1 0 0;
-                 -fx-padding: 50px 40px;">
+    <VBox alignment="CENTER" prefHeight="600" prefWidth="380" spacing="20" style="-fx-background-color: #051529;-fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;-fx-border-width: 0 1 0 0;                  -fx-padding: 50px 40px;">
 
         <!-- Hiển thị logo -->
-        <ImageView fitWidth="120" fitHeight="120" preserveRatio="true"
-                   style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 20, 0, 0, 0);">
-            <image><Image url="@/com/auction/client/css/logo.png"/></image>
+        <ImageView fitHeight="120.0" fitWidth="120.0" preserveRatio="true" style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 20, 0, 0, 0);">
+            <image><Image url="@/com/auction/client/css/logo.png" /></image>
         </ImageView>
 
-        <Label text="TVP AUCTION" styleClass="title"
-               style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.6), 10, 0, 0, 0);"/>
-        <Label text="Hệ thống đấu giá trực tuyến" styleClass="subtitle"/>
+        <Label style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.6), 10, 0, 0, 0);" styleClass="title" text="TVP AUCTION" />
+        <Label prefHeight="28.0" prefWidth="170.0" styleClass="subtitle" text="Hệ thống đấu giá trực tuyến" />
 
-        <Pane styleClass="divider" prefWidth="200" style="-fx-max-width: 200;"/>
-
-        <Label text="Tham gia đấu giá thời gian thực\nAn toàn · Minh bạch · Chuyên nghiệp"
-               styleClass="subtitle" textAlignment="CENTER" alignment="CENTER"
-               style="-fx-line-spacing: 6;"/>
+        <Label alignment="CENTER" style="-fx-line-spacing: 6;" styleClass="subtitle" text="Tham gia đấu giá thời gian thực" textAlignment="CENTER" />
     </VBox>
 
-    <!-- RIGHT — Form -->
-    <VBox prefWidth="520" prefHeight="600" alignment="CENTER" spacing="0"
-          style="-fx-background-color: #020B18; -fx-padding: 50px 60px;">
+    <!-- RIGHT — Form (VBox: Sắp xếp các thành phần theo chiều dọc) -->
+    <VBox alignment="CENTER" prefHeight="600" prefWidth="520" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 50px 60px;">
 
         <!-- Tiêu đề đăng nhập -->
-        <VBox spacing="4" alignment="CENTER" style="-fx-padding: 0 0 32px 0;">
-            <Label text="ĐĂNG NHẬP" style="-fx-font-size: 22px; -fx-font-weight: bold;
-                                            -fx-text-fill: #4FC3F7; -fx-letter-spacing: 3px;"/>
-            <Label text="Chào mừng trở lại" styleClass="subtitle"/>
+        <VBox alignment="CENTER" spacing="4" style="-fx-padding: 0 0 32px 0;">
+            <Label style="-fx-font-size: 22px; -fx-font-weight: bold;                                             -fx-text-fill: #4FC3F7; -fx-letter-spacing: 3px;" text="ĐĂNG NHẬP" />
+            <Label styleClass="subtitle" text="Chào mừng trở lại" />
         </VBox>
 
         <!-- Error -->
-        <Label fx:id="errorLabel" styleClass="alert-error" wrapText="true"
-               maxWidth="360" visible="false" managed="false"
-               style="-fx-margin: 0 0 16 0;"/>
+        <Label fx:id="errorLabel" managed="false" maxWidth="360" style="-fx-margin: 0 0 16 0;" styleClass="alert-error" visible="false" wrapText="true" />
 
-        <VBox spacing="16" maxWidth="360">
+        <VBox maxWidth="360" spacing="16">
+            <!-- Cụm nhập liệu -->
             <VBox spacing="6">
-                <Label text="TÊN ĐĂNG NHẬP" styleClass="field-label"/>
-                <TextField fx:id="usernameField" promptText="Email hoặc tên đăng nhập"
-                           styleClass="text-field" prefWidth="360"/>
+                <Label styleClass="field-label" text="TÊN ĐĂNG NHẬP" />
+                <TextField fx:id="usernameField" prefWidth="360" promptText="Email hoặc tên đăng nhập" styleClass="text-field" />
             </VBox>
 
             <VBox spacing="6">
                 <HBox>
-                    <Label text="MẬT KHẨU" styleClass="field-label" HBox.hgrow="ALWAYS"/>
-                    <Button text="Quên mật khẩu?" styleClass="btn-link"
-                            style="-fx-font-size: 11px;" onAction="#handleForgotPassword"/>
+                    <Label styleClass="field-label" text="MẬT KHẨU" HBox.hgrow="ALWAYS" />
                 </HBox>
-                <PasswordField fx:id="passwordField" promptText="Mật khẩu"
-                               styleClass="password-field" prefWidth="360"/>
+                <PasswordField fx:id="passwordField" prefWidth="360" promptText="Mật khẩu" styleClass="password-field" />
             </VBox>
 
-            <CheckBox fx:id="rememberCheckBox" text="Ghi nhớ đăng nhập"
-                      style="-fx-text-fill: #7090B0; -fx-font-size: 13px;"/>
+            <!-- Cụm điều khiển và nút bấm -->
+            <CheckBox fx:id="rememberCheckBox" style="-fx-text-fill: #7090B0; -fx-font-size: 13px;" text="Ghi nhớ đăng nhập" />
 
-            <Button fx:id="loginBtn" text="ĐĂNG NHẬP" styleClass="btn-primary"
-                    prefWidth="360" onAction="#handleLogin" defaultButton="true"
-                    style="-fx-margin: 8 0 0 0;"/>
+            <!-- loginBtn: Nút đăng nhập chính. Thuộc tính defaultButton="true" cho phép người dùng nhấn phím Enter trên bàn phím để kích hoạt nút này. -->
+            <Button fx:id="loginBtn" defaultButton="true" onAction="#handleLogin" prefWidth="360" style="-fx-margin: 8 0 0 0;" styleClass="btn-primary" text="ĐĂNG NHẬP" />
 
-            <HBox alignment="CENTER" spacing="6" style="-fx-padding: 4 0 0 0;">
-                <Label text="Chưa có tài khoản?" styleClass="subtitle"/>
-                <Button text="Đăng ký ngay" styleClass="btn-link"
-                        onAction="#handleNavigateRegister"/>
-            </HBox>
+            <HBox alignment="CENTER" spacing="6" style="-fx-padding: 4 0 0 0;" />
         </VBox>
+        <!-- xử lí đăng nhập và quên mật khẩu -->
+           <Button onAction="#handleForgotPassword" prefHeight="24.0" prefWidth="133.0" style="-fx-font-size: 11px;" styleClass="btn-link" text="Quên mật khẩu?" />
+          <Button onAction="#handleNavigateRegister" prefHeight="25.0" prefWidth="133.0" styleClass="btn-link" text="Tạo tài khoản mới" />
     </VBox>
 </HBox>

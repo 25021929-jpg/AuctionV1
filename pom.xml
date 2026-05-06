@@ -17,6 +17,14 @@
         <module>Auction-client</module>
         <module>Auction-shared</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>25.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 
 </project>

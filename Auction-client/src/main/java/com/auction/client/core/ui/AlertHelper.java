@@ -4,16 +4,17 @@ import javafx.scene.control.Alert;
 
 public class AlertHelper {
 
+    //Dùng khi muốn thông báo thành công
     public static void showInfo(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        showAlert(Alert.AlertType.INFORMATION, title, content);
     }
 
     public static void showError(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        showAlert(Alert.AlertType.ERROR, title, content);
+    }
+
+    private static void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
