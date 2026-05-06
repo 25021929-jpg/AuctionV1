@@ -19,9 +19,9 @@
 
     <!-- Danh sách module con -->
     <modules>
-        <module>auction-shared</module>
-        <module>auction-server</module>
-        <module>auction-client</module>
+        <module>Auction-shared</module>
+        <module>Auction-server</module>
+        <module>Auction-client</module>
     </modules>
 
     <!-- Cấu hình Java version dùng chung -->

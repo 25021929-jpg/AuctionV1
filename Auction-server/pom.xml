@@ -6,30 +6,25 @@
          http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <!-- Phiên bản model của Maven -->
+    <!-- Phiên bản cấu trúc Maven -->
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Nếu project của bạn là multi-module thì cần parent -->
-    <parent>
-        <groupId>com.auction</groupId>
-        <artifactId>AuctionV1</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+    <!-- Thông tin module server -->
+    <groupId>com.auction</groupId>
+    <artifactId>Auction-server</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
-    <!-- Tên module server -->
-    <artifactId>auction-server</artifactId>
-
-    <!-- Các thư viện module server cần dùng -->
+    <!-- Thư viện cần dùng -->
     <dependencies>
 
-        <!-- Phụ thuộc vào module shared để dùng User, DTO chung nếu có -->
+        <!-- Server dùng model User từ module shared -->
         <dependency>
             <groupId>com.auction</groupId>
-            <artifactId>auction-shared</artifactId>
+            <artifactId>Auction-shared</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- MySQL JDBC Driver: giúp Java kết nối tới MySQL -->
+        <!-- MySQL JDBC Driver -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
@@ -37,5 +32,12 @@
         </dependency>
 
     </dependencies>
+
+    <!-- Cấu hình Java -->
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
 
 </project>
