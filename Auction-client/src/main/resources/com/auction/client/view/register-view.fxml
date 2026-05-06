@@ -8,7 +8,7 @@
       fx:controller="com.auction.client.feature.auth.controller.RegisterController"
       stylesheets="@/com/auction/client/css/app-style.css"
       prefWidth="940" prefHeight="660"
-      style="-fx-background-color: #020B18;">
+      styleClass="app-background">
 
     <!-- LEFT — Branding -->
     <VBox prefWidth="320" prefHeight="660" alignment="CENTER" spacing="20"

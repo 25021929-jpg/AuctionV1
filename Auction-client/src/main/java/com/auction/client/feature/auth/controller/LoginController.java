@@ -35,6 +35,7 @@ public class LoginController {
     }
 
     public void handleNavigateRegister(ActionEvent actionEvent) {
+        SceneNavigator
     }
     public void handleForgotPassword(ActionEvent actionEvent) {
 
