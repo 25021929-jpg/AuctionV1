@@ -1,0 +1,30 @@
+DTO — Data Transfer  (Design Pattern)
+
+Định nghĩa
+
+Object thuần túy chỉ có 1 việc — mang dữ liệu từ chỗ này sang chỗ khác giữa các tầng trong hệ thống.
+
+
+4 đặc điểm nhận biết
+1. Không có logic nghiệp vụ      — không có method tính toán
+2. Chỉ có data                   — fields + getter
+3. Bất biến                      — tạo ra xong không sửa
+4. Tên nói rõ mục đích           — Request, Response, Command
+
+Nguyên lý được thỏa mãn
+SRP  — DTO chỉ có 1 việc: mang dữ liệu
+OCP  — thêm field chỉ sửa DTO, không đụng code khác
+ISP  — mỗi tầng nhận đúng DTO nó cần
+DIP  — các tầng phụ thuộc DTO, không phụ thuộc nhau
+Low Coupling — Controller và Validator không biết gì về nhau
+               chỉ biết về DTO ở giữa
+
+Dùng Java record vì
+✅ Bất biến — không có setter
+✅ Tự sinh equals, hashCode, toString
+✅ Ngắn gọn — 1 dòng thay vì 30 dòng
+✅ Compiler đảm bảo không ai sửa được sau khi tạo
+
+Câu chốt
+
+DTO là "hợp đồng" giữa các tầng — các tầng chỉ cần biết hợp đồng, không cần biết nội bộ của nhau. Đó là lý do hệ thống có thể thay đổi từng tầng độc lập mà không phá vỡ tầng khác.

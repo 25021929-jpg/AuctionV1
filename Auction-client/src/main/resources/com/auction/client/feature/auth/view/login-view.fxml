@@ -19,8 +19,11 @@
     <VBox alignment="CENTER" prefHeight="600" prefWidth="380" spacing="20" style="-fx-background-color: #051529;-fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;-fx-border-width: 0 1 0 0;                  -fx-padding: 50px 40px;">
 
         <!-- Hiển thị logo -->
-        <ImageView fitHeight="120.0" fitWidth="120.0" preserveRatio="true" style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 20, 0, 0, 0);">
-            <image><Image url="@/com/auction/client/css/logo.png" /></image>
+        <ImageView fx:id="logoImageView" fitHeight="120.0" fitWidth="120.0" preserveRatio="true"
+                   style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 20, 0, 0, 0);">
+            <image>
+                <Image url="@/com/auction/client/css/logo.png" />
+            </image>
         </ImageView>
 
         <Label style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.6), 10, 0, 0, 0);" styleClass="title" text="TVP AUCTION" />
