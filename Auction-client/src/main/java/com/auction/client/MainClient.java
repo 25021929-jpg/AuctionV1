@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class MainClient extends Application {
+
     @Override
     public void start(Stage stage) throws IOException {
         // 1. CUNG CẤP STAGE CHO NAVIGATOR (BẮT BUỘC PHẢI CÓ DÒNG NÀY)

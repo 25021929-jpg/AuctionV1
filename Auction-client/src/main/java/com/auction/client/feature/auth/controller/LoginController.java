@@ -5,12 +5,29 @@ import com.auction.client.core.ui.SceneNavigator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class LoginController {
 
     @FXML private TextField usernameField; // Khớp fx:id="usernameField"
     @FXML private PasswordField passwordField; // Khớp fx:id="passwordField"
     @FXML private Label errorLabel;
+
+    @FXML
+    private ImageView logoImageView;
+
+    //Hàm initialize đề phòng
+//    @FXML
+//    public void initialize() {
+//        // Set ảnh trực tiếp bằng code
+//        var url = getClass().getResource("/com/auction/client/css/logo.png");
+//        if (url != null) {
+//            Image img = new Image(url.toExternalForm());
+//            logoImageView.setImage(img);
+//            System.out.println("Set image OK, width: " + img.getWidth());
+//        }
+//    }
 
     @FXML
     private void handleLogin(ActionEvent event) {
@@ -49,4 +66,5 @@ public class LoginController {
         System.out.println("Quên mật khẩu clicked!");
         SceneNavigator.switchScene("/com/auction/client/feature/auth/view/forgot-password-view.fxml");
     }
+
 }
