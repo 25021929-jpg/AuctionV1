@@ -5,7 +5,7 @@ public class ValidationResult {
     //field -> danh sách lỗi của field đó
     //fieldErrors sẽ lưu hết tất cả các lỗi của mọi thuộc tính theo thuộc tính
     //Lưu trữ một cách tiện lợi và dễ gọi ra lỗi của từng thuộc tính
-    private Map<String, String> fieldErrors;
+    private final Map<String, String> fieldErrors;
 
     //constructor, không cho phép sửa đổi sau khi tạo
     public ValidationResult(Map<String, String> Errors) {
@@ -22,6 +22,7 @@ public class ValidationResult {
     Mục đích, ta có thể lưu lại các message lỗi theo field và lỗi nào xét đến đầu tiên thì chỉ hiện mỗi lỗi đó
      */
     public static ValidationResult from(List<FieldError> errors){
+        //Tạo map từ danh sách các FieldError
         Map<String,String> map = new LinkedHashMap<>();
         for (FieldError fielderror : errors){
             // Tự kiểm tra và tạo cặp key-value
@@ -29,6 +30,7 @@ public class ValidationResult {
         }
         return new ValidationResult(map);
         }
+        //Lưu ý: 1 lần một field chỉ được map với một lỗi
     /*
     Nếu không có tin nhắn lỗi nào thì hợp lệ
     */
@@ -36,14 +38,16 @@ public class ValidationResult {
         return fieldErrors.isEmpty();
     }
     //Controller gọi cái này để bôi đỏ đúng textfield
+
     //Nếu có lỗi thì message lỗi
     //Nếu không có lỗi thì return empty String (không được phép modify
-    public String errorsFor(String field){
+    public String errorFor(String field){
         return fieldErrors.getOrDefault(field,"");
     }
+
     //Kiểm tra xem Field có lỗi hay không
     public boolean hasErrorFor(String field){
-        return !fieldErrors.containsKey(field);
+        return fieldErrors.containsKey(field);
     }
 
     }

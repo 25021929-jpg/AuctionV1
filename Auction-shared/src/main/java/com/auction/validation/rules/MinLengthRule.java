@@ -16,6 +16,6 @@ public class MinLengthRule implements ValidationRule<String> {
     public Optional<String> check(String value){
         return (value != null && value.length() >= min)
                 ? Optional.empty()
-                : Optional.of("Phải có ít nhất " + min + " Ký tự");
+                : Optional.of("Must be at least " + min + " characters");
     }
 }

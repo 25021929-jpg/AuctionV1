@@ -11,6 +11,7 @@ public class FieldValidator<T> {
     private final T value;
 
     //Constructor
+    @SafeVarargs
     public FieldValidator(String fieldName, T value, ValidationRule<T>... rules){
         this.fieldName = fieldName;
         this.value = value;

@@ -130,6 +130,12 @@
     -fx-padding: 8 14;
     -fx-font-size: 13px;
 }
+/* Field-Error - Báo lỗi thuộc tính */
+.field-error {
+    -fx-text-fill: #e05252;
+    -fx-font-size: 11px;
+    -fx-padding: 2 0 0 2;
+}
 
 /* ─── Table ─── */
 .table-view { -fx-background-color: transparent; }
@@ -148,3 +154,8 @@
 .scroll-bar .track { -fx-background-color: transparent; }
 .stat-value { -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #E8EEF7; }
 .stat-label { -fx-font-size: 11px; -fx-text-fill: #4A6880; -fx-font-weight: bold; }
+/* Date Picker */
+.date-picker {
+    -fx-pref-height: 40px;
+    -fx-max-width: infinity;
+}
