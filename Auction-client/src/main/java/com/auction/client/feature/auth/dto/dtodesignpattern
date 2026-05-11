@@ -27,4 +27,5 @@ Dùng Java record vì
 
 Câu chốt
 
-DTO là "hợp đồng" giữa các tầng — các tầng chỉ cần biết hợp đồng, không cần biết nội bộ của nhau. Đó là lý do hệ thống có thể thay đổi từng tầng độc lập mà không phá vỡ tầng khác.
+DTO là "hợp đồng" giữa các tầng — các tầng chỉ cần biết hợp đồng, không cần biết nội bộ của nhau.
+Đó là lý do hệ thống có thể thay đổi từng tầng độc lập mà không phá vỡ tầng khác.

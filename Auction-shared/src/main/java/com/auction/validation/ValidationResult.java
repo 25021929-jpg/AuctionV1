@@ -43,7 +43,7 @@ public class ValidationResult {
     }
     //Kiểm tra xem Field có lỗi hay không
     public boolean hasErrorFor(String field){
-        return !fieldErrors.containsKey(field);
+        return fieldErrors.containsKey(field);
     }
 
     }

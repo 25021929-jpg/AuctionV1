@@ -16,4 +16,16 @@ public class HomeController {
 
     public void handleNavDashboard(ActionEvent actionEvent) {
     }
+
+    public void handleNavAuctions(ActionEvent actionEvent) {
+
+    }
+
+    public void handleNavAssets(ActionEvent actionEvent) {
+
+    }
+
+    public void handleNavHistory(ActionEvent actionEvent) {
+
+    }
 }

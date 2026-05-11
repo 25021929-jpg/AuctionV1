@@ -35,9 +35,6 @@ public class LoginController {
         String pass = passwordField.getText();
 
         if (user.isEmpty() || pass.isEmpty()) {
-            // Cách 1: Dùng AlertHelper
-            AlertHelper.showError("Lỗi đăng nhập", "Vui lòng nhập đầy đủ thông tin!");
-
             // Cách 2: Hiển thị ngay trên giao diện qua errorLabel (nếu muốn)
             errorLabel.setText("Tài khoản/Mật khẩu không được để trống");
             errorLabel.setVisible(true);

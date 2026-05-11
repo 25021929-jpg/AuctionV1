@@ -23,7 +23,6 @@ public class RegisterController {
     }
     @FXML
     private void handleRegister(ActionEvent actionEvent) {
-
         //Nếu thành công thì trở lại phần đăng nhập
         this.handleBackToLogin();
     }

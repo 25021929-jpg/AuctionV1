@@ -84,10 +84,10 @@ public class ForgotPasswordController {
         goTo(stepSuccess);
     }
 
-//    @FXML
-//    private void handleNavigateLogin() {
-//        SceneNavigator.navigateTo("login-view.fxml");
-//    }
+    @FXML
+    private void handleNavigateLogin() {
+        SceneNavigator.switchScene("/com/auction/client/view/login-view.fxml");
+    }
 
     // ── Helper: chuyển bước ──
     private void goTo(VBox target) {

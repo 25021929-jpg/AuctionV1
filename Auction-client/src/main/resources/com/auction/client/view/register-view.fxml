@@ -30,8 +30,7 @@
         <VBox spacing="12" style="-fx-padding: 8 0 0 0;">
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="①" style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;"/>
-                <Label text="Nhập thông tin cá nhân" styleClass="subtitle"
-                       style="-fx-text-fill: #B8C8DC;"/>
+                <Label text="Nhập thông tin cá nhân" styleClass="subtitle"/>
             </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="②" style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;"/>
