@@ -8,10 +8,10 @@ import com.auction.validation.FieldValidator;
 import com.auction.validation.Validator;
 
 public class AuthValidatorFactory {
-//    public static Validator<LoginRequest> loginValidator(){
-//        return new LoginValidator();
-//
-//    }
+    public static Validator<LoginRequest> createloginValidator(){
+        return new LoginValidator();
+
+    }
 
     public static Validator<RegisterRequest> createRegisterValidator(){
         return new RegisterValidator();

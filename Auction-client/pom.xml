@@ -29,11 +29,27 @@
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+
+        <!-- liên kết 2 module client với shared -->
         <dependency>
-            <groupId>com.auction</groupId>
-            <artifactId>Auction-shared</artifactId>
+            <groupId>com.auction</groupId> <artifactId>Auction-shared</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- thêm dependencies junit và mockito để test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -61,6 +77,15 @@
                 <configuration>
                     <release>17</release>      <!-- ← đổi từ source/target sang release -->
                     <encoding>UTF-8</encoding> <!-- ← thêm encoding -->
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
 

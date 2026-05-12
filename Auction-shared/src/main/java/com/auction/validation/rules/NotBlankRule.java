@@ -9,6 +9,6 @@ public class NotBlankRule implements ValidationRule<String>{
     public Optional<String> check(String Value) {
         return (Value != null && !Value.trim().isEmpty())
                 ? Optional.empty()
-                : Optional.of("This field is required");
+                : Optional.of("Thành phần không được để trống");
     }
 }

@@ -22,7 +22,7 @@ public class EmailFormatRule implements ValidationRule<String> {
     @Override
     public Optional<String> check(String value) {
         if (value == null || !value.trim().matches(REGEX)) {
-            return Optional.of("Invalid email format");
+            return Optional.of("Email không hợp lệ");
         }
         return Optional.empty();
     }

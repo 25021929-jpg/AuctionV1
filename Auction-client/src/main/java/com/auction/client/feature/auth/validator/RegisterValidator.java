@@ -16,7 +16,8 @@ public class RegisterValidator implements Validator<RegisterRequest> {
                 new NotBlankRule(),
                 new FullNameRule())
                 .ifPresent(errors::add);
-
+//Lưu ý errors:: add = error -> errors.add (viết gọn hơn)
+        //Mục đích là lưu các FieldError (value của Optional vào trong list errors)
         validate("username", req.username(),
                 new NotBlankRule(),
                 new MinLengthRule(3),

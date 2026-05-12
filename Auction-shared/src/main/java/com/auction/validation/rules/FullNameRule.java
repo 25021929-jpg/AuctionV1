@@ -15,7 +15,7 @@ public class FullNameRule implements ValidationRule<String> {
     @Override
     public Optional<String> check(String value) {
         if (!value.matches(REGEX)) {
-            return Optional.of("Full name must contain letters only");
+            return Optional.of("Tên chỉ được chứa chữ cái");
         }
         return Optional.empty();
     }

@@ -17,7 +17,7 @@ public class PhoneNumberRule implements ValidationRule<String> {
     @Override
     public Optional<String> check(String phoneNumber){
         if (phoneNumber == null || !phoneNumber.trim().matches(REGEX)){
-            return Optional.of("Invalid phone number format");
+            return Optional.of("Sai định sạng số điện thoại");
         }
         return Optional.empty();
     }
