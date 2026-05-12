@@ -2,149 +2,448 @@ package com.auction.server.feature.auth.service;
 
 import com.auction.server.exception.DataAccessException;
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.AuthResponse;
-import com.auction.server.feature.auth.dto.LoginRequest;
-import com.auction.server.feature.auth.dto.RegisterRequest;
+import com.auction.server.feature.auth.dto.*;
+import com.auction.server.feature.auth.repository.PasswordResetRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
+import com.auction.server.feature.auth.util.PasswordUtil;
+import com.auction.server.feature.auth.util.ResetTokenUtil;
+import com.auction.shared.model.PasswordResetToken;
 import com.auction.shared.model.User;
 
-// Service xử lý nghiệp vụ đăng nhập / đăng ký
+import java.time.LocalDateTime;
+
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordResetRepository passwordResetRepository;
 
-    // Constructor khởi tạo repository
     public AuthService() {
         this.userRepository = new UserRepository();
+        this.passwordResetRepository =
+                new PasswordResetRepository();
     }
 
-    // Xử lý đăng ký tài khoản
-    public AuthResponse register(RegisterRequest request) {
+    // =====================================================
+    // REGISTER
+    // =====================================================
+    public AuthResponse register(
+            RegisterRequest request
+    ) {
 
-        // Kiểm tra dữ liệu đầu vào
         validateRegister(request);
 
-        String username = request.getUsername().trim();
-        String password = request.getPassword();
-        String fullName = request.getFullName().trim();
+        // Chuẩn hóa dữ liệu trước khi xử lý
+        String fullName =
+                request.getFullName().trim();
+
+        String username =
+                request.getUsername().trim();
+
+        String email =
+                request.getEmail().trim().toLowerCase();
+
+        String phone =
+                request.getPhone().trim();
+
+        String dob =
+                request.getDateOfBirth().trim();
+
+        String password =
+                request.getPassword();
 
         try {
+
             // Kiểm tra username đã tồn tại chưa
             if (userRepository.existsByUsername(username)) {
-                throw new AuthException("Username already exists");
+
+                throw new AuthException(
+                        "Username already exists"
+                );
             }
 
-            // Mã hóa mật khẩu trước khi lưu database
-            String passwordHash = PasswordUtil.hashPassword(password);
+            // Kiểm tra email đã tồn tại chưa
+            if (userRepository.existsByEmail(email)) {
 
-            // Lưu user mới với role mặc định là BIDDER
-            User user = userRepository.save(
-                    username,
-                    passwordHash,
+                throw new AuthException(
+                        "Email already exists"
+                );
+            }
+
+            // Hash password trước khi lưu DB
+            String passwordHash =
+                    PasswordUtil.hashPassword(password);
+
+            User user = new User(
+                    null,
                     fullName,
+                    username,
+                    email,
+                    phone,
+                    dob,
+                    passwordHash,
                     "BIDDER"
             );
 
-            // Trả kết quả thành công
-            return AuthResponse.success(toUserInfo(user), "Register success");
+            // Lưu database
+            User saved =
+                    userRepository.save(user);
+
+            // Convert User -> UserInfo an toàn
+            UserInfo userInfo =
+                    UserInfo.fromUser(saved);
+
+            return AuthResponse
+                    .fromUserInfo(userInfo);
 
         } catch (DataAccessException e) {
-            throw new AuthException("System error while registering");
+
+            throw new AuthException(
+                    "System error while registering"
+            );
         }
     }
 
-    // Xử lý đăng nhập
-    public AuthResponse login(LoginRequest request) {
+    // =====================================================
+    // LOGIN
+    // =====================================================
+    public AuthResponse login(
+            LoginRequest request
+    ) {
 
-        // Kiểm tra dữ liệu đầu vào
         validateLogin(request);
 
-        String username = request.getUsername().trim();
-        String password = request.getPassword();
+        String loginId =
+                request.getLoginId().trim();
+
+        String password =
+                request.getPassword();
 
         try {
-            // Tìm user theo username
-            User user = userRepository.findByUsername(username);
 
-            // Nếu không tìm thấy user
+            // Tìm bằng username HOẶC email
+            User user =
+                    userRepository.findByLoginId(
+                            loginId
+                    );
+
+            // Không nói rõ sai username/email
             if (user == null) {
-                throw new AuthException("Invalid username or password");
+
+                throw new AuthException(
+                        "Invalid username/email or password"
+                );
             }
 
-            // Kiểm tra password
-            boolean isPasswordCorrect = PasswordUtil.checkPassword(
-                    password,
-                    user.getPasswordHash()
-            );
+            // So sánh password thật với hash
+            boolean match =
+                    PasswordUtil.verifyPassword(
+                            password,
+                            user.getPasswordHash()
+                    );
 
-            // Nếu password sai
-            if (!isPasswordCorrect) {
-                throw new AuthException("Invalid username or password");
+            if (!match) {
+
+                throw new AuthException(
+                        "Invalid username/email or password"
+                );
             }
 
-            // Trả kết quả đăng nhập thành công
-            return AuthResponse.success(toUserInfo(user), "Login success");
+            UserInfo userInfo =
+                    UserInfo.fromUser(user);
+
+            return AuthResponse
+                    .fromUserInfo(userInfo);
 
         } catch (DataAccessException e) {
-            throw new AuthException("System error while logging in");
+
+            throw new AuthException(
+                    "System error while login"
+            );
         }
     }
 
-    // Validate dữ liệu đăng ký
-    private void validateRegister(RegisterRequest request) {
+    // =====================================================
+    // FORGOT PASSWORD
+    // =====================================================
+    public String forgotPassword(
+            ForgotPasswordRequest request
+    ) {
+
+        if (request == null
+                || isBlank(request.getEmail())) {
+
+            throw new AuthException(
+                    "Email required"
+            );
+        }
+
+        try {
+
+            User user =
+                    userRepository.findByEmail(
+                            request.getEmail()
+                                    .trim()
+                                    .toLowerCase()
+                    );
+
+            // Không báo email tồn tại hay không
+            // để tránh dò tài khoản
+            if (user == null) {
+
+                return "Reset token generated";
+            }
+
+            // Tạo token reset password
+            String token =
+                    ResetTokenUtil.generateToken();
+
+            // Token hết hạn sau 15 phút
+            LocalDateTime expiredAt =
+                    LocalDateTime.now()
+                            .plusMinutes(15);
+
+            passwordResetRepository.saveToken(
+                    user.getId(),
+                    token,
+                    expiredAt
+            );
+
+            // Sau này:
+            // gửi email tại đây
+
+            return token;
+
+        } catch (DataAccessException e) {
+
+            throw new AuthException(
+                    "System error while resetting password"
+            );
+        }
+    }
+
+    // =====================================================
+    // RESET PASSWORD
+    // =====================================================
+    public void resetPassword(
+            ResetPasswordRequest request
+    ) {
+
+        validateResetPassword(request);
+
+        try {
+
+            PasswordResetToken token =
+                    passwordResetRepository
+                            .findByToken(
+                                    request.getToken()
+                            );
+
+            if (token == null) {
+
+                throw new AuthException(
+                        "Invalid token"
+                );
+            }
+
+            // Token đã dùng chưa
+            if (token.isUsed()) {
+
+                throw new AuthException(
+                        "Token already used"
+                );
+            }
+
+            // Token hết hạn chưa
+            if (token.getExpiredAt()
+                    .isBefore(
+                            LocalDateTime.now()
+                    )) {
+
+                throw new AuthException(
+                        "Token expired"
+                );
+            }
+
+            // Hash password mới
+            String newHash =
+                    PasswordUtil.hashPassword(
+                            request.getNewPassword()
+                    );
+
+            // Update password
+            userRepository.updatePassword(
+                    token.getUserId(),
+                    newHash
+            );
+
+            // Đánh dấu token đã dùng
+            passwordResetRepository.markUsed(
+                    token.getId()
+            );
+
+        } catch (DataAccessException e) {
+
+            throw new AuthException(
+                    "System error while resetting password"
+            );
+        }
+    }
+
+    // =====================================================
+    // VALIDATE REGISTER
+    // =====================================================
+    private void validateRegister(
+            RegisterRequest request
+    ) {
+
         if (request == null) {
-            throw new AuthException("Register request is null");
-        }
 
-        if (isBlank(request.getUsername())) {
-            throw new AuthException("Username is required");
-        }
-
-        if (isBlank(request.getPassword())) {
-            throw new AuthException("Password is required");
+            throw new AuthException(
+                    "Invalid request"
+            );
         }
 
         if (isBlank(request.getFullName())) {
-            throw new AuthException("Full name is required");
-        }
 
-        if (request.getUsername().trim().length() < 4) {
-            throw new AuthException("Username must be at least 4 characters");
-        }
-
-        if (request.getPassword().length() < 6) {
-            throw new AuthException("Password must be at least 6 characters");
-        }
-    }
-
-    // Validate dữ liệu đăng nhập
-    private void validateLogin(LoginRequest request) {
-        if (request == null) {
-            throw new AuthException("Login request is null");
+            throw new AuthException(
+                    "Full name required"
+            );
         }
 
         if (isBlank(request.getUsername())) {
-            throw new AuthException("Username is required");
+
+            throw new AuthException(
+                    "Username required"
+            );
+        }
+
+        if (isBlank(request.getEmail())) {
+
+            throw new AuthException(
+                    "Email required"
+            );
+        }
+
+        if (isBlank(request.getPhone())) {
+
+            throw new AuthException(
+                    "Phone required"
+            );
+        }
+
+        if (isBlank(request.getDateOfBirth())) {
+
+            throw new AuthException(
+                    "Date of birth required"
+            );
         }
 
         if (isBlank(request.getPassword())) {
-            throw new AuthException("Password is required");
+
+            throw new AuthException(
+                    "Password required"
+            );
+        }
+
+        if (request.getPassword().length() < 6) {
+
+            throw new AuthException(
+                    "Password must be at least 6 characters"
+            );
+        }
+
+        if (!request.getPassword()
+                .equals(
+                        request.getConfirmPassword()
+                )) {
+
+            throw new AuthException(
+                    "Password confirmation does not match"
+            );
         }
     }
 
-    // Kiểm tra chuỗi null hoặc rỗng
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
+    // =====================================================
+    // VALIDATE LOGIN
+    // =====================================================
+    private void validateLogin(
+            LoginRequest request
+    ) {
+
+        if (request == null) {
+
+            throw new AuthException(
+                    "Invalid request"
+            );
+        }
+
+        if (isBlank(request.getLoginId())) {
+
+            throw new AuthException(
+                    "Username or email required"
+            );
+        }
+
+        if (isBlank(request.getPassword())) {
+
+            throw new AuthException(
+                    "Password required"
+            );
+        }
     }
 
-    // Chuyển User entity/model sang UserInfo để trả về client
-    // Không trả passwordHash về client
-    private AuthResponse.UserInfo toUserInfo(User user) {
-        return new AuthResponse.UserInfo(
-                user.getId(),
-                user.getUsername(),
-                user.getFullName(),
-                user.getRole()
-        );
+    // =====================================================
+    // VALIDATE RESET PASSWORD
+    // =====================================================
+    private void validateResetPassword(
+            ResetPasswordRequest request
+    ) {
+
+        if (request == null) {
+
+            throw new AuthException(
+                    "Invalid request"
+            );
+        }
+
+        if (isBlank(request.getToken())) {
+
+            throw new AuthException(
+                    "Token required"
+            );
+        }
+
+        if (isBlank(request.getNewPassword())) {
+
+            throw new AuthException(
+                    "New password required"
+            );
+        }
+
+        if (request.getNewPassword().length() < 6) {
+
+            throw new AuthException(
+                    "Password must be at least 6 characters"
+            );
+        }
+
+        if (!request.getNewPassword()
+                .equals(
+                        request.getConfirmPassword()
+                )) {
+
+            throw new AuthException(
+                    "Password confirmation does not match"
+            );
+        }
+    }
+
+    // =====================================================
+    // HELPER
+    // =====================================================
+    private boolean isBlank(String s) {
+
+        return s == null
+                || s.trim().isEmpty();
     }
 }

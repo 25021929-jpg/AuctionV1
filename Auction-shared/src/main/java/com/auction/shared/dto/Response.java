@@ -12,12 +12,12 @@ public class Response<T> {
         this.data = data;
     }
 
-    // ✅ SUCCESS có message + data
+    // Thành công có message + data
     public static <T> Response<T> success(String message, T data) {
         return new Response<>(true, message, data);
     }
 
-    // ✅ FAIL chỉ có message
+    // Thất bại chỉ cần message
     public static <T> Response<T> fail(String message) {
         return new Response<>(false, message, null);
     }

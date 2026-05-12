@@ -1,35 +1,96 @@
--- Tạo database nếu chưa tồn tại
 CREATE DATABASE IF NOT EXISTS auction_db
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
--- Chọn database để sử dụng
 USE auction_db;
 
--- Xóa bảng users nếu muốn tạo lại từ đầu
--- Cẩn thận: dòng này sẽ xóa toàn bộ dữ liệu users cũ
--- DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS bids;
+DROP TABLE IF EXISTS auction_sessions;
+DROP TABLE IF EXISTS auction_items;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
 
--- Tạo bảng users
-CREATE TABLE IF NOT EXISTS users (
-    -- ID tự tăng, dùng làm khóa chính
-                                     id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE users (
+                       id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                       full_name VARCHAR(100) NOT NULL,
+                       username VARCHAR(50) NOT NULL UNIQUE,
+                       email VARCHAR(100) NOT NULL UNIQUE,
+                       phone VARCHAR(20) NOT NULL,
+                       date_of_birth DATE NOT NULL,
+                       password_hash VARCHAR(255) NOT NULL,
+                       role VARCHAR(20) NOT NULL DEFAULT 'BIDDER',
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE password_reset_tokens (
+                                       id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                       user_id BIGINT NOT NULL,
+                                       token VARCHAR(255) NOT NULL UNIQUE,
+                                       expired_at TIMESTAMP NOT NULL,
+                                       used BOOLEAN DEFAULT FALSE,
+                                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    -- Tên đăng nhập, không được trùng
-                                     username VARCHAR(50) NOT NULL UNIQUE,
+                                       FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
-    -- Mật khẩu đã mã hóa, không lưu mật khẩu thật
-    password_hash VARCHAR(255) NOT NULL,
+CREATE TABLE categories (
+                            category_id INT AUTO_INCREMENT PRIMARY KEY,
+                            category_name VARCHAR(100) NOT NULL UNIQUE,
+                            description VARCHAR(255)
+);
 
-    -- Họ tên người dùng
-    full_name VARCHAR(100) NOT NULL,
+CREATE TABLE auction_items (
+                               item_id INT AUTO_INCREMENT PRIMARY KEY,
+                               seller_id INT NOT NULL,
+                               category_id INT NOT NULL,
+                               item_name VARCHAR(150) NOT NULL,
+                               description TEXT,
+                               created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    -- Vai trò người dùng: BIDDER, SELLER, ADMIN
-    role VARCHAR(20) NOT NULL DEFAULT 'BIDDER',
+                               CONSTRAINT fk_auction_items_seller
+                                   FOREIGN KEY (seller_id)
+                                       REFERENCES users(user_id),
 
-    -- Thời gian tạo tài khoản
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                               CONSTRAINT fk_auction_items_category
+                                   FOREIGN KEY (category_id)
+                                       REFERENCES categories(category_id)
+);
 
-    -- Thời gian cập nhật tài khoản
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    );
+CREATE TABLE auction_sessions (
+                                  auction_id INT AUTO_INCREMENT PRIMARY KEY,
+                                  item_id INT NOT NULL,
+                                  starting_price DECIMAL(15, 2) NOT NULL,
+                                  current_price DECIMAL(15, 2) NOT NULL,
+                                  start_time DATETIME NOT NULL,
+                                  end_time DATETIME NOT NULL,
+                                  status VARCHAR(20) NOT NULL DEFAULT 'UPCOMING',
+                                  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                  CONSTRAINT fk_auction_sessions_item
+                                      FOREIGN KEY (item_id)
+                                          REFERENCES auction_items(item_id),
+
+                                  CONSTRAINT chk_auction_price
+                                      CHECK (starting_price > 0 AND current_price >= starting_price),
+
+                                  CONSTRAINT chk_auction_time
+                                      CHECK (end_time > start_time)
+);
+
+CREATE TABLE bids (
+                      bid_id INT AUTO_INCREMENT PRIMARY KEY,
+                      auction_id INT NOT NULL,
+                      bidder_id INT NOT NULL,
+                      bid_amount DECIMAL(15, 2) NOT NULL,
+                      bid_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                      CONSTRAINT fk_bids_auction
+                          FOREIGN KEY (auction_id)
+                              REFERENCES auction_sessions(auction_id),
+
+                      CONSTRAINT fk_bids_bidder
+                          FOREIGN KEY (bidder_id)
+                              REFERENCES users(user_id),
+
+                      CONSTRAINT chk_bid_amount
+                          CHECK (bid_amount > 0)
+);

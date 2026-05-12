@@ -1,38 +1,84 @@
 package com.auction.server.feature.auth.controller;
 
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.AuthResponse;
-import com.auction.server.feature.auth.dto.LoginRequest;
-import com.auction.server.feature.auth.dto.RegisterRequest;
+import com.auction.server.feature.auth.dto.*;
 import com.auction.server.feature.auth.service.AuthService;
+import com.auction.shared.dto.Response;
+import com.google.gson.Gson;
 
-// Controller nhận request từ client rồi gọi service xử lý
 public class AuthController {
 
     private final AuthService authService;
+    private final Gson gson;
 
-    // Constructor khởi tạo service
     public AuthController() {
         this.authService = new AuthService();
+        this.gson = new Gson();
     }
 
-    // API xử lý đăng ký
-    public AuthResponse register(RegisterRequest request) {
+    public Response<AuthResponse> register(String body) {
         try {
-            return authService.register(request);
+            RegisterRequest request = gson.fromJson(body, RegisterRequest.class);
+
+            AuthResponse result = authService.register(request);
+
+            return Response.success("Register success", result);
 
         } catch (AuthException e) {
-            return AuthResponse.fail(e.getMessage());
+            return Response.fail(e.getMessage());
+
+        } catch (Exception e) {
+            return Response.fail("Internal server error");
         }
     }
 
-    // API xử lý đăng nhập
-    public AuthResponse login(LoginRequest request) {
+    public Response<AuthResponse> login(String body) {
         try {
-            return authService.login(request);
+            LoginRequest request = gson.fromJson(body, LoginRequest.class);
+
+            AuthResponse result = authService.login(request);
+
+            return Response.success("Login success", result);
 
         } catch (AuthException e) {
-            return AuthResponse.fail(e.getMessage());
+            return Response.fail(e.getMessage());
+
+        } catch (Exception e) {
+            return Response.fail("Internal server error");
+        }
+    }
+
+    public Response<String> forgotPassword(String body) {
+        try {
+            ForgotPasswordRequest request = gson.fromJson(body, ForgotPasswordRequest.class);
+
+            String resetToken = authService.forgotPassword(request);
+
+            // Tạm thời trả token để test.
+            // Sau này có email thật thì không trả token trực tiếp nữa.
+            return Response.success("Reset token created", resetToken);
+
+        } catch (AuthException e) {
+            return Response.fail(e.getMessage());
+
+        } catch (Exception e) {
+            return Response.fail("Internal server error");
+        }
+    }
+
+    public Response<String> resetPassword(String body) {
+        try {
+            ResetPasswordRequest request = gson.fromJson(body, ResetPasswordRequest.class);
+
+            authService.resetPassword(request);
+
+            return Response.success("Password reset success", null);
+
+        } catch (AuthException e) {
+            return Response.fail(e.getMessage());
+
+        } catch (Exception e) {
+            return Response.fail("Internal server error");
         }
     }
 }
