@@ -1,8 +1,9 @@
 package com.auction.client.feature.auth.validator;
 
 import com.auction.client.feature.auth.dto.request.ForgotPasswordRequest;
-import com.auction.validation.*;
-import com.auction.validation.rules.*;
+import com.auction.shared.validation.*;
+import com.auction.shared.validation.rules.EmailFormatRule;
+import com.auction.shared.validation.rules.NotBlankRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ForgotPasswordValidator implements Validator<ForgotPasswordRequest>
     }
     @SafeVarargs
     //Helper method validate để giúp cho validate các thuộc tính thuận tiện hơn
-    private static <T>Optional < FieldError > validate(String fieldName, T value, ValidationRule < T >...rules){
+    private static <T>Optional < FieldError > validate(String fieldName, T value, ValidationRule< T >...rules){
         return new FieldValidator<T>(fieldName, value, rules).validate();
     }
 }
