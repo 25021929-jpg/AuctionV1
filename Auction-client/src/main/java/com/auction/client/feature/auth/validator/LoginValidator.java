@@ -3,7 +3,6 @@ package com.auction.client.feature.auth.validator;
 import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.auction.validation.*;
 import com.auction.validation.rules.EmailOrUsernameRule;
-import com.auction.validation.rules.MinLengthRule;
 import com.auction.validation.rules.NotBlankRule;
 
 import java.util.ArrayList;

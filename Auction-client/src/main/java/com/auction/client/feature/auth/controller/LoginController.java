@@ -2,11 +2,15 @@ package com.auction.client.feature.auth.controller;
 
 import com.auction.client.core.ui.AlertHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import com.auction.client.core.ui.UIAnimations;
+import com.auction.client.feature.auth.dto.request.LoginRequest;
+import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.validation.Validator;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 
 public class LoginController {
 
@@ -28,6 +32,35 @@ public class LoginController {
 //            System.out.println("Set image OK, width: " + img.getWidth());
 //        }
 //    }
+
+    @FXML private CheckBox      rememberCheckBox;
+    @FXML private Button        loginBtn;
+
+    // Cần inject VBox chứa form để animate
+    // Thêm fx:id="formBox" vào VBox bên phải trong FXML
+    @FXML private VBox formBox;
+
+    private final Validator<LoginRequest> validator =
+            AuthValidatorFactory.createLoginValidator();
+
+    @FXML
+    public void initialize() {
+        //Chạy animation cho formBox
+        UIAnimations.entrance(formBox);
+        setupEnterKeyOnFields();
+    }
+
+
+
+    // ── Thêm: Focus animation cho field ──────────────────
+
+    private void setupEnterKeyOnFields() {
+        // Nhấn Enter ở usernameField → nhảy sang passwordField
+        usernameField.setOnAction(e -> passwordField.requestFocus());
+
+        // Nhấn Enter ở passwordField → submit login
+        passwordField.setOnAction(e -> handleLogin(null));
+    }
 
     @FXML
     private void handleLogin(ActionEvent event) {
@@ -58,7 +91,7 @@ public class LoginController {
     @FXML
     private void handleNavigateRegister(ActionEvent event) {
         // Chuyển sang màn hình đăng ký
-        SceneNavigator.switchScene("/com/auction/client/view/register-view.fxml");
+        SceneNavigator.switchScene("/com/auction/client/feature/auth/view/register-view.fxml");
     }
 
     @FXML

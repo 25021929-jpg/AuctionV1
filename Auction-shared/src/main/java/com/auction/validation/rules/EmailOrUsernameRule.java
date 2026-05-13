@@ -6,7 +6,7 @@ import java.util.Optional;
 public class EmailOrUsernameRule implements ValidationRule<String> {
 
     private static final String EMAIL_REGEX =
-            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.com";
 
     @Override
     public Optional<String> check(String value) {

@@ -6,12 +6,12 @@ import com.auction.validation.rules.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.Optional;
+
 public class ForgotPasswordValidator implements Validator<ForgotPasswordRequest> {
 
     @Override
-    public ValidationResult validate (ForgotPasswordRequest req){
+    public ValidationResult validate(ForgotPasswordRequest req) {
         List<FieldError> errors = new ArrayList<>();
 
         validate("email", req.email(),
@@ -25,7 +25,7 @@ public class ForgotPasswordValidator implements Validator<ForgotPasswordRequest>
     }
     @SafeVarargs
     //Helper method validate để giúp cho validate các thuộc tính thuận tiện hơn
-    private static <T>Optional < FieldError > validate(String fieldName, T value, ValidationRule < T >...rules){
+    private  static <T> Optional<FieldError> validate(String fieldName, T value, ValidationRule<T>... rules){
         return new FieldValidator<T>(fieldName, value, rules).validate();
     }
 }

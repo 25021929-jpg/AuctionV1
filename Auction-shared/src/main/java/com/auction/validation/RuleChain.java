@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public class RuleChain<T> {
     private final List<ValidationRule<T>> rules;
-
+    //Kiểm tra giá trị bị lỗi gì
     //Varargs ... sẽ để cho java tự tạo giúp mình một array với các phần tử tham số truyền vào.
     //Chủ yếu là giúp gọi gọn hơn
     @SafeVarargs

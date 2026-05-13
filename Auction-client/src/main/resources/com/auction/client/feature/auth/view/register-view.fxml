@@ -48,7 +48,7 @@
     </VBox>
 
     <!-- RIGHT — Form -->
-    <VBox alignment="CENTER" prefHeight="660" prefWidth="620" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 40px 50px;">
+    <VBox fx:id="formBox" alignment="CENTER" prefHeight="660" prefWidth="620" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 40px 50px;">
 
         <VBox alignment="CENTER" spacing="4" style="-fx-padding: 0 0 28px 0;">
             <Label style="-fx-font-size: 20px; -fx-font-weight: bold;                           -fx-text-fill: #4FC3F7; -fx-letter-spacing: 2px;" text="ĐĂNG KÝ TÀI KHOẢN" />
@@ -64,12 +64,12 @@
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="HỌ VÀ TÊN" />
                     <TextField fx:id="fullNameField" promptText="Nguyễn Văn A" styleClass="text-field" />
-                    <Label fx:id="fullNameError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="fullNameError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="TÊN ĐĂNG NHẬP" />
                     <TextField fx:id="usernameField" promptText="username" styleClass="text-field" />
-                    <Label fx:id="usernameError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="usernameError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
             </HBox>
 
@@ -77,7 +77,7 @@
             <VBox spacing="5">
                 <Label styleClass="field-label" text="EMAIL" />
                 <TextField fx:id="emailField" prefWidth="480" promptText="example@email.com" styleClass="text-field" />
-                <Label fx:id="emailError" managed="false" styleClass="field-error" visible="false" />
+                <Label fx:id="emailError" managed="false" styleClass="error-message" visible="false" />
             </VBox>
 
             <!-- Row 2 -->
@@ -85,12 +85,12 @@
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="SỐ ĐIỆN THOẠI" />
                     <TextField fx:id="phoneField" prefHeight="25.0" prefWidth="138.0" promptText="0901 234 567" styleClass="text-field" />
-                    <Label fx:id="phoneError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="phoneError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="NGÀY SINH" />
                     <DatePicker fx:id="dobField" maxWidth="Infinity" prefHeight="25.0" prefWidth="139.0" promptText="DD/MM/YYYY" styleClass="text-field" />
-                    <Label fx:id="dobError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="dobError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
             </HBox>
 
@@ -99,12 +99,12 @@
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="MẬT KHẨU" />
                     <PasswordField fx:id="passwordField" promptText="Tối thiểu 8 ký tự" styleClass="password-field" />
-                    <Label fx:id="passwordError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="passwordError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label styleClass="field-label" text="XÁC NHẬN MẬT KHẨU" />
                     <PasswordField fx:id="confirmPasswordField" promptText="Nhập lại mật khẩu" styleClass="password-field" />
-                    <Label fx:id="confirmPasswordError" managed="false" styleClass="field-error" visible="false" />
+                    <Label fx:id="confirmPasswordError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
             </HBox>
 

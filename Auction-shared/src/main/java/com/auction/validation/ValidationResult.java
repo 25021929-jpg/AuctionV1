@@ -37,8 +37,8 @@ public class ValidationResult {
     public boolean valid(){
         return fieldErrors.isEmpty();
     }
-    //Controller gọi cái này để bôi đỏ đúng textfield
 
+    //Controller gọi cái này để bôi đỏ đúng textfield
     //Nếu có lỗi thì message lỗi
     //Nếu không có lỗi thì return empty String (không được phép modify
     public String errorFor(String field){

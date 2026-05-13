@@ -17,7 +17,7 @@ public class MinAgeRule implements ValidationRule<LocalDate> {
         }
         int age = Period.between(date, LocalDate.now()).getYears();
         if (age < minAge){
-            return Optional.of("Người dùng phải " + minAge + " tuổi trở lên");
+            return Optional.of("Người dùng phải từ " + minAge + " tuổi trở lên");
         }
         return Optional.empty();
     }

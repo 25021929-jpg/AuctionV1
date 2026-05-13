@@ -16,11 +16,10 @@ thiết kế package/project structure
 
 Trường
 class nền tảng: User, Bidder, Seller, Admin
+Trường,Vũ: UI View Đăng ký/Đăng nhập
 
 Phát
-đăng ký / đăng nhập
+Controller và Service đăng ký / đăng nhập 
 
-Phúc
-role-based access
 Chung
 viết README, task-allocation.md

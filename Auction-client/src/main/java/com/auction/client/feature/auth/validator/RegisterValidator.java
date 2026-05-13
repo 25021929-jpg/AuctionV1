@@ -51,7 +51,7 @@ public class RegisterValidator implements Validator<RegisterRequest> {
             if (!req.password().equals(req.confirmPassword())) {
                 errors.add(new FieldError(
                         "confirmPassword",
-                        "Passwords do not match"
+                        "Mật khẩu không khớp"
                 ));
             }
         }
