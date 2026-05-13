@@ -1,109 +1,105 @@
 package com.auction.client.feature.auth.controller;
 
-import com.auction.client.core.ui.AlertHelper;
+import com.auction.client.core.ui.FormHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
-import javafx.animation.ParallelTransition;
-import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class LoginController {
 
-    @FXML private TextField usernameField; // Khớp fx:id="usernameField"
-    @FXML private PasswordField passwordField; // Khớp fx:id="passwordField"
-    @FXML private Label errorLabel;
+    @FXML private TextField     identityField;
+    @FXML private PasswordField passwordField;
+    @FXML private VBox          formBox;
 
-    @FXML
-    private ImageView logoImageView;
+    @FXML private Label identityError;
+    @FXML private Label passwordError;
+    @FXML private Button loginButton;
 
-    //Hàm initialize đề phòng
-//    @FXML
-//    public void initialize() {
-//        // Set ảnh trực tiếp bằng code
-//        var url = getClass().getResource("/com/auction/client/css/logo.png");
-//        if (url != null) {
-//            Image img = new Image(url.toExternalForm());
-//            logoImageView.setImage(img);
-//            System.out.println("Set image OK, width: " + img.getWidth());
-//        }
-//    }
+    // Map Control → Label
+    private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
 
-    @FXML private CheckBox      rememberCheckBox;
-    @FXML private Button        loginBtn;
-
-    // Cần inject VBox chứa form để animate
-    // Thêm fx:id="formBox" vào VBox bên phải trong FXML
-    @FXML private VBox formBox;
+    // Map tên field (khớp ValidationResult) → Control
+    private final Map<String, Control> fieldMap = new LinkedHashMap<>();
 
     private final Validator<LoginRequest> validator =
             AuthValidatorFactory.createLoginValidator();
 
+    // ── initialize ───────────────────────────────────────────────────────────
+
     @FXML
     public void initialize() {
-        //Chạy animation cho formBox
         UIAnimations.entrance(formBox);
-        setupEnterKeyOnFields();
+        setupFormHelper();
     }
 
+    private void setupFormHelper() {
+        fieldErrorMap.put(identityField, identityError);
+        fieldErrorMap.put(passwordField, passwordError);
 
+        fieldMap.put("identity", identityField);
+        fieldMap.put("password", passwordField);
 
-    // ── Thêm: Focus animation cho field ──────────────────
-
-    private void setupEnterKeyOnFields() {
-        // Nhấn Enter ở usernameField → nhảy sang passwordField
-        usernameField.setOnAction(e -> passwordField.requestFocus());
-
-        // Nhấn Enter ở passwordField → submit login
-        passwordField.setOnAction(e -> handleLogin(null));
+        FormHelper.bindClearOnChange(fieldErrorMap);
     }
+
+    // ── handleLogin ──────────────────────────────────────────────────────────
 
     @FXML
     private void handleLogin(ActionEvent event) {
-        String user = usernameField.getText();
-        String pass = passwordField.getText();
+        FormHelper.clearAll(fieldErrorMap);
 
-        if (user.isEmpty() || pass.isEmpty()) {
-            // Cách 1: Dùng AlertHelper
-            AlertHelper.showError("Lỗi đăng nhập", "Vui lòng nhập đầy đủ thông tin!");
+        ValidationResult result = validator.validate(buildRequest());
 
-            // Cách 2: Hiển thị ngay trên giao diện qua errorLabel (nếu muốn)
-            errorLabel.setText("Tài khoản/Mật khẩu không được để trống");
-            errorLabel.setVisible(true);
-            errorLabel.setManaged(true);
+        if (!result.valid()) {
+            FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
 
-        // Giả sử đăng nhập thành công
-        if (user.equals("admin") && pass.equals("123")) {
-            AlertHelper.showInfo("Thành công", "Chào mừng bạn quay trở lại!");
-            // Chuyển sang trang chủ
-            SceneNavigator.switchScene("/com/auction/client/feature/auth/view/home-view.fxml");
-        } else {
-            AlertHelper.showError("Thất bại", "Sai tài khoản hoặc mật khẩu!");
-        }
+        // TODO: Gọi API đăng nhập trước, rồi mới navigate
+        // Hợp lệ → hiện toast rồi chuyển màn
+        StackPane root = (StackPane) loginButton.getScene().getRoot();
+        Toast.show(root, "✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateToMain);
+        navigateToMain();
+    }
+
+    // ── Helper private ───────────────────────────────────────────────────────
+
+    private LoginRequest buildRequest() {
+        return new LoginRequest(
+                identityField.getText().trim(),
+                passwordField.getText()
+        );
+    }
+
+    private void navigateToMain() {
+        SceneNavigator.switchScene(
+                "/com/auction/client/feature/main/view/main-view.fxml"
+        );
     }
 
     @FXML
-    private void handleNavigateRegister(ActionEvent event) {
-        // Chuyển sang màn hình đăng ký
-        SceneNavigator.switchScene("/com/auction/client/view/register-view.fxml");
+    private void handleNavigateRegister(ActionEvent actionEvent) {
+        SceneNavigator.switchScene(
+                "/com/auction/client/feature/auth/view/register-view.fxml"
+        );
     }
 
     @FXML
-    private void handleForgotPassword(ActionEvent event) {
-        System.out.println("Quên mật khẩu clicked!");
-        SceneNavigator.switchScene("/com/auction/client/feature/auth/view/forgot-password-view.fxml");
+    private void handleNavigateForgotPassword(ActionEvent actionEvent) {
+        SceneNavigator.switchScene(
+                "/com/auction/client/feature/auth/view/forgot-password-view.fxml"
+        );
     }
-
 }
