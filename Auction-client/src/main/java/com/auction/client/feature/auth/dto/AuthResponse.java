@@ -1,10 +1,9 @@
 package com.auction.client.feature.auth.dto;
-
-
+import com.auction.shared.model.User;
 public class AuthResponse {
     private boolean success;
     private String message;
-    private com.auction.model.User user; // Sử dụng User của Authshared
+    private User user; // Sử dụng User của Authshared
 
     // Hàm login sẽ trả về một đối tượng AuthResponse với đầy đủ tính chất
     //Sử dụng cách Refractoring code Replace Data Value with Object
@@ -15,7 +14,7 @@ public class AuthResponse {
         this.user = null;
     }
     //Hàm khởi tạo khi đăng nhập và trả về có user (có thể là thành công)
-    public AuthResponse(boolean success, String message, com.auction.model.User User){
+    public AuthResponse(boolean success, String message, User User){
         this.success = success;
         this.message = message;
         this.user = User;
@@ -28,7 +27,7 @@ public class AuthResponse {
     public String getMessage(){
         return message;
     }
-    public com.auction.model.User getUser(){
+    public User getUser(){
         return user;
     }
 

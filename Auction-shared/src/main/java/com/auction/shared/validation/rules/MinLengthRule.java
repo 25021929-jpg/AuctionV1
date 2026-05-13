@@ -1,0 +1,21 @@
+package com.auction.shared.validation.rules;
+
+import com.auction.shared.validation.ValidationRule;
+
+import java.util.Optional;
+
+public class MinLengthRule implements ValidationRule<String> {
+
+    private final int min;
+
+    public MinLengthRule(int min){
+
+        this.min = min ;
+    }
+
+    public Optional<String> check(String value){
+        return (value != null && value.length() >= min)
+                ? Optional.empty()
+                : Optional.of("Phải chứa ít nhất " + min + " ký tự");
+    }
+}
