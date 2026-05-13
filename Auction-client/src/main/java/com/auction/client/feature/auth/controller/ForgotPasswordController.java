@@ -1,150 +1,239 @@
 package com.auction.client.feature.auth.controller;
 
+import com.auction.client.core.ui.FormHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import com.auction.client.core.ui.UIAnimations;
+import com.auction.client.feature.auth.dto.request.ForgotPasswordRequest;
+import com.auction.client.feature.auth.dto.request.OtpRequest;
+import com.auction.client.feature.auth.dto.request.ResetPasswordRequest;
+import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.client.core.ui.PasswordStrengthBar;
+import com.auction.validation.ValidationResult;
+import com.auction.validation.Validator;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class ForgotPasswordController {
 
-    // Bước 1
-    @FXML private VBox stepEmail;
+    // ── Bước 1: Email ────────────────────────────────────
+    @FXML private VBox      stepEmail;
     @FXML private TextField emailField;
-    @FXML private Label emailError;
+    @FXML private Label     emailError;
 
-    // Bước 2
-    @FXML private VBox stepOtp;
+    // ── Bước 2: OTP ──────────────────────────────────────
+    @FXML private VBox      stepOtp;
     @FXML private TextField otpField;
-    @FXML private Label otpError, otpHint, countdownLabel;
-    @FXML private Button resendBtn;
+    @FXML private Label     otpError, otpHint, countdownLabel;
+    @FXML private Button    resendBtn;
 
-    // Bước 3
-    @FXML private VBox stepReset;
+    // ── Bước 3: Reset mật khẩu ───────────────────────────
+    @FXML private VBox          stepReset;
     @FXML private PasswordField newPasswordField, confirmPasswordField;
-    @FXML private Label resetError, strengthLabel;
-    @FXML private ProgressBar strengthBar;
+    @FXML private Label         resetError;
+    @FXML private Label         strengthLabel;
+    @FXML private ProgressBar   strengthBar;
 
-    // Bước 4
+    // ── Bước 4: Thành công ───────────────────────────────
     @FXML private VBox stepSuccess;
 
-    private String verifiedEmail = "";
+    // ── Root cho animation ───────────────────────────────
+    @FXML private StackPane formBox;
+
+    // ── Validators ───────────────────────────────────────
+    private final Validator<ForgotPasswordRequest> emailValidator =
+            AuthValidatorFactory.createForgotPasswordValidator();
+    private final Validator<OtpRequest> otpValidator =
+            AuthValidatorFactory.createOtpValidator();
+    private final Validator<ResetPasswordRequest> resetValidator =
+            AuthValidatorFactory.createResetPasswordValidator();
+
+    // ── FormHelper maps ───────────────────────────────────
+    // Bước 1
+    private final Map<Control, Label>  emailFieldErrorMap = new LinkedHashMap<>();
+    private final Map<String, Control> emailFieldMap      = new LinkedHashMap<>();
+
+    // Bước 2
+    private final Map<Control, Label>  otpFieldErrorMap = new LinkedHashMap<>();
+    private final Map<String, Control> otpFieldMap      = new LinkedHashMap<>();
+
+    // Bước 3
+    private final Map<Control, Label>  resetFieldErrorMap = new LinkedHashMap<>();
+    private final Map<String, Control> resetFieldMap      = new LinkedHashMap<>();
+
+    // ── State ─────────────────────────────────────────────
+    private String   verifiedEmail = "";
+    //verifiedEmail không phải copy thừa của emailField — nó là email đã được xác nhận hợp lệ và đã gửi OTP. Tách biệt state nghiệp vụ khỏi state UI là nguyên tắc quan trọng trong multi-step form.
     private Timeline countdown;
-    private int seconds = 60;
+    private int      seconds       = 60;
+
+    // ── initialize ────────────────────────────────────────
 
     @FXML
     public void initialize() {
-        newPasswordField.textProperty().addListener((o, old, val) -> updateStrength(val));
+        // Animation
+        UIAnimations.entrance(formBox);
+
+        // Strength bar
+        new PasswordStrengthBar(strengthBar, strengthLabel)
+                .bindTo(newPasswordField);
+
+        // Bước 1 — Email
+        emailFieldErrorMap.put(emailField, emailError);
+        emailFieldMap.put("email", emailField);
+        FormHelper.bindClearOnChange(emailFieldErrorMap);
+
+        // Bước 2 — OTP
+        otpFieldErrorMap.put(otpField, otpError);
+        otpFieldMap.put("otp", otpField);
+        FormHelper.bindClearOnChange(otpFieldErrorMap);
+
+        // Bước 3 — Reset password
+        resetFieldErrorMap.put(newPasswordField,     resetError);
+        resetFieldErrorMap.put(confirmPasswordField, resetError);
+        resetFieldMap.put("password",        newPasswordField);
+        resetFieldMap.put("confirmPassword", confirmPasswordField);
+        FormHelper.bindClearOnChange(resetFieldErrorMap);
     }
 
-    // ── Bước 1: Gửi OTP ──
+    // ── Bước 1: Gửi OTP ──────────────────────────────────
+
     @FXML
     private void handleSendOtp() {
-        String email = emailField.getText().trim();
-        if (email.isEmpty()) { showError(emailError, "Vui lòng nhập email."); return; }
-        if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
-            showError(emailError, "Email không đúng định dạng."); return;
+        FormHelper.clearAll(emailFieldErrorMap);
+
+        ValidationResult result = emailValidator.validate(
+                new ForgotPasswordRequest(emailField.getText().trim())
+        );
+
+        if (!result.valid()) {
+            FormHelper.applyErrors(result, emailFieldMap, emailFieldErrorMap);
+            return;
         }
-        hideError(emailError);
-        verifiedEmail = email;
-        otpHint.setText("Mã đã gửi đến: " + email);
-        // TODO: authService.sendOtp(email)
+
+        verifiedEmail = emailField.getText().trim();
+        otpHint.setText("Code sent to: " + verifiedEmail);
+
+        // TODO: authService.sendOtp(verifiedEmail)
+
         goTo(stepOtp);
         startCountdown();
     }
 
-    // ── Bước 2: Xác nhận OTP ──
+    // ── Bước 2: Xác nhận OTP ─────────────────────────────
+
     @FXML
     private void handleVerifyOtp() {
-        String otp = otpField.getText().trim();
-        if (otp.length() != 6 || !otp.matches("\\d+")) {
-            showError(otpError, "Mã OTP phải gồm đúng 6 chữ số."); return;
+        FormHelper.clearAll(otpFieldErrorMap);
+
+        ValidationResult result = otpValidator.validate(
+                new OtpRequest(otpField.getText().trim())
+        );
+
+        if (!result.valid()) {
+            FormHelper.applyErrors(result, otpFieldMap, otpFieldErrorMap);
+            return;
         }
-        hideError(otpError);
-        // TODO: authService.verifyOtp(verifiedEmail, otp)
+
+        // TODO: authService.verifyOtp(verifiedEmail, otpField.getText())
+
         stopCountdown();
         goTo(stepReset);
     }
 
-    @FXML private void handleResendOtp() { otpField.clear(); hideError(otpError); startCountdown(); }
-    @FXML private void handleBackToEmail() { stopCountdown(); otpField.clear(); goTo(stepEmail); }
+    @FXML
+    private void handleResendOtp() {
+        otpField.clear();
+        FormHelper.clearAll(otpFieldErrorMap);
+        startCountdown();
+        // TODO: authService.sendOtp(verifiedEmail)
+    }
 
-    // ── Bước 3: Đặt lại mật khẩu ──
+    @FXML
+    private void handleBackToEmail() {
+        stopCountdown();
+        otpField.clear();
+        FormHelper.clearAll(otpFieldErrorMap);
+        goTo(stepEmail);
+    }
+
+    // ── Bước 3: Đặt lại mật khẩu ─────────────────────────
+
     @FXML
     private void handleResetPassword() {
-        String pass = newPasswordField.getText();
-        String confirm = confirmPasswordField.getText();
-        if (pass.length() < 8) { showError(resetError, "Mật khẩu phải có ít nhất 8 ký tự."); return; }
-        if (!pass.equals(confirm)) { showError(resetError, "Mật khẩu xác nhận không khớp."); return; }
-        hideError(resetError);
-        // TODO: authService.resetPassword(verifiedEmail, pass)
+        FormHelper.clearAll(resetFieldErrorMap);
+
+        ValidationResult result = resetValidator.validate(
+                new ResetPasswordRequest(
+                        newPasswordField.getText(),
+                        confirmPasswordField.getText()
+                )
+        );
+
+        if (!result.valid()) {
+            FormHelper.applyErrors(result, resetFieldMap, resetFieldErrorMap);
+            return;
+        }
+
+        // TODO: authService.resetPassword(verifiedEmail, newPasswordField.getText())
+
         goTo(stepSuccess);
     }
 
-//    @FXML
-//    private void handleNavigateLogin() {
-//        SceneNavigator.navigateTo("login-view.fxml");
-//    }
+    // ── Bước 4: Navigate về Login ─────────────────────────
 
-    // ── Helper: chuyển bước ──
-    private void goTo(VBox target) {
-        for (VBox step : new VBox[]{stepEmail, stepOtp, stepReset, stepSuccess}) {
-            step.setVisible(false); step.setManaged(false);
-        }
-        target.setVisible(true); target.setManaged(true);
+    @FXML
+    private void handleNavigateLogin(ActionEvent event) {
+        SceneNavigator.switchScene(
+                "/com/auction/client/feature/auth/view/login-view.fxml"
+        );
     }
 
-    // ── Helper: đếm ngược ──
+    // ── Helper: chuyển bước ───────────────────────────────
+    //pattern Single Scene, Multiple Views -> không cần phải tạo scene mới mà chỉ cần chuyển bước trên cùng 1 scene.
+    private void goTo(VBox target) {
+        for (VBox step : new VBox[]{stepEmail, stepOtp, stepReset, stepSuccess}) {
+            step.setVisible(false);
+            step.setManaged(false);
+        }
+        target.setVisible(true);
+        target.setManaged(true);
+    }
+
+    // ── Helper: đếm ngược ────────────────────────────────
+
     private void startCountdown() {
         seconds = 60;
-        resendBtn.setVisible(false); resendBtn.setManaged(false);
-        countdownLabel.setVisible(true); countdownLabel.setManaged(true);
-        countdown = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
-            countdownLabel.setText(--seconds + "s");
-            if (seconds <= 0) {
-                stopCountdown();
-                countdownLabel.setVisible(false); countdownLabel.setManaged(false);
-                resendBtn.setVisible(true); resendBtn.setManaged(true);
-            }
-        }));
+        resendBtn.setVisible(false);
+        resendBtn.setManaged(false);
+        countdownLabel.setVisible(true);
+        countdownLabel.setManaged(true);
+
+        countdown = new Timeline(
+                new KeyFrame(Duration.seconds(1), e -> {
+                    countdownLabel.setText(--seconds + "s");
+                    if (seconds <= 0) {
+                        stopCountdown();
+                        countdownLabel.setVisible(false);
+                        countdownLabel.setManaged(false);
+                        resendBtn.setVisible(true);
+                        resendBtn.setManaged(true);
+                    }
+                })
+        );
         countdown.setCycleCount(60);
         countdown.play();
     }
 
-    private void stopCountdown() { if (countdown != null) countdown.stop(); }
-
-    // ── Helper: độ mạnh mật khẩu ──
-    private void updateStrength(String p) {
-        int s = 0;
-        if (p.length() >= 8)                        s++;
-        if (p.length() >= 12)                       s++;
-        if (p.matches(".*[A-Z].*"))                 s++;
-        if (p.matches(".*[0-9].*"))                 s++;
-        if (p.matches(".*[!@#$%^&*()_+\\-=].*"))   s++;
-
-        if (s <= 1) {
-            strengthBar.setProgress(0.2); strengthLabel.setText("Yếu");
-            strengthLabel.setStyle("-fx-text-fill:#FF3D5A;-fx-font-weight:bold;-fx-font-size:12px;");
-            strengthBar.setStyle("-fx-accent:#FF3D5A;");
-        } else if (s <= 3) {
-            strengthBar.setProgress(0.6); strengthLabel.setText("Trung bình");
-            strengthLabel.setStyle("-fx-text-fill:#C8A84B;-fx-font-weight:bold;-fx-font-size:12px;");
-            strengthBar.setStyle("-fx-accent:#C8A84B;");
-        } else {
-            strengthBar.setProgress(1.0); strengthLabel.setText("Mạnh");
-            strengthLabel.setStyle("-fx-text-fill:#00E5A0;-fx-font-weight:bold;-fx-font-size:12px;");
-            strengthBar.setStyle("-fx-accent:#00E5A0;");
-        }
-    }
-
-    // ── Helper: lỗi ──
-    private void showError(Label l, String msg) { l.setText(msg); l.setVisible(true); l.setManaged(true); }
-    private void hideError(Label l) { l.setVisible(false); l.setManaged(false); }
-
-    public void handleNavigateLogin(ActionEvent actionEvent) {
-        SceneNavigator.switchScene("/com/auction/client/feature/auth/view/login-view.fxml");
+    private void stopCountdown() {
+        if (countdown != null) countdown.stop();
     }
 }

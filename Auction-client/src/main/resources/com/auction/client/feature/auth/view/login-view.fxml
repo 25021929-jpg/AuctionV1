@@ -33,7 +33,7 @@
     </VBox>
 
     <!-- RIGHT — Form (VBox: Sắp xếp các thành phần theo chiều dọc) -->
-    <VBox alignment="CENTER" prefHeight="600" prefWidth="520" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 50px 60px;">
+    <VBox fx:id="formBox" alignment="CENTER" prefHeight="600" prefWidth="520" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 50px 60px;">
 
         <!-- Tiêu đề đăng nhập -->
         <VBox alignment="CENTER" spacing="4" style="-fx-padding: 0 0 32px 0;">
