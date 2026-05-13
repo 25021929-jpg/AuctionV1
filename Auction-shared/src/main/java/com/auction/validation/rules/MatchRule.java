@@ -1,4 +1,4 @@
-package com.auction.shared.validation.rules;
+package com.auction.validation.rules;
 
 import com.auction.validation.ValidationRule;
 

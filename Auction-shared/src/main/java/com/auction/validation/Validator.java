@@ -1,4 +1,4 @@
-package com.auction.shared.validation;
+package com.auction.validation;
 /*
     Interface cho business Validator
     validate() return ValidationResult vì đó là kiểu duy nhất trả lời đủ 3 câu hỏi mà Controller cần:

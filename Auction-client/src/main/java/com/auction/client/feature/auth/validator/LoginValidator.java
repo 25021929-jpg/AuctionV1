@@ -1,9 +1,9 @@
 package com.auction.client.feature.auth.validator;
 
 import com.auction.client.feature.auth.dto.request.LoginRequest;
-import com.auction.shared.validation.*;
-import com.auction.shared.validation.rules.EmailOrUsernameRule;
-import com.auction.shared.validation.rules.NotBlankRule;
+import com.auction.validation.*;
+import com.auction.validation.rules.EmailOrUsernameRule;
+import com.auction.validation.rules.NotBlankRule;
 
 import java.util.ArrayList;
 import java.util.List;

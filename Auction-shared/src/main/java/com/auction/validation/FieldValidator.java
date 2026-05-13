@@ -1,4 +1,4 @@
-package com.auction.shared.validation;
+package com.auction.validation;
 
 import java.util.Optional;
 

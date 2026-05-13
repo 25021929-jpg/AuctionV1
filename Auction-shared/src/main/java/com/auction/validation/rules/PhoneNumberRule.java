@@ -1,6 +1,6 @@
-package com.auction.shared.validation.rules;
+package com.auction.validation.rules;
 
-import com.auction.shared.validation.ValidationRule;
+import com.auction.validation.ValidationRule;
 
 import java.util.Optional;
 

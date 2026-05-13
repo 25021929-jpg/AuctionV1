@@ -6,17 +6,11 @@ import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
 import com.auction.validation.Validator;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
-import javafx.animation.ParallelTransition;
-import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 public class LoginController {
 
@@ -97,7 +91,7 @@ public class LoginController {
     @FXML
     private void handleNavigateRegister(ActionEvent event) {
         // Chuyển sang màn hình đăng ký
-        SceneNavigator.switchScene("/com/auction/client/view/register-view.fxml");
+        SceneNavigator.switchScene("/com/auction/client/feature/auth/view/register-view.fxml");
     }
 
     @FXML

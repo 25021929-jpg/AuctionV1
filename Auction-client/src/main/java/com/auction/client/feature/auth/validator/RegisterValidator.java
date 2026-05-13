@@ -1,7 +1,7 @@
 package com.auction.client.feature.auth.validator;
 import com.auction.client.feature.auth.dto.request.RegisterRequest;
-import com.auction.shared.validation.*;
-import com.auction.shared.validation.rules.*;
+import com.auction.validation.*;
+import com.auction.validation.rules.*;
 
 import java.util.ArrayList;
 import java.util.List;
