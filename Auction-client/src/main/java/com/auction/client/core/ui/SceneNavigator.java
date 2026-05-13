@@ -17,6 +17,7 @@ public class SceneNavigator {
     private static final Map<String, Scene> sceneCache = new HashMap<>();
 
     // Chỉ gọi đúng 1 lần khi app khởi động
+    //Chỉ cần 1 stage thôi, có thể sử dụng được nhiều scene ->SingleTon
     public static void setStage(Stage stage) {
         if (mainStage != null)
             throw new IllegalStateException("mainStage đã được khởi tạo");
