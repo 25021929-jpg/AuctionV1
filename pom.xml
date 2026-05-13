@@ -12,11 +12,26 @@
 
     <!-- 🔥 QUAN TRỌNG -->
     <packaging>pom</packaging>
-
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <!-- JDK 25 (project SDK) requires OpenJFX ≥ 23; 25.x aligns with JDK 25 -->
+        <javafx.version>25.0.1</javafx.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    </properties>
     <modules>
         <module>Auction-client</module>
         <module>Auction-shared</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>25.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 
 </project>
