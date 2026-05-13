@@ -12,42 +12,83 @@
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
-        <!-- JDK 25 (project SDK) requires OpenJFX ≥ 23; 25.x aligns with JDK 25 -->
         <javafx.version>25.0.1</javafx.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
 
     <dependencies>
-        <!-- JavaFX -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- dùng chung -->
+        <!-- liên kết 2 module client với shared -->
         <dependency>
-            <groupId>com.auction</groupId>
-            <artifactId>Auction-shared</artifactId>
+            <groupId>com.auction</groupId> <artifactId>Auction-shared</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- thêm dependencies junit và mockito để test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+
+            <!-- JavaFX plugin — thêm encoding vào options -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.auction.client.MainClient</mainClass>
+                    <options>
+                        <option>-Dfile.encoding=UTF-8</option>
+                        <option>-Dstdout.encoding=UTF-8</option>
+                        <option>-Dstderr.encoding=UTF-8</option>
+                    </options>
                 </configuration>
             </plugin>
+
+            <!-- Compiler plugin — sửa source/target + encoding -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>17</release>      <!-- ← đổi từ source/target sang release -->
+                    <encoding>UTF-8</encoding> <!-- ← thêm encoding -->
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 

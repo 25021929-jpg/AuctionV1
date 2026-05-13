@@ -1,5 +1,5 @@
 package com.auction.client.feature.auth.dto;
-import com.auction.model.User;
+import com.auction.shared.model.User;
 public class AuthResponse {
     private boolean success;
     private String message;

@@ -2,49 +2,41 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="
-         http://maven.apache.org/POM/4.0.0
-         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <!-- Phiên bản cấu trúc Maven -->
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Thông tin module server -->
-    <groupId>com.auction</groupId>
-    <artifactId>Auction-server</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <parent>
+        <groupId>com.auction</groupId>
+        <artifactId>AuctionV1</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
-    <!-- Thư viện cần dùng -->
+    <artifactId>Auction-server</artifactId>
+
     <dependencies>
 
-        <!-- Server dùng model User từ module shared -->
+        <!-- Dùng DTO chung giữa client và server -->
         <dependency>
             <groupId>com.auction</groupId>
             <artifactId>Auction-shared</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- MySQL JDBC Driver -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.4.0</version>
-        </dependency>
-
+        <!-- Chuyển object Java <-> JSON -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.11.0</version>
+            <version>${gson.version}</version>
+        </dependency>
+
+        <!-- Kết nối MySQL -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql.version}</version>
         </dependency>
 
     </dependencies>
-
-
-    <!-- Cấu hình Java -->
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
 </project>
