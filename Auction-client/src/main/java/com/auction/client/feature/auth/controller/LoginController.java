@@ -66,8 +66,11 @@ public class LoginController {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
+        // Bước 3: Disable button, tránh user bấm nhiều lần
+        loginButton.setDisable(true);
 
-        // TODO: Gọi API đăng nhập trước, rồi mới navigate
+        //Gọi API đăng nhập trước, rồi mới navigate
+
         // Hợp lệ → hiện toast rồi chuyển màn
         StackPane root = (StackPane) loginButton.getScene().getRoot();
         Toast.show(root, "✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateToMain);

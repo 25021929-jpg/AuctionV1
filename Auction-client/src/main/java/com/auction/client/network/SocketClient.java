@@ -1,38 +1,73 @@
 package com.auction.client.network;
 
+import java.net.*;
 import java.io.*;
-import java.net.Socket;
+import com.auction.shared.dto.Request;
+import com.auction.shared.dto.Response;
+import com.auction.client.feature.auth.dto.request.LoginRequest;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 
 public class SocketClient {
+
+    private static final String HOST = "localhost";
+    private static final int PORT = 8888;
 
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
+    private static final Gson gson = new Gson();
 
-    public void connect() {
-        try {
-            socket = new Socket("localhost", 8888);
+    // Kết nối đến server
+    // Gọi 1 lần khi app khởi động
+    public void connect() throws IOException {
+        socket = new Socket(HOST, PORT);
 
-            reader = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream())
-            );
+        // Reader để nhận JSON từ server
+        reader = new BufferedReader(
+                new InputStreamReader(socket.getInputStream())
+        );
 
-            writer = new PrintWriter(socket.getOutputStream(), true);
+        // Writer để gửi JSON lên server
+        // true = autoFlush: tự flush sau mỗi println()
+        writer = new PrintWriter(
+                new OutputStreamWriter(socket.getOutputStream()), true
+        );
 
-            System.out.println("Connected to server");
-
-        } catch (IOException e) {
-            System.out.println("Cannot connect to server: " + e.getMessage());
-        }
+        System.out.println("Đã kết nối đến server " + HOST + ":" + PORT);
     }
 
-    public String sendRequest(String jsonRequest) {
-        writer.println(jsonRequest);
+    // Gửi JSON string, nhận JSON string về
+    public String sendRequest(String json) throws IOException {
+        writer.println(json);      // gửi 1 dòng JSON lên server
+        return reader.readLine();  // đọc 1 dòng JSON từ server về
+    }
 
-        try {
-            return reader.readLine();
-        } catch (IOException e) {
-            return null;
-        }
+    public void disconnect() throws IOException {
+        if (socket != null) socket.close();
+    }
+
+
+    // Generic method: gửi bất kỳ request nào, nhận về Response<T>
+    public <T> Response<T> send(String action, Object requestBody, Class<T> responseType)
+            throws IOException {
+
+        // 1. Serialize requestBody thành JSON string
+        String bodyJson = gson.toJson(requestBody);
+
+        // 2. Bọc vào Request wrapper
+        Request request = new Request(action, bodyJson);
+
+        // 3. Serialize toàn bộ Request thành JSON string
+        String requestJson = gson.toJson(request);
+
+        // 4. Gửi đi, nhận về
+        writer.println(requestJson);
+        String responseJson = reader.readLine();
+
+        // 5. Deserialize Response<T>
+        Type type = TypeToken.getParameterized(Response.class, responseType).getType();
+        return gson.fromJson(responseJson, type);
     }
 }
