@@ -1,7 +1,7 @@
 package com.auction.client.feature.auth.dto.request;
 
 import java.time.LocalDate;
-
+//riêng cho Client
 public record RegisterRequest(
         String fullName,
         String username,
