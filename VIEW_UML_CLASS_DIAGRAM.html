@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction-Client UML - Class Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #1976D2;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 1px solid #999;
+        }
+
+        .legend-item span {
+            font-size: 0.9em;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .mermaid {
+                padding: 10px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Auction-Client UML</h1>
+            <p>Class Diagram - Kiến trúc toàn bộ ứng dụng</p>
+        </div>
+
+        <div class="content">
+            <div class="info-box">
+                <h3>ℹ️ Hướng dẫn</h3>
+                <p>
+                    ✓ Bạn có thể <strong>kéo/zoom</strong> diagram để xem chi tiết<br>
+                    ✓ Các màu sắc khác nhau thể hiện các component khác nhau<br>
+                    ✓ Đường kết nối hiển thị mối quan hệ giữa các class
+                </p>
+            </div>
+
+            <div class="mermaid">
+graph TB
+    subgraph Shared["🔵 Auction-Shared (shared module)"]
+        Request["<<DTO>><br/>Request<br/>---<br/>-action: String<br/>-body: String<br/>---<br/>+getAction(): String<br/>+getBody(): String"]
+        Response["<<Generic DTO>><br/>Response&lt;T&gt;<br/>---<br/>-success: boolean<br/>-message: String<br/>-data: T<br/>---<br/>+isSuccess(): boolean<br/>+getMessage(): String<br/>+getData(): T"]
+
+        User["<<Entity>><br/>User<br/>---<br/>-id: Long<br/>-fullName: String<br/>-username: String<br/>-email: String"]
+
+        Validator["<<Interface>><br/>Validator&lt;T&gt;<br/>---<br/>+validate(T): ValidationResult"]
+        ValidationResult["<<Value Object>><br/>ValidationResult<br/>---<br/>+valid(): boolean<br/>+errorFor(field): String"]
+    end
+
+    subgraph Client["🟢 Auction-Client (client module)"]
+        subgraph Network["Network"]
+            SocketClient["SocketClient<br/>---<br/>+connect(): void<br/>+sendRequest(json): String"]
+        end
+
+        subgraph Controllers["Controllers"]
+            LoginController["LoginController<br/>---<br/>-validator: Validator<br/>+handleLogin()<br/>+initialize()"]
+            RegisterController["RegisterController"]
+            ForgotPasswordController["ForgotPasswordController"]
+        end
+
+        subgraph Validators["Validators"]
+            LoginValidator["LoginValidator<br/>implements Validator"]
+            RegisterValidator["RegisterValidator"]
+            ResetValidator["ResetPasswordValidator"]
+        end
+
+        subgraph Factory["Factory Pattern"]
+            AuthValidatorFactory["AuthValidatorFactory<br/>+createLoginValidator()<br/>+createRegisterValidator()"]
+        end
+
+        subgraph DTOs["DTOs"]
+            LoginReq["LoginRequest<br/>-identity: String<br/>-password: String"]
+            RegisterReq["RegisterRequest"]
+            AuthResponse["AuthResponse"]
+        end
+
+        subgraph CoreUI["Core UI Utilities"]
+            SceneNavigator["SceneNavigator (Singleton)<br/>+switchScene()<br/>+openModal()"]
+            FormHelper["FormHelper<br/>+showError()<br/>+clearError()<br/>+applyErrors()"]
+            Toast["Toast<br/>+show()"]
+            UIAnimations["UIAnimations<br/>+entrance()"]
+        end
+
+        subgraph Main["Main"]
+            MainClient["MainClient (JavaFX App)<br/>+start()"]
+        end
+    end
+
+    %% Relationships
+    LoginController -->|uses| Validator
+    LoginController -->|uses| LoginValidator
+    LoginController -->|uses| LoginReq
+    LoginController -->|sends via| SocketClient
+    LoginController -->|uses| FormHelper
+    LoginController -->|uses| SceneNavigator
+    LoginController -->|uses| Toast
+
+    RegisterController -->|uses| RegisterValidator
+    RegisterController -->|uses| RegisterReq
+
+    AuthValidatorFactory -->|creates| LoginValidator
+    AuthValidatorFactory -->|creates| RegisterValidator
+    AuthValidatorFactory -->|creates| ResetValidator
+
+    LoginValidator -->|implements| Validator
+    RegisterValidator -->|implements| Validator
+    ResetValidator -->|implements| Validator
+
+    LoginValidator -->|returns| ValidationResult
+
+    SocketClient -->|sends| Request
+    SocketClient -->|receives| Response
+
+    FormHelper -->|uses| ValidationResult
+
+    MainClient -->|uses| SceneNavigator
+    MainClient -->|initializes| LoginController
+
+    AuthResponse -->|contains| User
+
+    %% Styling
+    style Shared fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
+    style Client fill:#e8f5e9,stroke:#388e3c,stroke-width:3px,color:#000
+    style Request fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style Response fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style Validator fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style ValidationResult fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style LoginController fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style RegisterController fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style ForgotPasswordController fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style LoginValidator fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style RegisterValidator fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style ResetValidator fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style AuthValidatorFactory fill:#ffccbc,stroke:#d84315,stroke-width:2px
+    style SceneNavigator fill:#d1c4e9,stroke:#512da8,stroke-width:2px
+    style FormHelper fill:#d1c4e9,stroke:#512da8,stroke-width:2px
+    style Toast fill:#d1c4e9,stroke:#512da8,stroke-width:2px
+    style UIAnimations fill:#d1c4e9,stroke:#512da8,stroke-width:2px
+    style MainClient fill:#b2dfdb,stroke:#00695c,stroke-width:2px
+    style SocketClient fill:#b2dfdb,stroke:#00695c,stroke-width:2px
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e3f2fd;"></div>
+                    <span><strong>Auction-Shared</strong> - Shared module (DTOs, Models, Validators)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e8f5e9;"></div>
+                    <span><strong>Auction-Client</strong> - Client module (Controllers, UI)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #fff9c4;"></div>
+                    <span><strong>Controllers</strong> - FXML controllers, handle user interaction</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #c8e6c9;"></div>
+                    <span><strong>Validators</strong> - Implement Validator interface</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #d1c4e9;"></div>
+                    <span><strong>UI Utilities</strong> - Helper classes for UI operations</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #b2dfdb;"></div>
+                    <span><strong>Network</strong> - Socket communication layer</span>
+                </div>
+            </div>
+
+            <div class="info-box" style="margin-top: 40px;">
+                <h3>🔗 Mối quan hệ chính</h3>
+                <p>
+                    • <strong>LoginController</strong> → LoginValidator (validate user input)<br>
+                    • <strong>LoginValidator</strong> → ValidationResult (collect errors)<br>
+                    • <strong>LoginController</strong> → SocketClient (send to server)<br>
+                    • <strong>FormHelper</strong> → ValidationResult (display errors on UI)<br>
+                    • <strong>SceneNavigator</strong> (Singleton) → manages stage scenes<br>
+                    • <strong>AuthValidatorFactory</strong> → creates validators (Factory pattern)
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>💡 Tip: Nhấp vào diagram để xem dạng toàn màn hình | Sử dụng cuộn chuột để zoom</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Generated với Mermaid.js - Xem tại <a href="https://mermaid.live" target="_blank">mermaid.live</a> để có thêm tùy chọn</p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'linear'
+            }
+        });
+        mermaid.contentLoaded();
+    </script>
+</body>
+</html>
+
