@@ -1,37 +1,76 @@
 USE auction_db;
 
-INSERT INTO users (username, password_hash, full_name, role)
-VALUES
-    ('admin', '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Admin User', 'ADMIN'),
-    ('seller01', '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Nguyen Van Seller', 'SELLER'),
-    ('bidder01', '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Tran Van Bidder', 'BIDDER');
+-- =====================================================
+-- SAMPLE USERS
+-- Password gốc của tất cả user dưới đây:
+-- 123456
+-- =====================================================
 
-INSERT INTO categories (category_name, description)
-VALUES
-    ('Điện thoại', 'Các sản phẩm điện thoại di động'),
-    ('Laptop', 'Máy tính xách tay'),
-    ('Đồng hồ', 'Đồng hồ thông minh và đồng hồ cơ'),
-    ('Xe máy', 'Các loại xe máy đã qua sử dụng');
-
-INSERT INTO auction_items (seller_id, category_id, item_name, description)
-VALUES
-    (2, 1, 'iPhone 13 Pro Max', 'Máy đẹp 95%, pin tốt, đầy đủ phụ kiện'),
-    (2, 2, 'Laptop Dell XPS 13', 'Laptop mỏng nhẹ, RAM 16GB, SSD 512GB'),
-    (2, 3, 'Apple Watch Series 7', 'Đồng hồ còn đẹp, hoạt động tốt');
-
-INSERT INTO auction_sessions (
-    item_id,
-    starting_price,
-    current_price,
-    start_time,
-    end_time,
-    status
+INSERT INTO users (
+    full_name,
+    username,
+    email,
+    phone,
+    date_of_birth,
+    password_hash,
+    role
 )
 VALUES
-    (1, 5000000, 5000000, '2026-05-08 09:00:00', '2026-05-09 21:00:00', 'ACTIVE'),
-    (2, 12000000, 12000000, '2026-05-10 09:00:00', '2026-05-12 21:00:00', 'UPCOMING'),
-    (3, 3000000, 3500000, '2026-05-07 09:00:00', '2026-05-08 21:00:00', 'ACTIVE');
+    (
+        'Vu Hoang',
+        'hoang123',
+        'hoang@gmail.com',
+        '0987654321',
+        '2005-01-20',
 
-INSERT INTO bids (auction_id, bidder_id, bid_amount, bid_time)
+        -- password = 123456
+        'demo_salt:demo_hash',
+
+        'BIDDER'
+    ),
+
+    (
+        'Nguyen Van A',
+        'vana',
+        'vana@gmail.com',
+        '0911111111',
+        '2000-05-10',
+
+        -- password = 123456
+        'demo_salt:demo_hash',
+
+        'SELLER'
+    ),
+
+    (
+        'Admin System',
+        'admin',
+        'admin@gmail.com',
+        '0900000000',
+        '1999-01-01',
+
+        -- password = 123456
+        'demo_salt:demo_hash',
+
+        'ADMIN'
+    );
+
+-- =====================================================
+-- SAMPLE RESET TOKEN
+-- =====================================================
+
+INSERT INTO password_reset_tokens (
+    user_id,
+    token,
+    expired_at,
+    used
+)
 VALUES
-    (3, 3, 3500000, '2026-05-08 10:00:00');
+    (
+        1,
+        'sample-reset-token-123',
+
+        DATE_ADD(NOW(), INTERVAL 15 MINUTE),
+
+        FALSE
+    );

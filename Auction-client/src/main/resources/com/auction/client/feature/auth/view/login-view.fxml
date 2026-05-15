@@ -9,12 +9,13 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<StackPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.auction.client.feature.auth.controller.LoginController">
 
-<HBox prefHeight="600" prefWidth="900" style="-fx-background-color: #020B18;"
-      stylesheets="@/com/auction/client/css/app-style.css"
-      xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.feature.auth.controller.LoginController">
-
+    <HBox prefHeight="600" prefWidth="900" style="-fx-background-color: #020B18;"
+          stylesheets="@/com/auction/client/css/app-style.css">
+        <!-- ... giữ nguyên toàn bộ nội dung bên trong ... -->
     <!-- LEFT — Branding -->
     <VBox alignment="CENTER" prefHeight="600" prefWidth="380" spacing="20" style="-fx-background-color: #051529;-fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;-fx-border-width: 0 1 0 0;                  -fx-padding: 50px 40px;">
 
@@ -73,3 +74,4 @@
           <Button onAction="#handleNavigateRegister" prefHeight="25.0" prefWidth="133.0" styleClass="btn-link" text="Tạo tài khoản mới" />
     </VBox>
 </HBox>
+</StackPane>

@@ -11,7 +11,7 @@ public class SocketClient {
 
     public void connect() {
         try {
-            socket = new Socket("localhost", 8888);
+            socket = new Socket("localhost", 8080);
 
             reader = new BufferedReader(
                     new InputStreamReader(socket.getInputStream())

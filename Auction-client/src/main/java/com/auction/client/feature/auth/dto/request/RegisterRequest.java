@@ -6,8 +6,8 @@ public record RegisterRequest(
         String fullName,
         String username,
         String email,
-        String phoneNumber,
+        String phone,
+        String dateOfBirth,
         String password,
-        String confirmPassword,
-        LocalDate birthDate
+        String confirmPassword
 ) {}

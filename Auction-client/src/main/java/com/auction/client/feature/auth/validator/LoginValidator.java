@@ -15,7 +15,7 @@ public class LoginValidator implements Validator<LoginRequest> {
     public ValidationResult validate(LoginRequest req) {
         List<FieldError> errors = new ArrayList<>();
 
-        validate("identity", req.identity(),
+        validate("loginId", req.loginId(),
                 new NotBlankRule(),
                 new EmailOrUsernameRule())  // ← tự nhận biết
                 .ifPresent(error -> errors.add(error));

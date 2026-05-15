@@ -6,6 +6,8 @@ import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.client.feature.auth.service.AuthService;
+import com.auction.shared.dto.Response;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
 import javafx.event.ActionEvent;
@@ -26,6 +28,8 @@ public class LoginController {
     @FXML private Label identityError;
     @FXML private Label passwordError;
     @FXML private Button loginButton;
+
+    private final AuthService authService = new AuthService();
 
     // Map Control → Label
     private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
@@ -66,12 +70,18 @@ public class LoginController {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
+        Response<?> response = authService.login(buildRequest());
 
+        if (!response.isSuccess()) {
+            passwordError.setText(response.getMessage());
+            passwordError.setVisible(true);
+            passwordError.setManaged(true);
+            return;
+        }
         // TODO: Gọi API đăng nhập trước, rồi mới navigate
         // Hợp lệ → hiện toast rồi chuyển màn
         StackPane root = (StackPane) loginButton.getScene().getRoot();
         Toast.show(root, "✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateToMain);
-        navigateToMain();
     }
 
     // ── Helper private ───────────────────────────────────────────────────────
@@ -85,7 +95,7 @@ public class LoginController {
 
     private void navigateToMain() {
         SceneNavigator.switchScene(
-                "/com/auction/client/feature/main/view/main-view.fxml"
+                "/com/auction/client/feature/auth/view/home-view.fxml"
         );
     }
 

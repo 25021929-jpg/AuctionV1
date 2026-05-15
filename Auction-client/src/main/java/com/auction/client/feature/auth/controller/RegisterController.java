@@ -6,6 +6,8 @@ import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.dto.request.RegisterRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.client.feature.auth.service.AuthService;
+import com.auction.shared.dto.Response;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
 import javafx.event.ActionEvent;
@@ -33,6 +35,8 @@ public class RegisterController {
     @FXML private Label emailError,    phoneError;
     @FXML private Label passwordError, confirmPasswordError;
     @FXML private Label dobError;
+
+    private final AuthService authService = new AuthService();
 
     // Map Control → Label (thứ tự hiển thị lỗi từ trên xuống)
     private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
@@ -101,7 +105,14 @@ public class RegisterController {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
+        Response<?> response = authService.register(request);
 
+        if (!response.isSuccess()) {
+            emailError.setText(response.getMessage());
+            emailError.setVisible(true);
+            emailError.setManaged(true);
+            return;
+        }
         // TODO: Gọi API đăng ký ở đây trước, rồi mới navigate
         // Hợp lệ → hiện toast rồi chuyển màn
         StackPane root = (StackPane) registerBtn.getScene().getRoot();
@@ -111,13 +122,13 @@ public class RegisterController {
     //Phương thức tạo RegisterRequest (không cần handleRegister phải biết -> SRP)
     private RegisterRequest buildRequest() {
         return new RegisterRequest(
-                fullNameField.getText(),
-                usernameField.getText(),
-                emailField.getText(),
-                phoneField.getText(),
+                fullNameField.getText().trim(),
+                usernameField.getText().trim(),
+                emailField.getText().trim(),
+                phoneField.getText().trim(),
+                dobField.getValue() == null ? null : dobField.getValue().toString(),
                 passwordField.getText(),
-                confirmPasswordField.getText(),
-                dobField.getValue()
+                confirmPasswordField.getText()
         );
     }
 

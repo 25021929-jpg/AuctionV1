@@ -34,14 +34,14 @@ public class RegisterValidator implements Validator<RegisterRequest> {
                 new EmailFormatRule())
                 .ifPresent(errors::add);
 
-        validate("phoneNumber", req.phoneNumber(),
+        validate("phone", req.phone(),
                 new NotBlankRule(),
                 new PhoneNumberRule())
                 .ifPresent(errors::add);
 
-        validate("birthDate", req.birthDate(),
-                new MinAgeRule(18))
-                .ifPresent(errors::add);
+        //validate("dateOfBirth", req.dateOfBirth(),
+        //        new MinAgeRule(18))
+        //        .ifPresent(errors::add);
         //Lưu ý: reference method :: tương tự với lambda method parameter -> ....)
         // Rule đặc biệt — so sánh 2 field với nhau
 
