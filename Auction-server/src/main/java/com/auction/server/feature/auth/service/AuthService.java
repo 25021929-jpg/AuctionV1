@@ -8,7 +8,7 @@ import com.auction.server.feature.auth.repository.UserRepository;
 import com.auction.server.feature.auth.util.PasswordUtil;
 import com.auction.server.feature.auth.util.ResetTokenUtil;
 import com.auction.shared.model.PasswordResetToken;
-import com.auction.shared.model.User;
+import com.auction.server.model.User;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +26,7 @@ public class AuthService {
     // =====================================================
     // REGISTER
     // =====================================================
-    public AuthResponse register(
+    public com.auction.shared.dto.AuthResponse register(
             RegisterRequest request
     ) {
 
@@ -89,10 +89,10 @@ public class AuthService {
                     userRepository.save(user);
 
             // Convert User -> UserInfo an toàn
-            UserInfo userInfo =
-                    UserInfo.fromUser(saved);
+            com.auction.shared.dto.UserInfo userInfo =
+                    toUserInfo(saved);
 
-            return AuthResponse
+            return com.auction.shared.dto.AuthResponse
                     .fromUserInfo(userInfo);
 
         } catch (DataAccessException e) {
@@ -106,7 +106,7 @@ public class AuthService {
     // =====================================================
     // LOGIN
     // =====================================================
-    public AuthResponse login(
+    public com.auction.shared.dto.AuthResponse login(
             LoginRequest request
     ) {
 
@@ -148,10 +148,10 @@ public class AuthService {
                 );
             }
 
-            UserInfo userInfo =
-                    UserInfo.fromUser(user);
+            com.auction.shared.dto.UserInfo userInfo =
+                    toUserInfo(user);
 
-            return AuthResponse
+            return com.auction.shared.dto.AuthResponse
                     .fromUserInfo(userInfo);
 
         } catch (DataAccessException e) {
@@ -445,5 +445,18 @@ public class AuthService {
 
         return s == null
                 || s.trim().isEmpty();
+    }
+    // Chuyển User -> UserInfo an toàn để trả về client
+    private com.auction.shared.dto.UserInfo toUserInfo(User user) {
+        if (user == null) return null;
+        return new com.auction.shared.dto.UserInfo(
+                user.getId(),
+                user.getFullName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getDateOfBirth(),
+                user.getRole()
+        );
     }
 }

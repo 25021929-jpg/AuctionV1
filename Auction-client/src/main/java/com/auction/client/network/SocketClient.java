@@ -1,73 +1,138 @@
 package com.auction.client.network;
 
-import java.net.*;
-import java.io.*;
 import com.auction.shared.dto.Request;
 import com.auction.shared.dto.Response;
-import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+
+import java.io.*;
 import java.lang.reflect.Type;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
-public class SocketClient {
+public class SocketClient implements ServerCommunicator {
 
-    private static final String HOST = "localhost";
-    private static final int PORT = 8888;
+    // ── Singleton ────────────────────────────────────────────────
+    private static volatile SocketClient instance;
 
-    private Socket socket;
+    private SocketClient() {}
+
+    public static SocketClient getInstance() {
+
+        // Kiểm tra lần 1 — KHÔNG lock
+        // 99% trường hợp instance đã tồn tại → return ngay
+        if (instance == null) {
+
+            // Chỉ lock khi instance CHƯA tồn tại
+            synchronized (SocketClient.class) {
+
+                // Kiểm tra lần 2 — BÊN TRONG lock
+                // Vì Thread A và Thread B đều vượt qua check lần 1
+                // Thread A lock trước → tạo instance
+                // Thread B vào sau → check lại → instance != null → bỏ qua
+                if (instance == null) {
+                    instance = new SocketClient();
+                }
+            }
+        }
+        return instance;
+    }
+
+    // ── Config ───────────────────────────────────────────────────
+    private static final String HOST           = "localhost";
+    private static final int    PORT           = 8888;
+    private static final int    CONNECT_TIMEOUT = 5_000;  // 5 giây
+    private static final int    READ_TIMEOUT    = 10_000; // 10 giây
+
+    // ── State ────────────────────────────────────────────────────
+    private Socket       socket;
     private BufferedReader reader;
-    private PrintWriter writer;
-    private static final Gson gson = new Gson();
+    private PrintWriter  writer;
+    private final Gson   gson = new Gson();
 
-    // Kết nối đến server
-    // Gọi 1 lần khi app khởi động
+    // ── Connect / Disconnect ──────────────────────────────────────
+
+    /**
+     * Tạo kết nối TCP đến server.
+     * Gọi từ background thread — KHÔNG gọi trên JavaFX thread!
+     */
     public void connect() throws IOException {
-        socket = new Socket(HOST, PORT);
+        Socket s = new Socket();
+        s.connect(new InetSocketAddress(HOST, PORT), CONNECT_TIMEOUT);
+        s.setSoTimeout(READ_TIMEOUT);
 
-        // Reader để nhận JSON từ server
-        reader = new BufferedReader(
-                new InputStreamReader(socket.getInputStream())
-        );
-
-        // Writer để gửi JSON lên server
-        // true = autoFlush: tự flush sau mỗi println()
-        writer = new PrintWriter(
-                new OutputStreamWriter(socket.getOutputStream()), true
-        );
-
-        System.out.println("Đã kết nối đến server " + HOST + ":" + PORT);
+        this.socket = s;
+        this.reader = new BufferedReader(
+                new InputStreamReader(s.getInputStream()));
+        this.writer = new PrintWriter(
+                new OutputStreamWriter(s.getOutputStream()), true);
     }
 
-    // Gửi JSON string, nhận JSON string về
-    public String sendRequest(String json) throws IOException {
-        writer.println(json);      // gửi 1 dòng JSON lên server
-        return reader.readLine();  // đọc 1 dòng JSON từ server về
+    public void disconnect() {
+        try {
+            if (socket != null) socket.close();
+        } catch (IOException ignored) {}
     }
 
-    public void disconnect() throws IOException {
-        if (socket != null) socket.close();
+    // ── isConnected ───────────────────────────────────────────────
+
+    @Override
+    public boolean isConnected() {
+        return socket != null
+                && !socket.isClosed()
+                && socket.isConnected();
     }
 
+    // ── Send ──────────────────────────────────────────────────────
 
-    // Generic method: gửi bất kỳ request nào, nhận về Response<T>
-    public <T> Response<T> send(String action, Object requestBody, Class<T> responseType)
-            throws IOException {
+    /**
+     * Gửi request, nhận response.
+     * synchronized → chỉ 1 thread gửi tại 1 thời điểm,
+     * tránh lẫn lộn bytes giữa các request.
+     */
+    @Override
+    public synchronized <T> Response<T> send(
+            String action,
+            Object body,
+            Class<T> responseType) throws IOException {
 
-        // 1. Serialize requestBody thành JSON string
-        String bodyJson = gson.toJson(requestBody);
+        // Guard: chưa kết nối thì báo lỗi ngay
+        if (!isConnected()) {
+            throw new IOException("Chưa kết nối đến server!");
+        }
+
+        // 1. Serialize body → JSON string
+        String bodyJson = gson.toJson(body);
 
         // 2. Bọc vào Request wrapper
         Request request = new Request(action, bodyJson);
 
-        // 3. Serialize toàn bộ Request thành JSON string
-        String requestJson = gson.toJson(request);
+        // 3. Gửi 1 dòng JSON lên server
+        writer.println(gson.toJson(request));
 
-        // 4. Gửi đi, nhận về
-        writer.println(requestJson);
-        String responseJson = reader.readLine();
+        // 4. Đọc 1 dòng JSON từ server về
+        String responseLine = reader.readLine();
+        if (responseLine == null) {
+            throw new IOException("Server đóng kết nối!");
+        }
 
-        // 5. Deserialize Response<T>
-        Type type = TypeToken.getParameterized(Response.class, responseType).getType();
-        return gson.fromJson(responseJson, type);
+        // 5. Parse Response<JsonElement> trước (tránh mất data khi T chưa biết)
+        Type rawType = new TypeToken<Response<JsonElement>>() {}.getType();
+        Response<JsonElement> raw = gson.fromJson(responseLine, rawType);
+
+        // 6. Parse data thành T cụ thể
+        T data = null;
+        if (raw.getData() != null) {
+            data = gson.fromJson(raw.getData(), responseType);
+        }
+
+        // 7. Ghép lại thành Response<T>
+        Response<T> typed = new Response<>();
+        typed.setSuccess(raw.isSuccess());
+        typed.setMessage(raw.getMessage());
+        typed.setData(data);
+
+        return typed;
     }
 }

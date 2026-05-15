@@ -16,11 +16,11 @@ public class AuthController {
         this.gson = new Gson();
     }
 
-    public Response<AuthResponse> register(String body) {
+    public Response<com.auction.shared.dto.AuthResponse> register(String body) {
         try {
             RegisterRequest request = gson.fromJson(body, RegisterRequest.class);
 
-            AuthResponse result = authService.register(request);
+            com.auction.shared.dto.AuthResponse result = authService.register(request);
 
             return Response.success("Register success", result);
 
@@ -32,11 +32,11 @@ public class AuthController {
         }
     }
 
-    public Response<AuthResponse> login(String body) {
+    public Response<com.auction.shared.dto.AuthResponse> login(String body) {
         try {
             LoginRequest request = gson.fromJson(body, LoginRequest.class);
 
-            AuthResponse result = authService.login(request);
+            com.auction.shared.dto.AuthResponse result = authService.login(request);
 
             return Response.success("Login success", result);
 

@@ -6,8 +6,12 @@ import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.dto.request.RegisterRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
+import com.auction.client.network.ServerCommunicator;
+import com.auction.client.network.SocketClient;
+import com.auction.shared.dto.Response;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -15,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -22,6 +27,7 @@ import java.util.Map;
 
 public class RegisterController {
 
+    // ── FXML ─────────────────────────────────────────────────────
     @FXML private TextField     fullNameField, usernameField;
     @FXML private TextField     emailField, phoneField;
     @FXML private DatePicker    dobField;
@@ -34,23 +40,38 @@ public class RegisterController {
     @FXML private Label passwordError, confirmPasswordError;
     @FXML private Label dobError;
 
-    // Map Control → Label (thứ tự hiển thị lỗi từ trên xuống)
-    private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
+    // ── Form helpers ──────────────────────────────────────────────
+    private final Map<Control, Label>  fieldErrorMap = new LinkedHashMap<>();
+    private final Map<String, Control> fieldMap      = new LinkedHashMap<>();
 
-    // Map tên field (khớp ValidationResult) → Control
-    private final Map<String, Control> fieldMap = new LinkedHashMap<>();
+    // ── Dependencies ──────────────────────────────────────────────
+    private final ServerCommunicator         communicator;
+    private final Validator<RegisterRequest> validator;
 
-    private final Validator<RegisterRequest> validator =
-            AuthValidatorFactory.createRegisterValidator();
+    // Constructor mặc định — JavaFX FXML dùng cái này
+    public RegisterController() {
+        this(
+                SocketClient.getInstance(),
+                AuthValidatorFactory.createRegisterValidator()
+        );
+    }
 
+    // Constructor cho test — inject từ ngoài vào
+    public RegisterController(
+            ServerCommunicator communicator,
+            Validator<RegisterRequest> validator) {
+        this.communicator = communicator;
+        this.validator    = validator;
+    }
+
+    // ── initialize ────────────────────────────────────────────────
     @FXML
     public void initialize() {
-        UIAnimations.entrance(formBox); //Chạy animation
+        UIAnimations.entrance(formBox);
         setupDatePicker();
         setupFormHelper();
-
     }
-    //Cài đặt datePicker dobField
+
     private void setupDatePicker() {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d/M/yyyy");
         dobField.setConverter(new StringConverter<>() {
@@ -66,17 +87,16 @@ public class RegisterController {
             }
         });
     }
-    private void setupFormHelper() {
-        // Đăng ký cặp field ↔ errorLabel
-        fieldErrorMap.put(usernameField, usernameError);
-        fieldErrorMap.put(fullNameField, fullNameError);
-        fieldErrorMap.put(emailField, emailError);
-        fieldErrorMap.put(phoneField, phoneError);
-        fieldErrorMap.put(passwordField, passwordError);
-        fieldErrorMap.put(confirmPasswordField, confirmPasswordError);
-        fieldErrorMap.put(dobField, dobError);
 
-        // Đăng ký tên field khớp với ValidationResult
+    private void setupFormHelper() {
+        fieldErrorMap.put(usernameField,        usernameError);
+        fieldErrorMap.put(fullNameField,         fullNameError);
+        fieldErrorMap.put(emailField,            emailError);
+        fieldErrorMap.put(phoneField,            phoneError);
+        fieldErrorMap.put(passwordField,         passwordError);
+        fieldErrorMap.put(confirmPasswordField,  confirmPasswordError);
+        fieldErrorMap.put(dobField,              dobError);
+
         fieldMap.put("fullName",        fullNameField);
         fieldMap.put("username",        usernameField);
         fieldMap.put("email",           emailField);
@@ -85,30 +105,76 @@ public class RegisterController {
         fieldMap.put("confirmPassword", confirmPasswordField);
         fieldMap.put("birthDate",       dobField);
 
-        // Tự clear lỗi khi user chỉnh sửa
         FormHelper.bindClearOnChange(fieldErrorMap);
     }
 
+    // ── handleRegister ────────────────────────────────────────────
     @FXML
     private void handleRegister(ActionEvent event) {
+
+        // 1. Clear lỗi cũ
         FormHelper.clearAll(fieldErrorMap);
-        // FIX 1: Commit text đang gõ dở trong DatePicker
+
+        // 2. Commit DatePicker nếu đang gõ dở
         commitDatePickerValue();
+
+        // 3. Build + Validate
         RegisterRequest request = buildRequest();
         ValidationResult result = validator.validate(request);
-
         if (!result.valid()) {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
 
-        // TODO: Gọi API đăng ký ở đây trước, rồi mới navigate
-        // Hợp lệ → hiện toast rồi chuyển màn
-        StackPane root = (StackPane) registerBtn.getScene().getRoot();
-        Toast.show(root, "✓ Đăng ký thành công!", Toast.Type.SUCCESS, 2, this::navigateToLogin);
+        // 4. Kiểm tra đã kết nối server chưa
+        if (!SocketClient.getInstance().isConnected()) {
+            StackPane root = (StackPane) registerBtn.getScene().getRoot();
+            Toast.show(root,
+                    "Đang kết nối server, vui lòng thử lại!",
+                    Toast.Type.WARNING, 2, null);
+            return;
+        }
+
+        // 5. Disable button tránh bấm nhiều lần
+        registerBtn.setDisable(true);
+
+        // 6. Gửi request trên background thread
+        Thread thread = new Thread(() -> {
+            try {
+                Response<Void> response =
+                        communicator.send("AUTH_REGISTER", request, Void.class);
+
+                Platform.runLater(() -> {
+                    registerBtn.setDisable(false);
+
+                    StackPane root = (StackPane) registerBtn.getScene().getRoot();
+
+                    if (response.isSuccess()) {
+                        Toast.show(root, "✓ Đăng ký thành công!",
+                                Toast.Type.SUCCESS, 2, this::navigateToLogin);
+                    } else {
+                        // Server trả về lỗi nghiệp vụ
+                        // (username đã tồn tại, email đã dùng...)
+                        Toast.show(root, response.getMessage(),
+                                Toast.Type.ERROR, 3, null);
+                    }
+                });
+
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    registerBtn.setDisable(false);
+                    StackPane root = (StackPane) registerBtn.getScene().getRoot();
+                    Toast.show(root, "Lỗi kết nối, vui lòng thử lại!",
+                            Toast.Type.ERROR, 3, null);
+                });
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
     }
-    // ── Helper private ───────────────────────────────────────────────────────
-    //Phương thức tạo RegisterRequest (không cần handleRegister phải biết -> SRP)
+
+    // ── Helper private ────────────────────────────────────────────
     private RegisterRequest buildRequest() {
         return new RegisterRequest(
                 fullNameField.getText(),
@@ -121,12 +187,11 @@ public class RegisterController {
         );
     }
 
-    // FIX 1: Commit giá trị đang gõ dở trong DatePicker
     private void commitDatePickerValue() {
         String text = dobField.getEditor().getText();
         if (text != null && !text.isBlank() && dobField.getValue() == null) {
             LocalDate parsed = dobField.getConverter().fromString(text);
-            dobField.setValue(parsed); // có thể null nếu sai format — Validator sẽ bắt
+            dobField.setValue(parsed);
         }
     }
 

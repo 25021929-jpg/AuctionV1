@@ -1,4 +1,4 @@
-package com.auction.shared.model;
+package com.auction.server.model;
 
 public class User {
 

@@ -2,7 +2,7 @@ package com.auction.server.feature.auth.repository;
 
 import com.auction.server.database.DatabaseConnection;
 import com.auction.server.exception.DataAccessException;
-import com.auction.shared.model.User;
+import com.auction.server.model.User;
 
 import java.sql.*;
 

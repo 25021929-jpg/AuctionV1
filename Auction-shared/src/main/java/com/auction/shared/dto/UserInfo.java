@@ -1,6 +1,5 @@
-package com.auction.server.feature.auth.dto;
+package com.auction.shared.dto;
 
-import com.auction.shared.model.User;
 
 public class UserInfo {
 
@@ -11,16 +10,14 @@ public class UserInfo {
     private String phone;
     private String dateOfBirth;
     private String role;
+    // ↑ KHÔNG có passwordHash — đây là lý do tách ra!
 
-    public UserInfo(
-            Long id,
-            String fullName,
-            String username,
-            String email,
-            String phone,
-            String dateOfBirth,
-            String role
-    ) {
+    // Bắt buộc có constructor rỗng cho Gson
+    public UserInfo() {}
+
+    public UserInfo(Long id, String fullName, String username,
+                    String email, String phone,
+                    String dateOfBirth, String role) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
@@ -30,18 +27,6 @@ public class UserInfo {
         this.role = role;
     }
 
-    // Convert User entity sang dữ liệu an toàn để trả về client
-    public static UserInfo fromUser(User user) {
-        return new UserInfo(
-                user.getId(),
-                user.getFullName(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPhone(),
-                user.getDateOfBirth(),
-                user.getRole()
-        );
-    }
 
     public Long getId() { return id; }
     public String getFullName() { return fullName; }
