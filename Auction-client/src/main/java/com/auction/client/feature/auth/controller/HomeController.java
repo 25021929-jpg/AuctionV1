@@ -16,4 +16,52 @@ public class HomeController {
 
     public void handleNavDashboard(ActionEvent actionEvent) {
     }
+    @FXML
+    private void handleNavAuctions() {
+        System.out.println("Go to auctions");
+    }
+
+    @FXML
+    private void handleNavCreateAuction() {
+        System.out.println("Go to create auction");
+    }
+
+    @FXML
+    private void handleNavProfile() {
+        System.out.println("Go to profile");
+    }
+
+    public void handleNavAssets(ActionEvent actionEvent) {
+
+    }
+
+    public void handleNavHistory(ActionEvent actionEvent) {
+
+    }
+
+    public void handleNavMyAssets(ActionEvent actionEvent) {
+
+    }
+
+    public void handleNavWallet(ActionEvent actionEvent) {
+    }
+
+    public void handleNavSettings(ActionEvent actionEvent) {
+
+    }
+
+    public void handleViewAllAuctions(ActionEvent actionEvent) {
+
+    }
+
+    public void handleRegisterAsset(ActionEvent actionEvent) {
+
+    }
+
+    public void handleTopUpWallet(ActionEvent actionEvent) {
+
+    }
+
+    public void handleJoinAuction(ActionEvent actionEvent) {
+    }
 }

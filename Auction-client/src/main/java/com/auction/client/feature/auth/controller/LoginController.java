@@ -141,8 +141,10 @@ public class LoginController {
 
     // ── Navigate ──────────────────────────────────────────────────
     private void navigateToMain() {
-        SceneNavigator.switchScene(
-                "/com/auction/client/feature/main/view/main-view.fxml"
+        Platform.runLater(() ->
+                SceneNavigator.switchScene(
+                        "/com/auction/client/feature/auth/view/home-view.fxml"
+                )
         );
     }
 

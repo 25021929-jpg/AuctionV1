@@ -4,6 +4,7 @@ import com.auction.client.core.ui.FormHelper;
 import com.auction.client.core.ui.SceneNavigator;
 import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
+import com.auction.client.feature.auth.dto.request.RegisterPayload;
 import com.auction.client.feature.auth.dto.request.RegisterRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
 import com.auction.client.network.ServerCommunicator;
@@ -125,6 +126,7 @@ public class RegisterController {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
             return;
         }
+        RegisterPayload requestForServer = new RegisterPayload(request);
 
         // 4. Kiểm tra đã kết nối server chưa
         if (!SocketClient.getInstance().isConnected()) {
@@ -142,7 +144,7 @@ public class RegisterController {
         Thread thread = new Thread(() -> {
             try {
                 Response<Void> response =
-                        communicator.send("AUTH_REGISTER", request, Void.class);
+                        communicator.send("AUTH_REGISTER", requestForServer, Void.class);
 
                 Platform.runLater(() -> {
                     registerBtn.setDisable(false);

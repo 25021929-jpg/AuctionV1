@@ -1,16 +1,10 @@
-USE auction_db;ALTER TABLE password_reset_tokens DROP FOREIGN KEY password_reset_tokens_ibfk_1;
-DROP TABLE IF EXISTS password_reset_tokens;
-DROP TABLE IF EXISTS bids;
-DROP TABLE IF EXISTS auction_sessions;
-DROP TABLE IF EXISTS auction_items;
-DROP TABLE IF EXISTS categories;
-DROP TABLE IF EXISTS users;
+USE auction_db;
 
-INSERT INTO users (username, password_hash, full_name, role, email, phone, date_of_birth)
+NSERT INTO users (username, password_hash, full_name, role, email, phone, date_of_birth)
 VALUES
-    ('admin',  'ln7a1TqdGii7gKo19sWXAQ==:4Aos7iCIr/JoBVMLVaBoVmMGdUesbITgsM1SYZctoug=', 'Admin User',       'ADMIN',  'admin@example.com',  '0123456789', '1980-01-01'),
-    ('seller01','ln7a1TqdGii7gKo19sWXAQ==:4Aos7iCIr/JoBVMLVaBoVmMGdUesbITgsM1SYZctoug=', 'Nguyen Van Seller','SELLER','seller01@example.com','0987654321','1990-02-02'),
-    ('bidder01','ln7a1TqdGii7gKo19sWXAQ==:4Aos7iCIr/JoBVMLVaBoVmMGdUesbITgsM1SYZctoug=', 'Tran Van Bidder',  'BIDDER','bidder01@example.com','0912345678','1995-03-03');
+    ('admin',  '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Admin User',       'ADMIN',  'admin@example.com',  '0123456789', '1980-01-01'),
+    ('seller01','$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Nguyen Van Seller','SELLER','seller01@example.com','0987654321','1990-02-02'),
+    ('bidder01','$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Tran Van Bidder',  'BIDDER','bidder01@example.com','0912345678','1995-03-03');
 
 INSERT INTO categories (category_name, description)
 VALUES

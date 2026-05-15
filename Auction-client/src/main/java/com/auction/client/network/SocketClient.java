@@ -4,7 +4,6 @@ import com.auction.shared.dto.Request;
 import com.auction.shared.dto.Response;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -19,18 +18,8 @@ public class SocketClient implements ServerCommunicator {
     private SocketClient() {}
 
     public static SocketClient getInstance() {
-
-        // Kiểm tra lần 1 — KHÔNG lock
-        // 99% trường hợp instance đã tồn tại → return ngay
         if (instance == null) {
-
-            // Chỉ lock khi instance CHƯA tồn tại
             synchronized (SocketClient.class) {
-
-                // Kiểm tra lần 2 — BÊN TRONG lock
-                // Vì Thread A và Thread B đều vượt qua check lần 1
-                // Thread A lock trước → tạo instance
-                // Thread B vào sau → check lại → instance != null → bỏ qua
                 if (instance == null) {
                     instance = new SocketClient();
                 }
@@ -40,23 +29,18 @@ public class SocketClient implements ServerCommunicator {
     }
 
     // ── Config ───────────────────────────────────────────────────
-    private static final String HOST           = "localhost";
-    private static final int    PORT           = 8888;
+    private static final String HOST            = "localhost";
+    private static final int    PORT            = 8888;
     private static final int    CONNECT_TIMEOUT = 5_000;  // 5 giây
     private static final int    READ_TIMEOUT    = 10_000; // 10 giây
 
     // ── State ────────────────────────────────────────────────────
-    private Socket       socket;
+    private Socket         socket;
     private BufferedReader reader;
-    private PrintWriter  writer;
-    private final Gson   gson = new Gson();
+    private PrintWriter    writer;
+    private final Gson     gson = new Gson();
 
     // ── Connect / Disconnect ──────────────────────────────────────
-
-    /**
-     * Tạo kết nối TCP đến server.
-     * Gọi từ background thread — KHÔNG gọi trên JavaFX thread!
-     */
     public void connect() throws IOException {
         Socket s = new Socket();
         s.connect(new InetSocketAddress(HOST, PORT), CONNECT_TIMEOUT);
@@ -76,7 +60,6 @@ public class SocketClient implements ServerCommunicator {
     }
 
     // ── isConnected ───────────────────────────────────────────────
-
     @Override
     public boolean isConnected() {
         return socket != null
@@ -85,19 +68,12 @@ public class SocketClient implements ServerCommunicator {
     }
 
     // ── Send ──────────────────────────────────────────────────────
-
-    /**
-     * Gửi request, nhận response.
-     * synchronized → chỉ 1 thread gửi tại 1 thời điểm,
-     * tránh lẫn lộn bytes giữa các request.
-     */
     @Override
     public synchronized <T> Response<T> send(
             String action,
             Object body,
             Class<T> responseType) throws IOException {
 
-        // Guard: chưa kết nối thì báo lỗi ngay
         if (!isConnected()) {
             throw new IOException("Chưa kết nối đến server!");
         }
@@ -117,13 +93,15 @@ public class SocketClient implements ServerCommunicator {
             throw new IOException("Server đóng kết nối!");
         }
 
-        // 5. Parse Response<JsonElement> trước (tránh mất data khi T chưa biết)
+        // 5. Parse Response<JsonElement> trước
         Type rawType = new TypeToken<Response<JsonElement>>() {}.getType();
         Response<JsonElement> raw = gson.fromJson(responseLine, rawType);
 
-        // 6. Parse data thành T cụ thể
+        // 6. Parse data thành T — bỏ qua nếu Void hoặc data null
         T data = null;
-        if (raw.getData() != null) {
+        if (raw.getData() != null
+                && responseType != Void.class
+                && responseType != void.class) {
             data = gson.fromJson(raw.getData(), responseType);
         }
 

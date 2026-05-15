@@ -29,7 +29,7 @@ public class MainClient extends Application {
         Thread connectThread = new Thread(() -> {
             try {
                 SocketClient.getInstance().connect();
-                System.out.println("Đã kết nối đến server!");
+                System.out.println("Đã kết nối đến server!!!!");
 
                 // Có thể notify LoginController enable button ở đây
                 Platform.runLater(() -> {

@@ -113,10 +113,10 @@ public class AuthService {
         validateLogin(request);
 
         String loginId =
-                request.getLoginId().trim();
+                request.identity().trim();
 
         String password =
-                request.getPassword();
+                request.password();
 
         try {
 
@@ -377,14 +377,14 @@ public class AuthService {
             );
         }
 
-        if (isBlank(request.getLoginId())) {
+        if (isBlank(request.identity())) {
 
             throw new AuthException(
                     "Username or email required"
             );
         }
 
-        if (isBlank(request.getPassword())) {
+        if (isBlank(request.identity())) {
 
             throw new AuthException(
                     "Password required"
