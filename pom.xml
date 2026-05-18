@@ -25,5 +25,13 @@
         <gson.version>2.11.0</gson.version>
         <mysql.version>9.0.0</mysql.version>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>25.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 </project>
