@@ -6,7 +6,7 @@ VALUES
     ('seller01','$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Nguyen Van Seller','SELLER','seller01@example.com','0987654321','1990-02-02'),
     ('bidder01','$2a$10$7EqJtq98hPqEX7fNZaFWoOHiMnAmxS5hGaeyX66M52YjU3lQ7J6hG', 'Tran Van Bidder',  'BIDDER','bidder01@example.com','0912345678','1995-03-03');
 
-INSERT INTO categories (category_name, description)
+INSERT INTO categories (name, description)
 VALUES
     ('Điện thoại', 'Các sản phẩm điện thoại di động'),
     ('Laptop', 'Máy tính xách tay'),
