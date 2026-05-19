@@ -1,0 +1,168 @@
+/* TVP AUCTION — app-style.css */
+
+/* ─── Background ─── */
+.app-background {
+    -fx-background-color: #020B18;
+}
+
+.card {
+    -fx-background-color: #051529;
+    -fx-border-color: rgba(21,101,255,0.3);
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+/* ─── Typography ─── */
+.title {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #E8EEF7;
+}
+
+.subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #4A6880;
+}
+
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4FC3F7;
+}
+
+/* ─── Input ─── */
+.text-field, .password-field {
+    -fx-background-color: #020B18;
+    -fx-border-color: rgba(21,101,255,0.4);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #E8EEF7;
+    -fx-prompt-text-fill: #2A4A6A;
+    -fx-font-size: 14px;
+    -fx-padding: 10 14;
+    -fx-pref-height: 44px;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #00B4FF;
+    -fx-effect: dropshadow(gaussian, rgba(0,180,255,0.4), 10, 0, 0, 0);
+}
+
+/* ─── Buttons ─── */
+.btn-primary {
+    -fx-background-color: #1565FF;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 0;
+    -fx-pref-height: 46px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(21,101,255,0.5), 12, 0, 0, 0);
+}
+
+.btn-primary:hover {
+    -fx-background-color: #2979FF;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4FC3F7;
+    -fx-font-size: 13px;
+    -fx-border-color: rgba(79,195,247,0.4);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: rgba(79,195,247,0.1);
+}
+
+.btn-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2979FF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+}
+
+.btn-link:hover {
+    -fx-text-fill: #00B4FF;
+    -fx-underline: true;
+}
+
+/* ─── Nav ─── */
+.nav-bar {
+    -fx-background-color: #020B18;
+    -fx-border-color: transparent transparent rgba(21,101,255,0.25) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7090B0;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.nav-item:hover { -fx-background-color: rgba(21,101,255,0.12); -fx-text-fill: #B8C8DC; }
+.nav-item-active { -fx-background-color: rgba(21,101,255,0.2); -fx-text-fill: #00B4FF; }
+
+/* ─── Alert ─── */
+.alert-error {
+    -fx-background-color: rgba(255,61,90,0.1);
+    -fx-border-color: rgba(255,61,90,0.4);
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #FF3D5A;
+    -fx-padding: 8 14;
+    -fx-font-size: 13px;
+}
+
+/* Dùng cho Label hiển thị message lỗi */
+.error-message {
+    -fx-text-fill: #e05252;
+    -fx-font-size: 11px;
+    -fx-padding: 2 0 0 2;
+}
+
+/* ─── Table ─── */
+.table-view { -fx-background-color: transparent; }
+.table-view .column-header {
+    -fx-background-color: #051529;
+    -fx-text-fill: #4FC3F7;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.table-row-cell { -fx-background-color: transparent; -fx-text-fill: #B8C8DC; }
+.table-row-cell:selected { -fx-background-color: rgba(21,101,255,0.15); }
+
+/* ─── Misc ─── */
+.divider { -fx-background-color: rgba(21,101,255,0.3); -fx-pref-height: 1; -fx-min-height: 1; -fx-max-height: 1; }
+.scroll-bar .thumb { -fx-background-color: rgba(21,101,255,0.3); -fx-background-radius: 4; }
+.scroll-bar .track { -fx-background-color: transparent; }
+.stat-value { -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #E8EEF7; }
+.stat-label { -fx-font-size: 11px; -fx-text-fill: #4A6880; -fx-font-weight: bold; }
+/* Date Picker */
+.date-picker {
+    -fx-pref-height: 40px;
+    -fx-max-width: infinity;
+}
+/* Field error*/
+.field-error {
+    -fx-border-color: #e05252;
+    -fx-border-width: 1.5px;
+}
+

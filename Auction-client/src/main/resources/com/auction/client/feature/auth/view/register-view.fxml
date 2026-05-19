@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<StackPane xmlns="http://javafx.com/javafx/25"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.auction.client.feature.auth.controller.RegisterController">
+
+<HBox prefHeight="660" prefWidth="940"
+      styleClass="app-background"
+      stylesheets="@/com/auction/client/css/app-style.css">
+
+    <!-- LEFT — Branding -->
+    <VBox alignment="CENTER" prefHeight="660" prefWidth="320" spacing="20" style="-fx-background-color: #051529;                  -fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;                  -fx-border-width: 0 1 0 0;                  -fx-padding: 40px 30px;">
+
+        <ImageView fitHeight="100" fitWidth="100" preserveRatio="true" style="-fx-effect: dropshadow(gaussian, rgba(0,180,255,0.5), 20, 0, 0, 0);">
+            <image><Image url="@/com/auction/client/css/logo.png" /></image>
+        </ImageView>
+
+        <Label style="-fx-font-size: 22px;" styleClass="title" text="TVP AUCTION" />
+        <Label styleClass="subtitle" text="Tạo tài khoản mới" />
+
+        <Pane prefWidth="180" style="-fx-max-width: 180;" styleClass="divider" />
+
+        <VBox spacing="12" style="-fx-padding: 8 0 0 0;">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-text-fill: #1565FF; -fx-font-size: 16px;" text="①" />
+                <Label style="-fx-text-fill: #B8C8DC;" styleClass="subtitle" text="Nhập thông tin cá nhân" />
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;" text="②" />
+                <Label styleClass="subtitle" text="Đặt mật khẩu bảo mật" />
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;" text="③" />
+                <Label styleClass="subtitle" text="Xác nhận và hoàn tất" />
+            </HBox>
+        </VBox>
+    </VBox>
+
+    <!-- RIGHT — Form -->
+    <VBox fx:id="formBox" alignment="CENTER" prefHeight="660" prefWidth="620" spacing="0" style="-fx-background-color: #020B18; -fx-padding: 40px 50px;">
+
+        <VBox alignment="CENTER" spacing="4" style="-fx-padding: 0 0 28px 0;">
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold;                           -fx-text-fill: #4FC3F7; -fx-letter-spacing: 2px;" text="ĐĂNG KÝ TÀI KHOẢN" />
+            <Label styleClass="subtitle" text="Điền đầy đủ thông tin bên dưới" />
+        </VBox>
+
+        <!-- Message -->
+        <Label fx:id="messageLabel" managed="false" maxWidth="480" style="-fx-padding: 8 14; -fx-margin: 0 0 12 0;" visible="false" wrapText="true" />
+
+        <VBox maxWidth="480" spacing="14">
+            <!-- Row 1 -->
+            <HBox spacing="14">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="HỌ VÀ TÊN" />
+                    <TextField fx:id="fullNameField" promptText="Nguyễn Văn A" styleClass="text-field" />
+                    <Label fx:id="fullNameError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="TÊN ĐĂNG NHẬP" />
+                    <TextField fx:id="usernameField" promptText="username" styleClass="text-field" />
+                    <Label fx:id="usernameError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+            </HBox>
+
+            <!-- Email -->
+            <VBox spacing="5">
+                <Label styleClass="field-label" text="EMAIL" />
+                <TextField fx:id="emailField" prefWidth="480" promptText="example@email.com" styleClass="text-field" />
+                <Label fx:id="emailError" managed="false" styleClass="error-message" visible="false" />
+            </VBox>
+
+            <!-- Row 2 -->
+            <HBox spacing="14">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="SỐ ĐIỆN THOẠI" />
+                    <TextField fx:id="phoneField" prefHeight="25.0" prefWidth="138.0" promptText="0901 234 567" styleClass="text-field" />
+                    <Label fx:id="phoneError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="NGÀY SINH" />
+                    <DatePicker fx:id="dobField" maxWidth="Infinity" prefHeight="25.0" prefWidth="139.0" promptText="DD/MM/YYYY" styleClass="text-field" />
+                    <Label fx:id="dobError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+            </HBox>
+
+            <!-- Row 3 -->
+            <HBox spacing="14">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="MẬT KHẨU" />
+                    <PasswordField fx:id="passwordField" promptText="Tối thiểu 8 ký tự" styleClass="password-field" />
+                    <Label fx:id="passwordError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label styleClass="field-label" text="XÁC NHẬN MẬT KHẨU" />
+                    <PasswordField fx:id="confirmPasswordField" promptText="Nhập lại mật khẩu" styleClass="password-field" />
+                    <Label fx:id="confirmPasswordError" managed="false" styleClass="error-message" visible="false" />
+                </VBox>
+            </HBox>
+
+            <!-- Error label -->
+            <Label fx:id="errorLabel" managed="false" maxWidth="480" styleClass="alert-error" visible="false" wrapText="true" />
+
+            <Button fx:id="registerBtn" defaultButton="true" onAction="#handleRegister" prefWidth="480" style="-fx-margin: 4 0 0 0;" styleClass="btn-primary" text="TẠO TÀI KHOẢN" />
+
+            <HBox alignment="CENTER" spacing="6">
+                <Label styleClass="subtitle" text="Đã có tài khoản?" />
+                <Button onAction="#handleNavigateLogin" styleClass="btn-link" text="Đăng nhập" />
+            </HBox>
+        </VBox>
+    </VBox>
+</HBox>
+</StackPane>
