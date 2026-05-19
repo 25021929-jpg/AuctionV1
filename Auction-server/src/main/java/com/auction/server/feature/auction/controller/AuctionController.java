@@ -5,44 +5,70 @@ import com.auction.server.feature.auction.dto.AuctionDetailResponse;
 import com.auction.server.feature.auction.dto.AuctionResponse;
 import com.auction.server.feature.auction.dto.CreateAuctionRequest;
 import com.auction.server.feature.auction.service.AuctionService;
+import com.auction.shared.dto.Response;
+import com.google.gson.Gson;
 
 import java.util.List;
 
 public class AuctionController {
 
     private final AuctionService auctionService;
+    private final Gson gson;
 
     public AuctionController() {
         this.auctionService = new AuctionService();
+        this.gson = new Gson();
     }
 
-    public List<AuctionResponse> getAllAuctions() {
+    // Lấy danh sách tất cả phiên đấu giá
+    public Response<List<AuctionResponse>> getAllAuctions() {
         try {
-            return auctionService.getAllAuctions();
+            List<AuctionResponse> result = auctionService.getAllAuctions();
+            return Response.success("Get auctions success", result);
+
         } catch (AuctionException e) {
-            throw e;
+            return Response.fail(e.getMessage());
+
         } catch (Exception e) {
-            throw new AuctionException("Unexpected error while getting auctions", e);
+            return Response.fail("Internal server error");
         }
     }
 
-    public AuctionDetailResponse getAuctionDetail(int auctionId) {
+    // Lấy chi tiết một phiên đấu giá
+    public Response<AuctionDetailResponse> getAuctionDetail(String body) {
         try {
-            return auctionService.getAuctionDetail(auctionId);
+            // body gửi lên là {"auctionId": 5}
+            CreateAuctionRequest temp = gson.fromJson(body, CreateAuctionRequest.class);
+            // dùng record đơn giản hơn — giải thích bên dưới
+            int auctionId = gson.fromJson(body, AuctionIdRequest.class).auctionId();
+
+            AuctionDetailResponse result = auctionService.getAuctionDetail(auctionId);
+            return Response.success("Get auction detail success", result);
+
         } catch (AuctionException e) {
-            throw e;
+            return Response.fail(e.getMessage());
+
         } catch (Exception e) {
-            throw new AuctionException("Unexpected error while getting auction detail", e);
+            return Response.fail("Internal server error");
         }
     }
 
-    public AuctionResponse createAuction(CreateAuctionRequest request) {
+    // Tạo phiên đấu giá mới
+    public Response<AuctionResponse> createAuction(String body) {
         try {
-            return auctionService.createAuction(request);
+            CreateAuctionRequest request = gson.fromJson(body, CreateAuctionRequest.class);
+
+            AuctionResponse result = auctionService.createAuction(request);
+            return Response.success("Create auction success", result);
+
         } catch (AuctionException e) {
-            throw e;
+            return Response.fail(e.getMessage());
+
         } catch (Exception e) {
-            throw new AuctionException("Unexpected error while creating auction", e);
+            return Response.fail("Internal server error");
         }
     }
+
+    // Record nhỏ để parse auctionId từ body
+    private record AuctionIdRequest(int auctionId) {}
 }

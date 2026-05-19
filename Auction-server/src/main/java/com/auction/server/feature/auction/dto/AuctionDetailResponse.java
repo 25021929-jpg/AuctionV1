@@ -8,8 +8,8 @@ public class AuctionDetailResponse {
     private int auctionId;
     private int itemId;
     private String itemName;
-    private String description;
-    private String categoryName;
+    private String description;     //mô tả chi tiết món đồ
+    private String categoryName;    //tên danh mục
     private String sellerName;
 
     private BigDecimal startingPrice;

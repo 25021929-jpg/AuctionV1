@@ -9,10 +9,10 @@ public class AuctionResponse {
     private int itemId;
     private String itemName;
     private BigDecimal startingPrice;
-    private BigDecimal currentPrice;
+    private BigDecimal currentPrice;    // giá hiện tại
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private String status;
+    private String status;    // trạng thái
 
     public AuctionResponse() {
     }

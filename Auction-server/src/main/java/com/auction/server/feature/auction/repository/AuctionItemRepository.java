@@ -15,7 +15,7 @@ public class AuctionItemRepository {
             int categoryId,
             String itemName,
             String description
-    ) {
+    ) { // chèn vật phẩm vào hàng đấu giá
         String sql = """
                 INSERT INTO auction_items (
                     seller_id,

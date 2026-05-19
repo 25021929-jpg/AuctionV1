@@ -5,13 +5,13 @@ import java.time.LocalDateTime;
 
 public class CreateAuctionRequest {
 
-    private int sellerId;
-    private int categoryId;
+    private int sellerId;   // ai đang bán (id của người dùng)
+    private int categoryId;   // loại hàng gì
 
-    private String itemName;
-    private String description;
+    private String itemName;    // tên món đồ
+    private String description;      // mô tả chi tiết
 
-    private BigDecimal startingPrice;
+    private BigDecimal startingPrice;   // giá khởi điểm
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
