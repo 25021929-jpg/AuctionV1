@@ -2,138 +2,103 @@ package com.auction.server.feature.auction.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
+/**
+ * DTO trả về chi tiết 1 phiên đấu giá (kèm lịch sử bid).
+ */
 public class AuctionDetailResponse {
 
     private int auctionId;
     private int itemId;
     private String itemName;
-    private String description;     //mô tả chi tiết món đồ
-    private String categoryName;    //tên danh mục
+    private String itemDescription;
+    private String itemCategory;         // ELECTRONICS / ART / VEHICLE
+    private int sellerId;
     private String sellerName;
-
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
-
+    private Integer currentWinnerId;     // null nếu chưa có bid
+    private String currentWinnerName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-
     private String status;
+    private long remainingSeconds;       // giây còn lại
+    private List<BidHistoryItem> bidHistory;
 
-    public AuctionDetailResponse() {
+    public AuctionDetailResponse() {}
+
+    /** Record nhỏ chứa 1 dòng lịch sử bid */
+    public static class BidHistoryItem {
+        private int bidId;
+        private int bidderId;
+        private String bidderName;
+        private BigDecimal amount;
+        private LocalDateTime bidTime;
+
+        //lsu đấu giá
+        public BidHistoryItem(int bidId, int bidderId, String bidderName,
+                              BigDecimal amount, LocalDateTime bidTime) {
+            this.bidId = bidId;
+            this.bidderId = bidderId;
+            this.bidderName = bidderName;
+            this.amount = amount;
+            this.bidTime = bidTime;
+        }
+
+        public int getBidId() { return bidId; }
+        public int getBidderId() { return bidderId; }
+        public String getBidderName() { return bidderName; }
+        public BigDecimal getAmount() { return amount; }
+        public LocalDateTime getBidTime() { return bidTime; }
     }
 
-    public AuctionDetailResponse(
-            int auctionId,
-            int itemId,
-            String itemName,
-            String description,
-            String categoryName,
-            String sellerName,
-            BigDecimal startingPrice,
-            BigDecimal currentPrice,
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            String status
-    ) {
-        this.auctionId = auctionId;
-        this.itemId = itemId;
-        this.itemName = itemName;
-        this.description = description;
-        this.categoryName = categoryName;
-        this.sellerName = sellerName;
-        this.startingPrice = startingPrice;
-        this.currentPrice = currentPrice;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.status = status;
-    }
+    // --- Getters & Setters ---
+    public int getAuctionId() { return auctionId; }
+    public void setAuctionId(int auctionId) { this.auctionId = auctionId; }
 
-    public int getAuctionId() {
-        return auctionId;
-    }
+    public int getItemId() { return itemId; }
+    public void setItemId(int itemId) { this.itemId = itemId; }
 
-    public void setAuctionId(int auctionId) {
-        this.auctionId = auctionId;
-    }
+    public String getItemName() { return itemName; }
+    public void setItemName(String itemName) { this.itemName = itemName; }
 
-    public int getItemId() {
-        return itemId;
-    }
+    public String getItemDescription() { return itemDescription; }
+    public void setItemDescription(String itemDescription) { this.itemDescription = itemDescription; }
 
-    public void setItemId(int itemId) {
-        this.itemId = itemId;
-    }
+    public String getItemCategory() { return itemCategory; }
+    public void setItemCategory(String itemCategory) { this.itemCategory = itemCategory; }
 
-    public String getItemName() {
-        return itemName;
-    }
+    public int getSellerId() { return sellerId; }
+    public void setSellerId(int sellerId) { this.sellerId = sellerId; }
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
-    }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 
-    public String getDescription() {
-        return description;
-    }
+    public BigDecimal getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public BigDecimal getCurrentPrice() { return currentPrice; }
+    public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
 
-    public String getCategoryName() {
-        return categoryName;
-    }
+    public Integer getCurrentWinnerId() { return currentWinnerId; }
+    public void setCurrentWinnerId(Integer currentWinnerId) { this.currentWinnerId = currentWinnerId; }
 
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
-    }
+    public String getCurrentWinnerName() { return currentWinnerName; }
+    public void setCurrentWinnerName(String currentWinnerName) { this.currentWinnerName = currentWinnerName; }
 
-    public String getSellerName() {
-        return sellerName;
-    }
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
 
-    public void setSellerName(String sellerName) {
-        this.sellerName = sellerName;
-    }
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 
-    public BigDecimal getStartingPrice() {
-        return startingPrice;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public void setStartingPrice(BigDecimal startingPrice) {
-        this.startingPrice = startingPrice;
-    }
+    public long getRemainingSeconds() { return remainingSeconds; }
+    public void setRemainingSeconds(long remainingSeconds) { this.remainingSeconds = remainingSeconds; }
 
-    public BigDecimal getCurrentPrice() {
-        return currentPrice;
-    }
-
-    public void setCurrentPrice(BigDecimal currentPrice) {
-        this.currentPrice = currentPrice;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public List<BidHistoryItem> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<BidHistoryItem> bidHistory) { this.bidHistory = bidHistory; }
 }

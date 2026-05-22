@@ -3,6 +3,10 @@ package com.auction.server.feature.auction.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ Là cái khuôn làm gọn dữ liệu để hiển thị trên Danh sách nhiều phiên.
+ */
+
 public class AuctionResponse {
 
     private int auctionId;

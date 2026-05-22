@@ -1,6 +1,8 @@
 package com.auction.server;
 
 import com.auction.server.network.ServerSocketManager;
+import com.auction.server.feature.auction.service.AuctionScheduler;
+
 
 /**
  * Entry point for Auction Server. Starts the ServerSocketManager on the
@@ -17,6 +19,9 @@ public class MainServer {
                 System.out.println("Invalid port argument, using default 8888");
             }
         }
+
+        AuctionScheduler.getInstance().start();
+
 
         System.out.println("Starting Auction Server on port " + port);
         ServerSocketManager server = new ServerSocketManager(port);

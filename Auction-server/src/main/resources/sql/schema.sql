@@ -1,87 +1,62 @@
-CREATE DATABASE IF NOT EXISTS auction_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE auction_db;
+-- ============================================================
+-- SQL Schema cho feature auction
+-- Chạy file này trong MySQL để tạo các bảng cần thiết
+-- ============================================================
 
--- ============================================================
--- TABLE: users
--- ============================================================
-CREATE TABLE IF NOT EXISTS users (
-                                     id            BIGINT       PRIMARY KEY AUTO_INCREMENT,
-                                     full_name     VARCHAR(100) NOT NULL,
-    username      VARCHAR(50)  NOT NULL UNIQUE,
-    email         VARCHAR(100) NOT NULL UNIQUE,
-    phone         VARCHAR(20)  NOT NULL,
-    date_of_birth DATE         NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role          VARCHAR(20)  NOT NULL DEFAULT 'BIDDER',
-    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
-    );
+-- Bảng sản phẩm đấu giá
+CREATE TABLE IF NOT EXISTS items (
+                                     item_id       INT AUTO_INCREMENT PRIMARY KEY,
+                                     name          VARCHAR(255)   NOT NULL,
+                                     description   TEXT,
+                                     category      VARCHAR(50)    NOT NULL,  -- ELECTRONICS / ART / VEHICLE / OTHER
+                                     seller_id     INT            NOT NULL,
+                                     created_at    DATETIME       DEFAULT CURRENT_TIMESTAMP,
+                                     FOREIGN KEY (seller_id) REFERENCES users(user_id)
+);
 
--- ============================================================
--- TABLE: categories, danh mục sản phẩm
--- ============================================================
-CREATE TABLE IF NOT EXISTS categories (
-                                          id            BIGINT        PRIMARY KEY AUTO_INCREMENT,
-                                          category_name VARCHAR(100)  NOT NULL,
-    description   TEXT
-    );
+-- Bảng phiên đấu giá
+CREATE TABLE IF NOT EXISTS auctions (
+                                        auction_id          INT AUTO_INCREMENT PRIMARY KEY,
+                                        item_id             INT            NOT NULL,
+                                        seller_id           INT            NOT NULL,
+                                        starting_price      DECIMAL(15,2)  NOT NULL,
+                                        current_price       DECIMAL(15,2)  NOT NULL,
+                                        current_winner_id   INT            NULL,        -- NULL nếu chưa có bid
+                                        start_time          DATETIME       NOT NULL,
+                                        end_time            DATETIME       NOT NULL,
+                                        status              VARCHAR(20)    NOT NULL DEFAULT 'OPEN',
+    -- OPEN | RUNNING | FINISHED | CANCELED
+                                        created_at          DATETIME       DEFAULT CURRENT_TIMESTAMP,
+                                        FOREIGN KEY (item_id)           REFERENCES items(item_id),
+                                        FOREIGN KEY (seller_id)         REFERENCES users(user_id),
+                                        FOREIGN KEY (current_winner_id) REFERENCES users(user_id)
+);
 
--- ============================================================
--- TABLE: auction_items  sản phẩm đấu giá
--- ============================================================
-CREATE TABLE IF NOT EXISTS auction_items (
-                                             id               BIGINT         PRIMARY KEY AUTO_INCREMENT,
-                                             seller_id        BIGINT         NOT NULL,
-                                             category_id      BIGINT,
-                                             item_name        VARCHAR(200)   NOT NULL,
-    description      TEXT,
-    starting_price   DECIMAL(15, 2) NOT NULL,
-    current_price    DECIMAL(15, 2) NOT NULL,
-    min_bid_increment DECIMAL(15, 2) NOT NULL DEFAULT 1000,
-    status           VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
-    start_time       TIMESTAMP      NOT NULL,
-    end_time         TIMESTAMP      NOT NULL,
-    created_at       TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_item_seller   FOREIGN KEY (seller_id)   REFERENCES users(id),
-    CONSTRAINT fk_item_category FOREIGN KEY (category_id) REFERENCES categories(id)
-    );
-
--- ============================================================
--- TABLE: bids  lịch sử đặt giá
--- ============================================================
+-- Bảng lịch sử bid (dùng cho BidHistory chart và BiddingService)
 CREATE TABLE IF NOT EXISTS bids (
-                                    id          BIGINT         PRIMARY KEY AUTO_INCREMENT,
-                                    item_id     BIGINT         NOT NULL,
-                                    bidder_id   BIGINT         NOT NULL,
-                                    bid_amount  DECIMAL(15, 2) NOT NULL,
-    bid_time    TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_bid_item   FOREIGN KEY (item_id)   REFERENCES auction_items(id),
-    CONSTRAINT fk_bid_bidder FOREIGN KEY (bidder_id) REFERENCES users(id)
-    );
+                                    bid_id      INT AUTO_INCREMENT PRIMARY KEY,
+                                    auction_id  INT            NOT NULL,
+                                    bidder_id   INT            NOT NULL,
+                                    amount      DECIMAL(15,2)  NOT NULL,
+                                    bid_time    DATETIME       DEFAULT CURRENT_TIMESTAMP,
+                                    FOREIGN KEY (auction_id) REFERENCES auctions(auction_id),
+                                    FOREIGN KEY (bidder_id)  REFERENCES users(user_id)
+);
 
 -- ============================================================
--- TABLE: transactions  giao dịch thành công
+-- Dữ liệu mẫu để test
 -- ============================================================
-CREATE TABLE IF NOT EXISTS transactions (
-                                            id               BIGINT         PRIMARY KEY AUTO_INCREMENT,
-                                            item_id          BIGINT         NOT NULL,
-                                            buyer_id         BIGINT         NOT NULL,
-                                            seller_id        BIGINT         NOT NULL,
-                                            final_price      DECIMAL(15, 2) NOT NULL,
-    transaction_time TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    status           VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
-    CONSTRAINT fk_tx_item   FOREIGN KEY (item_id)   REFERENCES auction_items(id),
-    CONSTRAINT fk_tx_buyer  FOREIGN KEY (buyer_id)  REFERENCES users(id),
-    CONSTRAINT fk_tx_seller FOREIGN KEY (seller_id) REFERENCES users(id)
-    );
 
--- ============================================================
--- TABLE: notifications
--- ============================================================
-CREATE TABLE IF NOT EXISTS notifications (
-                                             id         BIGINT    PRIMARY KEY AUTO_INCREMENT,
-                                             user_id    BIGINT    NOT NULL,
-                                             message    TEXT      NOT NULL,
-                                             is_read    BOOLEAN   DEFAULT FALSE,
-                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                             CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id)
-    );
+-- Thêm item mẫu (giả sử đã có users với user_id=1,2)
+INSERT INTO items (name, description, category, seller_id)
+VALUES
+    ('iPhone 15 Pro', 'Điện thoại Apple mới 100%', 'ELECTRONICS', 1),
+    ('Tranh Sơn Dầu Phong Cảnh', 'Tác phẩm nghệ thuật độc đáo', 'ART', 2),
+    ('Toyota Camry 2022', 'Xe ô tô còn mới, ít đi', 'VEHICLE', 1);
+
+-- Thêm phiên đấu giá mẫu
+INSERT INTO auctions (item_id, seller_id, starting_price, current_price, start_time, end_time, status)
+VALUES
+    (1, 1, 25000000, 25000000, NOW(), DATE_ADD(NOW(), INTERVAL 2 HOUR), 'RUNNING'),
+    (2, 2, 5000000,  5000000,  DATE_ADD(NOW(), INTERVAL 1 HOUR), DATE_ADD(NOW(), INTERVAL 3 HOUR), 'OPEN'),
+    (3, 1, 500000000, 500000000, DATE_SUB(NOW(), INTERVAL 5 HOUR), DATE_SUB(NOW(), INTERVAL 1 HOUR), 'FINISHED');
