@@ -7,7 +7,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.auction.client.feature.auth.controller.HomeController"
             stylesheets="@/com/auction/client/css/app-style.css"
-            prefWidth="1200" prefHeight="760"
+            prefWidth="1200" prefHeight="900"
             style="-fx-background-color: #020B18;">
 
     <!-- ═══ TOP NAV ═══ -->
@@ -28,7 +28,7 @@
 
             <!-- Nav tabs -->
             <HBox spacing="4">
-                <Button text="Tổng quan" styleClass="nav-item-active" onAction="#handleNavDashboard"/>
+                <Button text="Tổng quan" styleClass="nav-item" onAction="#handleNavDashboard"/>
                 <Button text="Đấu giá" styleClass="nav-item" onAction="#handleNavAuctions"/>
                 <Button text="Tài sản" styleClass="nav-item" onAction="#handleNavAssets"/>
                 <Button text="Lịch sử" styleClass="nav-item" onAction="#handleNavHistory"/>
