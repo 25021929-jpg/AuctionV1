@@ -30,12 +30,24 @@
             <version>${gson.version}</version>
         </dependency>
 
+        <!-- Hibernate ORM -->
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.5.2.Final</version> <!-- Kiểm tra phiên bản mới nhất trên Maven Central -->
+        </dependency>
+
         <!-- Kết nối MySQL -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>${mysql.version}</version>
-        </dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version> </dependency>
+        <!-- Sử dụng HikariCP để quản lý connection pool -->
+        <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>5.1.0</version>
+    </dependency>
 
     </dependencies>
 
