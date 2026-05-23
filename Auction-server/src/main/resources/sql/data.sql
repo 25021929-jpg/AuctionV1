@@ -1,10 +1,4 @@
-USE auction_db;ALTER TABLE password_reset_tokens DROP FOREIGN KEY password_reset_tokens_ibfk_1;
-DROP TABLE IF EXISTS password_reset_tokens;
-DROP TABLE IF EXISTS bids;
-DROP TABLE IF EXISTS auction_sessions;
-DROP TABLE IF EXISTS auction_items;
-DROP TABLE IF EXISTS categories;
-DROP TABLE IF EXISTS users;
+USE auction_db;
 
 INSERT INTO users (username, password_hash, full_name, role, email, phone, date_of_birth)
 VALUES
@@ -35,7 +29,7 @@ INSERT INTO auction_sessions (
 )
 VALUES
     (1, 5000000, 5000000, '2026-05-08 09:00:00', '2026-05-09 21:00:00', 'ACTIVE'),
-    (2, 12000000, 12000000, '2026-05-10 09:00:00', '2026-05-12 21:00:00', 'UPCOMING'),
+    (2, 12000000, 12000000, '2026-05-10 09:00:00', '2026-05-12 21:00:00', 'SCHEDULED'),
     (3, 3000000, 3500000, '2026-05-07 09:00:00', '2026-05-08 21:00:00', 'ACTIVE');
 
 INSERT INTO bids (auction_id, bidder_id, bid_amount, bid_time)

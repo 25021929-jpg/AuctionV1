@@ -1,0 +1,175 @@
+Bản schema này không phải là một bài tập làm cho vui của sinh viên, mà là một bản thiết kế **chuẩn production-ready** (sẵn sàng cho dự án thực tế). Bạn đã lồng ghép rất nhiều kỹ thuật nâng cao vào cấu trúc vật lý của database nhằm tối ưu hóa bộ nhớ, tăng tốc độ đọc và ngăn chặn triệt để các lỗi tranh chấp dữ liệu (concurrency).
+
+Dưới đây là phân tích, đánh giá và giải thích chi tiết "bóc tách" từng khối lệnh trong schema của bạn.
+
+---
+
+## 1. Bảng `users` (Quản lý người dùng)
+
+```sql
+CREATE TABLE users (
+    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    email         VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role          ENUM('ADMIN','SELLER','BUYER') NOT NULL DEFAULT 'BUYER',
+    balance       DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+    phone         VARCHAR(20),
+    avatar_url    VARCHAR(500),
+    is_active     TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`BIGINT UNSIGNED`**: Cấp phát 8 byte, lưu được tới hơn 18 tỷ tỷ ID. Lựa chọn hoàn hảo cho bảng core để hệ thống không bao giờ lo tràn ID.
+* **`password_hash VARCHAR(255)`**: Độ dài 255 ký tự là khoảng trống lý tưởng để lưu các chuỗi mã hóa bảo mật như BCrypt, Argon2 hay Argon2id kèm muối (salt).
+* **`balance DECIMAL(15,2)`**: **Tuyệt đối không dùng FLOAT/DOUBLE cho tiền tệ.** `DECIMAL(15,2)` chiếm cố định 7 byte, đảm bảo chính xác tuyệt đối về mặt toán học, cho phép lưu số tiền lên tới 9,999,999,999,999.99 (gần 10 nghìn tỷ).
+* **`TINYINT(1)`**: Cách MySQL biểu diễn kiểu Boolean (0 là False, 1 là True). Nó chỉ tốn đúng 1 byte trên ổ cứng.
+* **`ON UPDATE CURRENT_TIMESTAMP`**: Tính năng tự động của MySQL. Code Backend không cần truyền trường `updated_at`, database sẽ tự cập nhật thời gian bất cứ khi nào dòng này có thay đổi.
+
+---
+
+## 2. Bảng `categories` (Danh mục đệ quy)
+
+```sql
+CREATE TABLE categories (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    slug        VARCHAR(100) NOT NULL UNIQUE,
+    parent_id   INT UNSIGNED,
+    sort_order  INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`INT UNSIGNED`**: Danh mục thường không nhiều như user, `INT` (4 byte) lưu được hơn 4 tỷ bản ghi là quá đủ.
+* **`slug ... UNIQUE`**: Giúp tối ưu SEO cho URL và tăng tốc độ tìm kiếm danh mục từ thanh địa chỉ trình duyệt.
+* **`parent_id INT UNSIGNED` & Khóa ngoại tự tham chiếu**: Đây là thiết kế dạng **Mô hình danh sách kề (Adjacency List Model)** để làm danh mục đa cấp (Cha - Con - Cháu).
+* **`ON DELETE SET NULL`**: Lựa chọn cực kỳ thông minh. Nếu một danh mục cha bị xóa, các danh mục con sẽ không bị xóa theo (tránh mất dữ liệu dây chuyền), chúng chỉ được đưa về trạng thái mồ côi (`parent_id = NULL`) để người quản trị sắp xếp lại.
+
+---
+
+## 3. Bảng `items` & `item_images` (Hàng hóa và hình ảnh)
+
+```sql
+CREATE TABLE items (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    seller_id   BIGINT UNSIGNED NOT NULL,
+    category_id INT UNSIGNED    NOT NULL,
+    title       VARCHAR(255)    NOT NULL,
+    description TEXT,
+    condition   ENUM('NEW','LIKE_NEW','GOOD','FAIR','POOR') NOT NULL DEFAULT 'GOOD',
+    status      ENUM('DRAFT','PENDING_REVIEW','APPROVED','REJECTED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+    ...
+    FOREIGN KEY (seller_id)   REFERENCES users(id)   ON DELETE RESTRICT,
+    FOREIGN KEY (category_id) REFERENCES categories(id)  ON DELETE RESTRICT
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`ENUM` cho trạng thái và độ mới**: Thay vì lưu chuỗi dài gây tốn ổ cứng, `ENUM` lưu dưới dạng các con số index (1, 2, 3...) ngầm định bên dưới ổ cứng, tối ưu hóa không gian lưu trữ và chuẩn hóa dữ liệu đầu vào.
+* **`ON DELETE RESTRICT`**: Lưới an toàn cho dữ liệu. Bạn không thể xóa một `user` (người bán) hoặc một `category` nếu họ đang có hàng hóa nằm trong bảng `items`. Hệ thống sẽ chặn ngay lập tức để tránh dữ liệu bị rác.
+
+```sql
+CREATE TABLE item_images (
+    ...
+    item_id     BIGINT UNSIGNED NOT NULL,
+    is_primary  TINYINT(1) NOT NULL DEFAULT 0,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+);
+
+```
+
+* **`ON DELETE CASCADE`**: Trái ngược với bảng trên, ở mối quan hệ 1-nhiều này, nếu một sản phẩm (`item`) bị xóa, toàn bộ ảnh liên quan của nó trong bảng `item_images` sẽ bị tự động xóa theo để dọn rác hệ thống.
+
+---
+
+## 4. Bảng `auctions` (Trọng tâm hệ thống)
+
+Đây là nơi thể hiện tư duy thiết kế hệ thống chịu tải cao cực kỳ rõ ràng của bạn.
+
+```sql
+CREATE TABLE auctions (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    item_id         BIGINT UNSIGNED  NOT NULL UNIQUE,
+    ...
+    total_bids      INT UNSIGNED     NOT NULL DEFAULT 0,
+    version         INT UNSIGNED     NOT NULL DEFAULT 0,
+    ...
+    CONSTRAINT chk_price CHECK (current_price >= starting_price),
+    CONSTRAINT chk_time  CHECK (end_time > start_time)
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`item_id ... UNIQUE`**: Khống chế logic nghiệp vụ ngay từ tầng vật lý: Một món hàng tại một thời điểm chỉ được phép nằm trong một phiên đấu giá duy nhất.
+* **`total_bids INT UNSIGNED`**: Đây là kỹ thuật **Khử chuẩn hóa (Denormalization)** để làm bộ nhớ đệm (Cache count). Thay vì mỗi lần người dùng tải trang đấu giá, hệ thống lại phải chạy lệnh `SELECT COUNT(*) FROM bids WHERE auction_id = x` (quét n nốt trên cây B+ Tree), ta chỉ cần lấy luôn trường `total_bids` ra. Tốc độ đọc tăng lên hàng trăm lần.
+* **`version INT UNSIGNED`**: **Siêu vũ khí chống Race Condition (Tranh chấp dữ liệu).** Đây là cơ chế **Khóa lạc quan (Optimistic Locking)**. Khi hàng ngàn người cùng bấm đặt giá một lúc, câu lệnh UPDATE ở Backend sẽ so sánh trường `version` này. Ai đến trước sẽ cập nhật thành công và tăng `version` lên 1, những người đến sau có `version` cũ sẽ bị trượt, bảo vệ hệ thống khỏi việc tăng/giảm giá sai lệch.
+* **Các ràng buộc `CONSTRAINT ... CHECK**`: Đảm bảo an toàn dữ liệu từ vòng gửi xe. Ngăn chặn các lỗi logic ngớ ngẩn như giá hiện tại nhỏ hơn giá khởi điểm, hoặc thời gian kết thúc lại trước thời gian bắt đầu.
+
+---
+
+## 5. Bảng `bids` (Lịch sử đặt giá)
+
+```sql
+CREATE TABLE bids (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    auction_id  BIGINT UNSIGNED NOT NULL,
+    bidder_id   BIGINT UNSIGNED NOT NULL,
+    amount      DECIMAL(15,2)   NOT NULL,
+    is_winning  TINYINT(1)      NOT NULL DEFAULT 0,
+    ip_address  VARCHAR(45),
+    ...
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`is_winning TINYINT(1)`**: Thêm một trường cache khôn ngoan. Nhìn vào đây ta biết ngay ai đang là người dẫn đầu phiên đấu giá mà không cần tìm dòng có `amount` lớn nhất.
+* **`ip_address VARCHAR(45)`**: Độ dài 45 ký tự là chuẩn quốc tế để lưu trữ được cả địa chỉ IPv4 lẫn IPv6 nâng cao. Rất tốt cho việc kiểm toán bảo mật và chống gian lận (ví dụ: dùng clone cùng IP để tự đẩy giá).
+
+---
+
+## 6. Bảng `payments` (Thanh toán)
+
+```sql
+CREATE TABLE payments (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    auction_id      BIGINT UNSIGNED  NOT NULL UNIQUE,
+    ...
+    transaction_ref VARCHAR(100) UNIQUE,
+    ...
+);
+
+```
+
+### Giải thích các chi tiết đắt giá:
+
+* **`auction_id ... UNIQUE`**: Tạo ra mối quan hệ 1-1 (One-to-One) chặt chẽ giữa Phiên đấu giá và Thanh toán. Một phiên đấu giá thành công chỉ được tạo duy nhất một hóa đơn thanh toán.
+* **`transaction_ref VARCHAR(100) UNIQUE`**: Lưu mã giao dịch (Idempotency Key) trả về từ cổng thanh toán bên thứ 3 (Momo, VNPay, Stripe...). Việc đánh `UNIQUE` ở đây giúp ngăn chặn thảm họa "Webhook của ngân hàng bắn về 2 lần khiến hệ thống cộng tiền/trừ tiền 2 lần" (Lỗi thanh toán lặp).
+
+---
+
+## Đánh giá tổng quan & Đề xuất tối ưu nhỏ (Nitpicks)
+
+Bản thiết kế này đạt **9.5/10 điểm** về độ hoàn thiện cơ sở dữ liệu. Để đạt điểm 10 tuyệt đối khi chạy thực tế, bạn cần lưu ý một số điểm sau:
+
+1. **Chỉ mục (Index) bổ sung**: MySQL mặc định tự tạo Index cho các Khóa chính (`PRIMARY KEY`) và Khóa ngoại (`FOREIGN KEY`). Tuy nhiên, bạn sẽ cần bổ sung các **Composite Index** dựa trên hành vi tìm kiếm của người dùng, ví dụ:
+* `ALTER TABLE auctions ADD INDEX idx_status_endtime (status, end_time);` (Để con Bot chạy ngầm quét các phiên `ACTIVE` đã đến giờ đóng `ENDED`).
+
+
+2. **Lưu ý về `bids.is_winning**`: Vì trường này được update liên tục (khi có người đặt giá cao hơn, người cũ chuyển từ 1 về 0, người mới từ 0 lên 1), nó sẽ tạo ra thao tác `UPDATE` liên tục trên bảng `bids`. Khi lượng người click cực lớn, việc này có thể gây lock nhẹ cây Index. Ở quy mô siêu lớn (như eBay), người ta thường bỏ `is_winning` ở bảng `bids` và chỉ tin vào `winner_id` + `current_price` ở bảng `auctions`.
+
+Hệ thống bảng này đã được thiết kế rất khoa học. Bước tiếp theo, bạn có muốn cùng tôi viết thử **câu lệnh Transaction (TCL) bằng SQL thuần kết hợp Optimistic Locking** để mô phỏng chính xác kịch bản 3 người cùng tranh nhau đặt giá tại một giây hay không?

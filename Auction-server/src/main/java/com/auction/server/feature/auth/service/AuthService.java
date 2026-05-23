@@ -384,7 +384,7 @@ public class AuthService {
             );
         }
 
-        if (isBlank(request.identity())) {
+        if (isBlank(request.password())) {
 
             throw new AuthException(
                     "Password required"
