@@ -107,10 +107,27 @@ public class AuctionService {
         auctionRepository.updateStatusDirect(auctionId, AuctionStatus.CANCELED);
     }
 
-    /** Gia hạn phiên thêm extraSeconds giây (Anti-sniping) */
+    /** Gia hạn phiên thêm extraSeconds giây (Anti-sniping)
+     * Tính end_time mới = end_time cũ + extraSeconds rồi gọi Repository lưu xuống
+     */
     public void extendAuction(int auctionId, long extraSeconds) {
         AuctionDetailResponse detail = auctionRepository.findDetailById(auctionId);
         auctionRepository.extendEndTime(auctionId,
                 detail.getEndTime().plusSeconds(extraSeconds));
+    }
+
+    private static final long ANTI_SNIPE_THRESHOLD_SECONDS = 30;    //ngưỡng kích hoạt
+    private static final long ANTI_SNIPE_EXTENSION_SECONDS = 120;   //thời gian gia hạn
+
+    public boolean checkAndExtend(int auctionId) {
+        AuctionDetailResponse detail = auctionRepository.findDetailById(auctionId);
+        long secondsRemaining = ChronoUnit.SECONDS.between(
+                LocalDateTime.now(), detail.getEndTime());
+
+        if (secondsRemaining > 0 && secondsRemaining <= ANTI_SNIPE_THRESHOLD_SECONDS) {
+            extendAuction(auctionId, ANTI_SNIPE_EXTENSION_SECONDS); // hàm này bạn đã có rồi
+            return true; // báo cho caller biết: phiên vừa được gia hạn
+        }
+        return false;
     }
 }

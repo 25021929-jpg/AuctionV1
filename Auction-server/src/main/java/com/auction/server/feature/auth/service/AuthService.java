@@ -165,59 +165,34 @@ public class AuthService {
     // =====================================================
     // FORGOT PASSWORD
     // =====================================================
-    public String forgotPassword(
-            ForgotPasswordRequest request
-    ) {
+    public String forgotPassword(ForgotPasswordRequest request) {
 
-        if (request == null
-                || isBlank(request.getEmail())) {
-
-            throw new AuthException(
-                    "Email required"
-            );
+        if (request == null || isBlank(request.getEmail())) {
+            throw new AuthException("Email required");
         }
 
         try {
+            User user = userRepository.findByEmail(
+                    request.getEmail().trim().toLowerCase()
+            );
 
-            User user =
-                    userRepository.findByEmail(
-                            request.getEmail()
-                                    .trim()
-                                    .toLowerCase()
-                    );
-
-            // Không báo email tồn tại hay không
-            // để tránh dò tài khoản
+            //Luôn trả cùng 1 message dù email có tồn tại hay không
             if (user == null) {
-
-                return "Reset token generated";
+                return "If your email is registered, you will receive a reset token.";
             }
 
-            // Tạo token reset password
-            String token =
-                    ResetTokenUtil.generateToken();
+            String token = ResetTokenUtil.generateToken();
+            LocalDateTime expiredAt = LocalDateTime.now().plusMinutes(15);
 
-            // Token hết hạn sau 15 phút
-            LocalDateTime expiredAt =
-                    LocalDateTime.now()
-                            .plusMinutes(15);
+            passwordResetRepository.saveToken(user.getId(), token, expiredAt);
 
-            passwordResetRepository.saveToken(
-                    user.getId(),
-                    token,
-                    expiredAt
-            );
+            // TODO: gửi token qua email thay vì trả trực tiếp
+            return "If your email is registered, you will receive a reset token.";
 
-            // Sau này:
-            // gửi email tại đây
-
-            return token;
-
+        } catch (AuthException e) {
+            throw e;
         } catch (DataAccessException e) {
-
-            throw new AuthException(
-                    "System error while resetting password"
-            );
+            throw new AuthException("System error while resetting password");
         }
     }
 
@@ -366,9 +341,7 @@ public class AuthService {
     // =====================================================
     // VALIDATE LOGIN
     // =====================================================
-    private void validateLogin(
-            LoginRequest request
-    ) {
+    private void validateLogin(LoginRequest request) {
 
         if (request == null) {
 
@@ -384,7 +357,7 @@ public class AuthService {
             );
         }
 
-        if (isBlank(request.identity())) {
+        if (isBlank(request.password())) {
 
             throw new AuthException(
                     "Password required"

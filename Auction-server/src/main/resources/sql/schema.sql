@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS items (
                                      category      VARCHAR(50)    NOT NULL,  -- ELECTRONICS / ART / VEHICLE / OTHER
                                      seller_id     INT            NOT NULL,
                                      created_at    DATETIME       DEFAULT CURRENT_TIMESTAMP,
-                                     FOREIGN KEY (seller_id) REFERENCES users(user_id)
+                                     FOREIGN KEY (seller_id) REFERENCES users(user)
 );
 
 -- Bảng phiên đấu giá

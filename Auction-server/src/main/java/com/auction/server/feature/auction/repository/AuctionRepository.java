@@ -230,11 +230,15 @@ public class AuctionRepository {
     }
 
     /** Gia hạn phiên (Anti-sniping) */
+    //Đầu vào là phiên đấu giá và mốc tg end mới
     public void extendEndTime(int auctionId, LocalDateTime newEndTime) {
         String sql = "UPDATE auctions SET end_time = ? WHERE auction_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+            //Đưa newEndTime (kiểu dữ liệu Java hiện đại LocalDateTime) chuyển đổi thành Timestamp
+            // (kiểu dữ liệu thời gian truyền thống của SQL/JDBC) để DB hiểu được.
             ps.setTimestamp(1, Timestamp.valueOf(newEndTime));
+            //Truyền auctionId kiểu số nguyên (int).
             ps.setInt(2, auctionId);
             ps.executeUpdate();
         } catch (SQLException e) {

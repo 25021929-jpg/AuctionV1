@@ -91,22 +91,16 @@ public class UserRepository {
 
         try (
                 Connection conn = DatabaseConnection.getConnection();
-
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-
             ps.setString(1, username);
 
-            ResultSet rs = ps.executeQuery();
-
-            return rs.next();
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
 
         } catch (SQLException e) {
-
-            throw new DataAccessException(
-                    "Error checking username",
-                    e
-            );
+            throw new DataAccessException("Error checking username", e);
         }
     }
 
@@ -123,22 +117,16 @@ public class UserRepository {
 
         try (
                 Connection conn = DatabaseConnection.getConnection();
-
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-
             ps.setString(1, email);
 
-            ResultSet rs = ps.executeQuery();
-
-            return rs.next();
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
 
         } catch (SQLException e) {
-
-            throw new DataAccessException(
-                    "Error checking email",
-                    e
-            );
+            throw new DataAccessException("Error checking email", e);
         }
     }
     // =====================================================
@@ -153,30 +141,19 @@ public class UserRepository {
             """;
 
         try (
-                Connection conn =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement ps =
-                        conn.prepareStatement(sql)
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-
             ps.setString(1, email);
 
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-
-                return mapRow(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
             }
 
             return null;
 
         } catch (SQLException e) {
-
-            throw new DataAccessException(
-                    "Error finding user by email",
-                    e
-            );
+            throw new DataAccessException("Error finding user by email", e);
         }
     }
 
@@ -194,28 +171,19 @@ public class UserRepository {
 
         try (
                 Connection conn = DatabaseConnection.getConnection();
-
                 PreparedStatement ps = conn.prepareStatement(sql)
         ) {
-
             ps.setString(1, loginId);
             ps.setString(2, loginId);
 
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-
-                return mapRow(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapRow(rs);
             }
 
             return null;
 
         } catch (SQLException e) {
-
-            throw new DataAccessException(
-                    "Error finding user",
-                    e
-            );
+            throw new DataAccessException("Error finding user", e);
         }
     }
 

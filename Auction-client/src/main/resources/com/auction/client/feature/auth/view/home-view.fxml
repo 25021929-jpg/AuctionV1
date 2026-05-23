@@ -142,7 +142,7 @@
                                 <TableColumn fx:id="colName" text="TÀI SẢN" prefWidth="280"/>
                                 <TableColumn fx:id="colCurrentPrice" text="GIÁ HIỆN TẠI" prefWidth="160"/>
                                 <TableColumn fx:id="colEndTime" text="KẾT THÚC" prefWidth="160"/>
-                                <TableColumn fx:id="colStatus" text="TRẠNG THÁI" prefWidth="140"/>
+                                <TableColumn fx:id="colStatus" text="TRẠNG THÁI" prefWidth="220"/>
                             </columns>
                             <placeholder>
                                 <Label text="Không có phiên nào đang mở" styleClass="subtitle"/>
