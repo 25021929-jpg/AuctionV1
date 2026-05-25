@@ -3,7 +3,7 @@ name: CI - Build & Test
 # Chạy khi push hoặc tạo Pull Request vào nhánh main hoặc dev
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, dev, feature/server ]
   pull_request:
     branches: [ main, dev ]
 
