@@ -8,11 +8,11 @@ import com.auction.shared.dto.Response;
 public class RequestDispatcher {
 
     private final AuthController authController;
-    private final AuctionController auctionController; // ← thêm
+    private final AuctionController auctionController;
 
     public RequestDispatcher() {
         this.authController = new AuthController();
-        this.auctionController = new AuctionController(); // ← thêm
+        this.auctionController = new AuctionController();
     }
 
     public Response<?> dispatch(Request request) {
