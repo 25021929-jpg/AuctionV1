@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.feature.auction.controller.AuctionDetailController"
+      spacing="14"
+      style="-fx-background-color: #7FC8F7; -fx-font-family: 'Segoe UI', Arial;">
+
+    <padding>
+        <Insets top="22" right="22" bottom="22" left="22"/>
+    </padding>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Button text="← Back" onAction="#handleBack"
+                style="-fx-background-color: rgba(255,255,255,0.65); -fx-background-radius: 10; -fx-text-fill: #0B2B4A; -fx-font-weight: bold;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ProgressIndicator fx:id="loadingIndicator" maxWidth="18" maxHeight="18" visible="false"/>
+        <Button fx:id="btnRefresh" text="Refresh" onAction="#handleRefresh"
+                style="-fx-background-color: rgba(25,118,210,0.15); -fx-text-fill: #0D47A1; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 14 8 14;"/>
+    </HBox>
+
+    <VBox spacing="12"
+          style="-fx-background-color: rgba(255,255,255,0.92); -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0.15, 0, 6);">
+        <padding>
+            <Insets top="16" right="16" bottom="16" left="16"/>
+        </padding>
+
+        <Label text="Chi tiết phiên đấu giá"
+               style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0B2B4A;"/>
+
+        <GridPane hgap="10" vgap="10">
+            <columnConstraints>
+                <ColumnConstraints minWidth="150"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
+            <Label text="Tên sản phẩm:" GridPane.rowIndex="0" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblItemName" wrapText="true" GridPane.rowIndex="0" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Mô tả:" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblDescription" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Danh mục:" GridPane.rowIndex="2" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblCategory" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Seller:" GridPane.rowIndex="3" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblSeller" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Giá khởi điểm:" GridPane.rowIndex="4" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblStartPrice" GridPane.rowIndex="4" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Giá hiện tại:" GridPane.rowIndex="5" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblCurrentPrice" GridPane.rowIndex="5" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Người dẫn đầu:" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblLeader" GridPane.rowIndex="6" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Bắt đầu:" GridPane.rowIndex="7" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblStartTime" GridPane.rowIndex="7" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Kết thúc:" GridPane.rowIndex="8" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblEndTime" GridPane.rowIndex="8" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+
+            <Label text="Trạng thái:" GridPane.rowIndex="9" GridPane.columnIndex="0"
+                   style="-fx-text-fill: rgba(11,43,74,0.85); -fx-font-weight: bold;"/>
+            <Label fx:id="lblStatus" GridPane.rowIndex="9" GridPane.columnIndex="1"
+                   style="-fx-text-fill: #0B2B4A;"/>
+        </GridPane>
+
+        <Separator/>
+
+        <Button fx:id="btnGoLive" text="Vào phòng đấu giá (realtime)" onAction="#handleGoToLiveBidding"
+                style="-fx-background-color: #1976D2; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 10 14 10 14;"/>
+
+    </VBox>
+
+</VBox>
