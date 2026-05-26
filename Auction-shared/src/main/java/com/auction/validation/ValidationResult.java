@@ -26,7 +26,7 @@ public class ValidationResult {
         Map<String,String> map = new LinkedHashMap<>();
         for (FieldError fielderror : errors){
             // Tự kiểm tra và tạo cặp key-value
-            map.put(fielderror.field(),fielderror.message());
+            map.putIfAbsent(fielderror.field(), fielderror.message());
         }
         return new ValidationResult(map);
         }
@@ -48,6 +48,13 @@ public class ValidationResult {
     //Kiểm tra xem Field có lỗi hay không
     public boolean hasErrorFor(String field){
         return fieldErrors.containsKey(field);
+    }
+
+    /**
+     * Trả về toàn bộ lỗi để controller/test có thể kiểm tra mà không sửa được map nội bộ.
+     */
+    public Map<String, String> errors() {
+        return fieldErrors;
     }
 
     }

@@ -6,19 +6,12 @@ import java.util.Optional;
 
 public class EmailFormatRule implements ValidationRule<String> {
 
-    // Giải thích REGEX:
-    // ^              → bắt đầu chuỗi
-    // [A-Za-z0-9+_.-] → phần trước @ — chữ, số, +, _, ., -
-    // +              → 1 ký tự trở lên
-    // @              → dấu @
-    // [A-Za-z0-9.-]  → tên domain — chữ, số, ., -
-    // +              → 1 ký tự trở lên
-    // \.             → dấu chấm trước đuôi
-    // [A-Za-z]{2,}   → đuôi domain tối thiểu 2 ký tự (com, vn, org...) (Bỏ)
-    //com -> đuôi cuối phải là .com
-    // $              → kết thúc chuỗi
+    /**
+     * Regex email thực dụng cho UI: cho phép nhiều đuôi tên miền (.com, .vn, .edu.vn...).
+     * Server/database vẫn có thể kiểm tra thêm nếu cần.
+     */
     private static final String REGEX =
-            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.com$";
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
     @Override
     public Optional<String> check(String value) {
