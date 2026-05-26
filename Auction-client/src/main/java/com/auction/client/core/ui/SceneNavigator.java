@@ -9,11 +9,13 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class SceneNavigator {
 
     // ── Singleton Stage chính ──────────────────────────────────────────
     private static Stage mainStage;
+    private static Object currentController;
     private static final Map<String, Scene> sceneCache = new HashMap<>();
 
     // Chỉ gọi đúng 1 lần khi app khởi động
@@ -26,6 +28,15 @@ public class SceneNavigator {
 
     // Chuyển màn hình chính — tái sử dụng mainStage, cache scene
     public static void switchScene(String fxmlPath) {
+        switchScene(fxmlPath, null);
+    }
+
+    /**
+     * Switch scene và (tuỳ chọn) init controller ngay sau khi load.
+     *
+     * <p>Dùng để truyền param (auctionId, v.v.) mà không cần shared static state.
+     */
+    public static void switchScene(String fxmlPath, Consumer<Object> controllerInitializer) {
         try {
             // 1. Tải giao diện mới (hoặc lấy từ cache)
             Parent root;
@@ -33,6 +44,13 @@ public class SceneNavigator {
             // trừ khi bạn thực sự muốn cache trạng thái nhập liệu.
             FXMLLoader loader = new FXMLLoader(SceneNavigator.class.getResource(fxmlPath));
             root = loader.load();
+
+            Object controller = loader.getController();
+            if (controllerInitializer != null) {
+                controllerInitializer.accept(controller);
+            }
+
+            disposeCurrentController();
 
             // 2. Kiểm tra xem Stage đã có Scene nào chưa
             if (mainStage.getScene() == null) {
@@ -51,10 +69,22 @@ public class SceneNavigator {
                 mainStage.show();
             }
 
+            currentController = controller;
+
         } catch (IOException e) {
-            e.printStackTrace();
-            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath);
+            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath + "\n" + e.getMessage());
         }
+    }
+
+    private static void disposeCurrentController() {
+        if (currentController instanceof DisposableController disposable) {
+            try {
+                disposable.dispose();
+            } catch (Exception ignored) {
+                // Không để lỗi cleanup làm hỏng navigation.
+            }
+        }
+        currentController = null;
     }
 
     public static void clearCache(String fxmlPath) { sceneCache.remove(fxmlPath); }
@@ -85,8 +115,7 @@ public class SceneNavigator {
 
             modal.showAndWait(); // block cho đến khi đóng
         } catch (IOException e) {
-            e.printStackTrace();
-            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath);
+            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath + "\n" + e.getMessage());
         }
     }
 
@@ -102,8 +131,7 @@ public class SceneNavigator {
             window.setScene(new Scene(loader.load()));
             window.show(); // không block
         } catch (IOException e) {
-            e.printStackTrace();
-            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath);
+            AlertHelper.showError("Lỗi hệ thống", "Không thể tải: " + fxmlPath + "\n" + e.getMessage());
         }
     }
 }
