@@ -11,7 +11,6 @@ import java.util.Optional;
 
 public class LoginValidator implements Validator<LoginRequest> {
 
-    @Override
     public ValidationResult validate(LoginRequest req) {
         List<FieldError> errors = new ArrayList<>();
 

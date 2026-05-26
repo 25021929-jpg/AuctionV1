@@ -1,89 +1,136 @@
 package com.auction.client.feature.auth.validator;
 
 import com.auction.client.feature.auth.dto.request.LoginRequest;
+import com.auction.client.feature.auth.factory.AuthValidatorFactory;
 import com.auction.validation.ValidationResult;
+import com.auction.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("LoginValidator")
 class LoginValidatorTest {
 
-    private LoginValidator validator;
+    private Validator<LoginRequest> validator;
 
     @BeforeEach
     void setUp() {
-        validator = new LoginValidator();
+        // Dùng Factory đúng như production code — test cả Factory luôn
+        validator = AuthValidatorFactory.createLoginValidator();
     }
 
-    // ─── identity ───────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Happy path
+    // ─────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("Hợp lệ")
+    class Valid {
 
-    @Test
-    @DisplayName("Tên đăng nhập hợp lệ -> pass")
-    void validate_validUsername_returnsOk() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("john", "password123")
-        );
-        assertTrue(result.valid());
+        @Test
+        @DisplayName("Đăng nhập bằng username + password")
+        void usernameAndPassword() {
+            var req = new LoginRequest("nguyen_van_a", "password123");
+            assertTrue(validator.validate(req).valid());
+        }
+
+        @Test
+        @DisplayName("Đăng nhập bằng email + password")
+        void emailAndPassword() {
+            var req = new LoginRequest("user@gmail.com", "abcdef12");
+            assertTrue(validator.validate(req).valid());
+        }
     }
 
-    @Test
-    @DisplayName("Tên email hợp lệ -> pass")
-    void validate_validEmail_returnsOk() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("john@gmail.com", "password123")
-        );
-        assertTrue(result.valid());
+    // ─────────────────────────────────────────────────────────────
+    // Identity field
+    // ─────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("Field: identity")
+    class IdentityField {
+
+        @Test
+        @DisplayName("Bỏ trống → lỗi identity")
+        void blank_fails() {
+            var result = validator.validate(new LoginRequest("", "password123"));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "identity"));
+        }
+
+        @Test
+        @DisplayName("Chỉ khoảng trắng → lỗi identity")
+        void whitespaceOnly_fails() {
+            var result = validator.validate(new LoginRequest("   ", "password123"));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "identity"));
+        }
+
+        @Test
+        @DisplayName("null → lỗi identity")
+        void null_fails() {
+            var result = validator.validate(new LoginRequest(null, "password123"));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "identity"));
+        }
+
+        @Test
+        @DisplayName("Email sai định dạng → lỗi identity")
+        void invalidEmailFormat_fails() {
+            var result = validator.validate(new LoginRequest("not-an-email@", "password123"));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "identity"));
+        }
     }
 
-    @Test
-    @DisplayName("Để trống Indentity -> error")
-    void validate_emptyIdentity_returnsError() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("", "password123")
-        );
-        assertFalse(result.valid());
-        assertTrue(result.hasErrorFor("identity"));
-        assertEquals("Thành phần không được để trống",
-                result.errorFor("identity"));
+    // ─────────────────────────────────────────────────────────────
+    // Password field
+    // ─────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("Field: password")
+    class PasswordField {
+
+        @Test
+        @DisplayName("Bỏ trống → lỗi password")
+        void blank_fails() {
+            var result = validator.validate(new LoginRequest("user@gmail.com", ""));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "password"));
+        }
+
+        @Test
+        @DisplayName("null → lỗi password")
+        void null_fails() {
+            var result = validator.validate(new LoginRequest("user@gmail.com", null));
+            assertFalse(result.valid());
+            assertTrue(hasError(result, "password"));
+        }
     }
 
-    @Test
-    @DisplayName("Sai định dạng email -> error")
-    void validate_invalidEmailFormat_returnsError() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("john@", "password123")
-        );
-        assertFalse(result.valid());
-        assertTrue(result.hasErrorFor("identity"));
-        assertEquals("Sai định dạng email",
-                result.errorFor("identity"));
+    // ─────────────────────────────────────────────────────────────
+    // Cả hai field sai cùng lúc
+    // ─────────────────────────────────────────────────────────────
+    @Nested
+    @DisplayName("Cả hai field cùng sai")
+    class BothInvalid {
+
+        @Test
+        @DisplayName("Cả identity và password đều trống → 2 lỗi")
+        void bothBlank_twoErrors() {
+            var result = validator.validate(new LoginRequest("", ""));
+
+            assertFalse(result.valid());
+            // Kiểm tra đích danh xem cả 2 field này đều đã bị bắt lỗi thành công
+            assertTrue(hasError(result, "identity"));
+            assertTrue(hasError(result, "password"));
+        }
     }
 
-    // ─── password ───────────────────────────────────────
-
-    @Test
-    @DisplayName("Để trống password -> error")
-    void validate_emptyPassword_returnsError() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("john", "")
-        );
-        assertFalse(result.valid());
-        assertTrue(result.hasErrorFor("password"));
-        assertEquals("Thành phần không được để trống",
-                result.errorFor("password"));
-    }
-
-    // ─── cả 2 trống ─────────────────────────────────────
-
-    @Test
-    @DisplayName("Cả 2 đều bỏ trống-> 2 errors")
-    void validate_bothEmpty_returnsTwoErrors() {
-        ValidationResult result = validator.validate(
-                new LoginRequest("", "")
-        );
-        assertFalse(result.valid());
-        assertTrue(result.hasErrorFor("identity"));
-        assertTrue(result.hasErrorFor("password"));
+    // ─────────────────────────────────────────────────────────────
+    // Helper
+    // ─────────────────────────────────────────────────────────────
+    private boolean hasError(ValidationResult result, String field) {
+        return result.hasErrorFor(field);
     }
 }

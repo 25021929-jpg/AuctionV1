@@ -10,7 +10,6 @@ import java.util.Optional;
 
 public class ForgotPasswordValidator implements Validator<ForgotPasswordRequest> {
 
-    @Override
     public ValidationResult validate(ForgotPasswordRequest req) {
         List<FieldError> errors = new ArrayList<>();
 

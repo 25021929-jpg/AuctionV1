@@ -3,9 +3,12 @@ package com.auction.server.network;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ServerSocketManager {
 
+    private static final Logger logger = LoggerFactory.getLogger(ServerSocketManager.class);
     private final int port;
 
     public ServerSocketManager(int port) {
@@ -14,18 +17,18 @@ public class ServerSocketManager {
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started on port " + port);
+            logger.info("Server started on port " + port);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected");
+                logger.info("Client connected: " + clientSocket.getRemoteSocketAddress());
 
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
                 new Thread(clientHandler).start();
             }
 
         } catch (IOException e) {
-            System.out.println("Server error: " + e.getMessage());
+            logger.error("Server error: " + e.getMessage());
         }
     }
 }

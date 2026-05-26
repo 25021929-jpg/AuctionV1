@@ -37,6 +37,15 @@
             <version>6.5.2.Final</version> <!-- Kiểm tra phiên bản mới nhất trên Maven Central -->
         </dependency>
 
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <!-- Kết nối MySQL -->
         <dependency>
             <groupId>mysql</groupId>

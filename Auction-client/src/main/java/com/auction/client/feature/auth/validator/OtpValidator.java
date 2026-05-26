@@ -13,7 +13,6 @@ import java.util.List;
 
 public class OtpValidator implements Validator<OtpRequest> {
 
-    @Override
     public ValidationResult validate(OtpRequest request) {
         List<FieldError> errors = new ArrayList<>();
 

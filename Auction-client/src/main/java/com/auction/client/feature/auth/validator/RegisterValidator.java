@@ -9,7 +9,6 @@ import java.util.Optional;
 
 public class RegisterValidator implements Validator<RegisterRequest> {
 
-    @Override
     public ValidationResult validate(RegisterRequest req) {
         List<FieldError> errors = new ArrayList<>();
         validate("fullName", req.fullName(),

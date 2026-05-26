@@ -28,7 +28,13 @@ public class DatabaseConnection {
     /** Pool singleton — null cho đến khi {@link #initializePool()} chạy xong. */
     // 1. THÊM VOLATILE: Đảm bảo mọi Thread đều nhìn thấy thuộc tính này ngay khi khởi tạo
     private static volatile HikariDataSource dataSource;
-
+    //Helper lấy DataSource để truyền cho HibernateUtil
+    public static HikariDataSource getDataSource() {
+        if (dataSource == null) {
+            throw new IllegalStateException("Connection Pool chưa khởi tạo");
+        }
+        return dataSource;
+    }
     /**
      * Khởi tạo HikariCP pool từ {@code application.properties} trên classpath.
      * <p>
@@ -56,7 +62,7 @@ public class DatabaseConnection {
 
         // Validation query khi lấy connection từ pool (MySQL)
 //        config.setConnectionTestQuery("SELECT 1");
-        // 2. XÓA BỎ setConnectionTestQuery("SELECT 1") để dùng Connection.isValid() mặc định cực nhanh.(của hikariCP, không phải của MySQL driver) — tránh query thừa mỗi lần mượn connection.
+// 2. XÓA BỎ setConnectionTestQuery("SELECT 1") để dùng Connection.isValid() mặc định cực nhanh.(của hikariCP, không phải của MySQL driver) — tránh query thừa mỗi lần mượn connection.
 
         // 3. KÍCH HOẠT VŨ KHÍ BÍ MẬT: Tối ưu hóa tối đa cho MySQL
         config.addDataSourceProperty("cachePrepStmts", "true"); // Bật cache câu lệnh ở phía Client

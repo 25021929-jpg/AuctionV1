@@ -63,8 +63,6 @@
                         onAction="#handleNavAuctions"/>
                 <Button text="📦  Tài sản của tôi" prefWidth="200" styleClass="nav-item"
                         onAction="#handleNavMyAssets"/>
-                <Button text="💰  Ví của tôi" prefWidth="200" styleClass="nav-item"
-                        onAction="#handleNavWallet"/>
                 <Button text="📋  Lịch sử" prefWidth="200" styleClass="nav-item"
                         onAction="#handleNavHistory"/>
                 <Pane VBox.vgrow="ALWAYS"/>

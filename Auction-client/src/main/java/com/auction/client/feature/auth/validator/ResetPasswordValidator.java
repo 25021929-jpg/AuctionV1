@@ -14,7 +14,6 @@ import java.util.List;
 
 public class ResetPasswordValidator implements Validator<ResetPasswordRequest> {
 
-    @Override
     public ValidationResult validate(ResetPasswordRequest request) {
         List<FieldError> errors = new ArrayList<>();
 

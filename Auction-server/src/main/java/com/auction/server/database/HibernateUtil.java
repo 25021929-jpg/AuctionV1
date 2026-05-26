@@ -4,6 +4,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /** HibernateUtil(tên gọi truyền thống) nhưng thực tế nên được gọi là SessionFactoryProvider vì
  * nhiệm vụ của nó:
  * +
@@ -18,6 +20,8 @@ public class HibernateUtil {
 
     // Nơi lưu trữ "Nhà máy sản xuất Session" duy nhất cho toàn Server (Singleton)
     private static SessionFactory sessionFactory;
+    private static final Logger logger = LoggerFactory.getLogger(HibernateUtil.class);
+
 
     /**
      * Khởi tạo cấu hình Hibernate bằng cách nhận một DataSource đã được tạo sẵn từ bên ngoài.
@@ -70,7 +74,7 @@ public class HibernateUtil {
         // Quá trình này nặng nhất, nên chỉ chạy duy nhất 1 lần lúc startup server.
         sessionFactory = config.buildSessionFactory();
 
-        System.out.println("✅ Hibernate SessionFactory khởi động thành công!");
+        logger.info("Hibernate SessionFactory khởi động thành công!");
     }
 
     /**
@@ -91,7 +95,7 @@ public class HibernateUtil {
     public static void shutdown() {
         if (sessionFactory != null) {
             sessionFactory.close();
-            System.out.println("💤 Hibernate SessionFactory đã đóng.");
+            logger.info("Hibernate SessionFactory đã đóng.");
         }
         /*
          * LƯU Ý KIẾN TRÚC: Ở đây ta KHÔNG gọi dataSource.close() nữa.

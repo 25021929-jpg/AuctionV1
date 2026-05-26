@@ -7,4 +7,6 @@ package com.auction.validation;
  */
 public interface Validator<T> {
     ValidationResult validate(T request);
+
+    ValidationResult validate(ResetPasswordRequest request);
 }

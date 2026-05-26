@@ -3,6 +3,8 @@ package com.auction.server.network;
 import com.auction.shared.dto.Request;
 import com.auction.shared.dto.Response;
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.Socket;
@@ -12,6 +14,8 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private final RequestDispatcher requestDispatcher;
     private final Gson gson;
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -19,6 +23,7 @@ public class ClientHandler implements Runnable {
         this.gson = new Gson();
     }
 
+    //Khởi tạo luông đọc ghi dữ liệu
     @Override
     public void run() {
         try (
@@ -50,16 +55,14 @@ public class ClientHandler implements Runnable {
                     writer.println(responseJson);
 
                 } catch (Exception e) {
-                    // Nếu lỗi bất ngờ khi xử lý 1 request
-                    Response<?> errorResponse =
-                            Response.fail("Invalid request");
-
+                    logger.error("Lỗi xử lý request từ {}: {}", socket.getRemoteSocketAddress(), e.getMessage(), e);
+                    Response<?> errorResponse = Response.fail("Invalid request");
                     writer.println(gson.toJson(errorResponse));
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
+            logger.info("Client disconnected: {}", socket.getRemoteSocketAddress());
 
         } finally {
             closeSocket();
@@ -72,7 +75,7 @@ public class ClientHandler implements Runnable {
                 socket.close();
             }
         } catch (IOException e) {
-            System.out.println("Error closing client socket");
+            logger.error("Error closing client socket: {}", socket.getRemoteSocketAddress(), e);
         }
     }
 }
