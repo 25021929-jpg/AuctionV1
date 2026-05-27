@@ -71,6 +71,8 @@
                         <version>1.18.36</version> <!-- Khớp với version trong dependencies -->
                     </path>
                 </annotationProcessorPaths>
+                <source>25</source>
+                <target>25</target>
             </configuration>
         </plugin>
         </plugins>

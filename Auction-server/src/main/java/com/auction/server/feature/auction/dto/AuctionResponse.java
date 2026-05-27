@@ -3,13 +3,19 @@ package com.auction.server.feature.auction.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * DTO trả về danh sách phiên đấu giá.
+ *
+ * ✅ Dùng Long cho ID
+ * ✅ Dùng BigDecimal cho giá
+ */
 public class AuctionResponse {
 
-    private int auctionId;
-    private int itemId;
+    private Long auctionId;              // ✅ Changed: int → Long
+    private Long itemId;                 // ✅ Changed: int → Long
     private String itemName;
-    private BigDecimal startingPrice;
-    private BigDecimal currentPrice;
+    private BigDecimal startingPrice;    // ✅ Đã đúng - BigDecimal
+    private BigDecimal currentPrice;     // ✅ Đã đúng - BigDecimal
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String status;
@@ -18,8 +24,8 @@ public class AuctionResponse {
     }
 
     public AuctionResponse(
-            int auctionId,
-            int itemId,
+            Long auctionId,                 // ✅ Changed
+            Long itemId,                    // ✅ Changed
             String itemName,
             BigDecimal startingPrice,
             BigDecimal currentPrice,
@@ -37,19 +43,20 @@ public class AuctionResponse {
         this.status = status;
     }
 
-    public int getAuctionId() {
+    // Getters & Setters
+    public Long getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(int auctionId) {
+    public void setAuctionId(Long auctionId) {
         this.auctionId = auctionId;
     }
 
-    public int getItemId() {
+    public Long getItemId() {
         return itemId;
     }
 
-    public void setItemId(int itemId) {
+    public void setItemId(Long itemId) {
         this.itemId = itemId;
     }
 

@@ -1,12 +1,12 @@
 package com.auction.server.feature.bidding.controller;
 
 import com.auction.server.database.HibernateUtil;
+import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
 import com.auction.server.feature.bidding.BidException;
 import com.auction.server.feature.bidding.dto.BidResponse;
 import com.auction.server.feature.bidding.dto.PlaceBidRequest;
 import com.auction.server.feature.bidding.repository.*;
 import com.auction.server.feature.bidding.service.BidService;
-import com.auction.shared.dto.Request;
 import com.auction.shared.dto.Response;
 
 import java.util.List;

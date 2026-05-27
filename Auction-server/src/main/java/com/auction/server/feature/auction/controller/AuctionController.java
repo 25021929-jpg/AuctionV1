@@ -3,12 +3,11 @@ package com.auction.server.feature.auction.controller;
 import com.auction.server.database.HibernateUtil;
 import com.auction.server.entity.AuctionSession;
 import com.auction.server.feature.auction.AuctionException;
-import com.auction.server.feature.auction.dto.AuctionResponse;
 import com.auction.server.feature.auction.dto.CreateAuctionRequest;
 import com.auction.server.feature.auction.service.AuctionService;
-import com.auction.server.feature.bidding.repository.HibernateAuctionItemRepository;
-import com.auction.server.feature.bidding.repository.HibernateAuctionSessionRepository;
-import com.auction.server.feature.bidding.repository.HibernateCategoryRepository;
+import com.auction.server.feature.auction.repository.HibernateAuctionItemRepository;
+import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
+import com.auction.server.feature.auction.repository.HibernateCategoryRepository;
 import com.shared.dto.Request;
 import com.shared.dto.Response;
 

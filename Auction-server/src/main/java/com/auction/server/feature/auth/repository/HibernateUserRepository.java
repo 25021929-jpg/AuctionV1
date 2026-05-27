@@ -1,4 +1,4 @@
-package com.auction.server.feature.bidding.repository;
+package com.auction.server.feature.auth.repository;
 
 import com.auction.server.entity.User;
 import org.hibernate.SessionFactory;

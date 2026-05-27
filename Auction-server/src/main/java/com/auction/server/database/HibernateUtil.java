@@ -104,4 +104,7 @@ public class HibernateUtil {
          * Điều này tuân thủ nguyên tắc: "Ai đẻ ra thì người đó nuôi và chôn cất".
          */
     }
+    public static SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
 }

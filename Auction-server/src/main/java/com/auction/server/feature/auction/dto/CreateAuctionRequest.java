@@ -3,15 +3,21 @@ package com.auction.server.feature.auction.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Request để tạo phiên đấu giá.
+ *
+ * ✅ Dùng Long cho ID (max ~9 tỷ tỷ)
+ * ✅ Đã dùng BigDecimal cho giá (đúng)
+ */
 public class CreateAuctionRequest {
 
-    private int sellerId;
-    private int categoryId;
+    private Long sellerId;          // ✅ Changed: int → Long
+    private Integer categoryId;     // ✅ Changed: int → Integer (category dùng Integer)
 
     private String itemName;
     private String description;
 
-    private BigDecimal startingPrice;
+    private BigDecimal startingPrice;  // ✅ Đã đúng - BigDecimal
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -20,8 +26,8 @@ public class CreateAuctionRequest {
     }
 
     public CreateAuctionRequest(
-            int sellerId,
-            int categoryId,
+            Long sellerId,                  // ✅ Changed
+            Integer categoryId,             // ✅ Changed
             String itemName,
             String description,
             BigDecimal startingPrice,
@@ -37,19 +43,20 @@ public class CreateAuctionRequest {
         this.endTime = endTime;
     }
 
-    public int getSellerId() {
+    // Getters & Setters
+    public Long getSellerId() {
         return sellerId;
     }
 
-    public void setSellerId(int sellerId) {
+    public void setSellerId(Long sellerId) {
         this.sellerId = sellerId;
     }
 
-    public int getCategoryId() {
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 

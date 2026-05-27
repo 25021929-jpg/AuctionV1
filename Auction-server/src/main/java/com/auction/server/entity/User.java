@@ -34,6 +34,9 @@ public class User {
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String fullName;
+
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
@@ -47,7 +50,7 @@ public class User {
     // Nếu dùng ORDINAL: thêm MODERATOR vào giữa → số thứ tự thay đổi → dữ liệu cũ sai
     @Column(name = "role", nullable = false, length = 10)
     @Builder.Default                // khi dùng @Builder, cần @Builder.Default để giá trị mặc định hoạt động
-    private Role role = Role.BUYER;
+    private Role role = Role.BIDDER;
 
     @Column(name = "balance", nullable = false, precision = 15, scale = 2)
     @Builder.Default
@@ -98,6 +101,6 @@ public class User {
 
     // Enum định nghĩa ngay trong class — gọn hơn tạo file riêng
     public enum Role {
-        ADMIN, SELLER, BUYER
+        ADMIN, SELLER, BIDDER
     }
 }

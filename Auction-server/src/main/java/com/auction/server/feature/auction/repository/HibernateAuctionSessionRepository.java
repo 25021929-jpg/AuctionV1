@@ -1,7 +1,6 @@
-package com.auction.server.feature.bidding.repository;
+package com.auction.server.feature.auction.repository;
 
 import com.auction.server.entity.AuctionSession;
-import com.auction.server.feature.bidding.repository.AuctionSessionRepository;
 import org.hibernate.LockMode;
 import org.hibernate.SessionFactory;
 
