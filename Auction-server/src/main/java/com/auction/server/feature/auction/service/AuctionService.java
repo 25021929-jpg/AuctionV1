@@ -1,13 +1,22 @@
 package com.auction.server.feature.auction.service;
 
+import com.auction.server.database.DbExecutor;
+import com.auction.server.database.HibernateUtil;
+import com.auction.server.entity.AuctionItem;
+import com.auction.server.entity.AuctionSession;
+import com.auction.server.entity.Category;
+import com.auction.server.entity.User;
 import com.auction.server.exception.DataAccessException;
 import com.auction.server.feature.auction.AuctionException;
 import com.auction.server.feature.auction.dto.AuctionDetailResponse;
 import com.auction.server.feature.auction.dto.AuctionResponse;
 import com.auction.server.feature.auction.dto.CreateAuctionRequest;
-import com.auction.server.feature.auction.repository.AuctionItemRepository;
-import com.auction.server.feature.auction.repository.AuctionSessionRepository;
-import com.auction.server.feature.auction.repository.CategoryRepository;
+import com.auction.server.feature.bidding.repository.AuctionItemRepository;
+import com.auction.server.feature.bidding.repository.AuctionSessionRepository;
+import com.auction.server.feature.bidding.repository.CategoryRepository;
+import com.auction.server.feature.bidding.repository.HibernateAuctionItemRepository;
+import com.auction.server.feature.bidding.repository.HibernateAuctionSessionRepository;
+import com.auction.server.feature.bidding.repository.HibernateCategoryRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,74 +27,96 @@ public class AuctionService {
     private final AuctionItemRepository auctionItemRepository;
     private final CategoryRepository categoryRepository;
 
-    public AuctionService() {
-        this.auctionSessionRepository = new AuctionSessionRepository();
-        this.auctionItemRepository = new AuctionItemRepository();
-        this.categoryRepository = new CategoryRepository();
+    // Constructor với Dependency Injection
+    public AuctionService(
+            AuctionSessionRepository auctionSessionRepository,
+            AuctionItemRepository auctionItemRepository,
+            CategoryRepository categoryRepository
+    ) {
+        this.auctionSessionRepository = auctionSessionRepository;
+        this.auctionItemRepository = auctionItemRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public List<AuctionResponse> getAllAuctions() {
+    // Constructor mặc định với singleton initialization
+    public AuctionService() {
+        this(
+            new HibernateAuctionSessionRepository(HibernateUtil.getSessionFactory()),
+            new HibernateAuctionItemRepository(HibernateUtil.getSessionFactory()),
+            new HibernateCategoryRepository(HibernateUtil.getSessionFactory())
+        );
+    }
+
+    public List<AuctionSession> getAllAuctions(int page, int size) {
         try {
-            return auctionSessionRepository.findAll();
+            return DbExecutor.query(() ->
+                auctionSessionRepository.findActive(page, size)
+            );
         } catch (DataAccessException e) {
             throw new AuctionException("System error while getting auctions", e);
         }
     }
 
-    public AuctionDetailResponse getAuctionDetail(int auctionId) {
-        if (auctionId <= 0) {
+    public AuctionSession getAuctionDetail(Long auctionId) {
+        if (auctionId == null || auctionId <= 0) {
             throw new AuctionException("Invalid auction id");
         }
 
         try {
-            AuctionDetailResponse response = auctionSessionRepository.findDetailById(auctionId);
-
-            if (response == null) {
-                throw new AuctionException("Auction not found");
-            }
-
-            return response;
-
+            return DbExecutor.query(() -> {
+                var result = auctionSessionRepository.findByIdWithDetails(auctionId);
+                if (result.isEmpty()) {
+                    throw new AuctionException("Auction not found");
+                }
+                return result.get();
+            });
+        } catch (AuctionException e) {
+            throw e;
         } catch (DataAccessException e) {
             throw new AuctionException("System error while getting auction detail", e);
         }
     }
 
-    public AuctionResponse createAuction(CreateAuctionRequest request) {
+    public AuctionSession createAuction(CreateAuctionRequest request) {
         validateCreateAuction(request);
 
         try {
-            if (!categoryRepository.existsById(request.getCategoryId())) {
-                throw new AuctionException("Category not found");
-            }
+            return DbExecutor.runAndReturn(() -> {
+                // Validate category exists
+                if (!categoryRepository.findById(request.getCategoryId()).isPresent()) {
+                    throw new AuctionException("Category not found");
+                }
 
-            int itemId = auctionItemRepository.save(
-                    request.getSellerId(),
-                    request.getCategoryId(),
-                    request.getItemName().trim(),
-                    request.getDescription().trim()
-            );
+                // Create AuctionItem entity (type-safe, ORM managed)
+                User seller = new User();
+                seller.setId((long) request.getSellerId());
 
-            int auctionId = auctionSessionRepository.save(
-                    itemId,
-                    request.getStartingPrice(),
-                    request.getStartTime(),
-                    request.getEndTime()
-            );
+                AuctionItem item = AuctionItem.builder()
+                        .seller(seller) // Proxy reference
+                        .category(categoryRepository.getReference(request.getCategoryId()))
+                        .itemName(request.getItemName().trim())
+                        .description(request.getDescription().trim())
+                        .status(AuctionItem.ItemStatus.DRAFT)
+                        .condition(AuctionItem.ItemCondition.GOOD)
+                        .build();
 
-            AuctionDetailResponse detail = auctionSessionRepository.findDetailById(auctionId);
+                item = auctionItemRepository.save(item);
 
-            return new AuctionResponse(
-                    detail.getAuctionId(),
-                    detail.getItemId(),
-                    detail.getItemName(),
-                    detail.getStartingPrice(),
-                    detail.getCurrentPrice(),
-                    detail.getStartTime(),
-                    detail.getEndTime(),
-                    detail.getStatus()
-            );
+                // Create AuctionSession entity
+                AuctionSession auction = AuctionSession.builder()
+                        .item(item)
+                        .startingPrice(request.getStartingPrice())
+                        .currentPrice(request.getStartingPrice())
+                        .startTime(request.getStartTime())
+                        .endTime(request.getEndTime())
+                        .status(AuctionSession.AuctionStatus.SCHEDULED)
+                        .build();
 
+                return auctionSessionRepository.save(auction);
+            });
+
+        } catch (AuctionException e) {
+            throw e;
         } catch (DataAccessException e) {
             throw new AuctionException("System error while creating auction", e);
         }
