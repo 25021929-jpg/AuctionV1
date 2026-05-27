@@ -1,6 +1,7 @@
 package com.auction.server;
 
 import com.auction.server.database.DatabaseConnection;
+import com.auction.server.database.HibernateUtil;
 import com.auction.server.network.ServerSocketManager;
 
 /**
@@ -12,6 +13,9 @@ public class MainServer {
     public static void main(String[] args) {
         // Pool DB phải có trước khi ClientHandler / repository xử lý request
         DatabaseConnection.initializePool();
+        // Bước 2: Hibernate sau — truyền pool vào
+
+        HibernateUtil.initialize(DatabaseConnection.getDataSource());
         Runtime.getRuntime().addShutdownHook(new Thread(DatabaseConnection::shutdownPool));
 
         int port = 8888;

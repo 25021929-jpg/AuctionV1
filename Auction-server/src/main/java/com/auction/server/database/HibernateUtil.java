@@ -55,7 +55,11 @@ public class HibernateUtil {
          * Tuyệt đối không tự ý sửa đổi hay xóa dữ liệu của DB như các chế độ 'update' hay 'create-drop'.
          */
         config.setProperty("hibernate.hbm2ddl.auto", "validate");
-
+        //Cấu hình hibernate bật threadBound
+        config.setProperty(
+                "hibernate.current_session_context_class",
+                "thread"  // mỗi thread có 1 session riêng
+        );
         // ĐĂNG KÝ THÀNH VIÊN: Khai báo các Class Entity được quản lý bởi Hibernate ORM
         config.addAnnotatedClass(User.class);
         config.addAnnotatedClass(Category.class);
