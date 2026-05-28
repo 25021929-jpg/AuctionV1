@@ -1,5 +1,8 @@
 package com.auction.shared.dto.seller;
 
-/** Request Seller xóa sản phẩm/phiên đấu giá. auctionId có thể null nếu server chỉ cần itemId. */
-public record DeleteSellerItemRequest(long itemId, Long auctionId) {
+/** Request for deleting or cancelling a seller-owned item/auction. */
+public record DeleteSellerItemRequest(long itemId, Long auctionId, long sellerId) {
+    public DeleteSellerItemRequest(long itemId, Long auctionId) {
+        this(itemId, auctionId, 0);
+    }
 }

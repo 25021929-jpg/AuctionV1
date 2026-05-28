@@ -1,6 +1,7 @@
 package com.auction.server;
 
 import com.auction.server.database.DatabaseConnection;
+import com.auction.server.database.DbExecutor;
 import com.auction.server.database.HibernateUtil;
 import com.auction.server.feature.auction.controller.AuctionController;
 import com.auction.server.feature.auction.repository.HibernateAuctionItemRepository;
@@ -14,6 +15,8 @@ import com.auction.server.feature.bidding.controller.BidController;
 import com.auction.server.feature.bidding.repository.HibernateBidRepository;
 import com.auction.server.feature.bidding.repository.HibernatePaymentRepository;
 import com.auction.server.feature.bidding.service.BidService;
+import com.auction.server.feature.seller.controller.SellerController;
+import com.auction.server.feature.seller.service.SellerService;
 import com.auction.server.network.RequestDispatcher; // THÊM IMPORT
 import com.auction.server.network.ServerSocketManager;
 import org.hibernate.SessionFactory;
@@ -42,6 +45,7 @@ public class MainServer {
 
         // Trích xuất SessionFactory chung để phân phát cho tất cả các tầng Repository
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        DbExecutor.init(sessionFactory);
 
         // =========================================================================
         // KIẾN TRÚC LẮP RÁP HỆ THỐNG TẬP TRUNG (Manual Dependency Injection Chain)
@@ -61,14 +65,16 @@ public class MainServer {
         AuctionService auctionService = new AuctionService(auctionSessionRepo, auctionItemRepo, categoryRepo, userRepo);
         BidService bidService         = new BidService(auctionSessionRepo, bidRepo, paymentRepo,userRepo);
         AuthService authService       = new AuthService(userRepo); // Đảm bảo lớp AuthService của bạn cũng dùng Constructor DI
+        SellerService sellerService   = new SellerService(auctionSessionRepo, auctionItemRepo, categoryRepo, userRepo);
 
         // BƯỚC 3: Khởi tạo tầng giao tiếp API - CONTROLLERS (Bơm các Service tương ứng vào)
         AuctionController auctionController = new AuctionController(auctionService);
         BidController bidController         = new BidController(bidService);
         AuthController authController       = new AuthController(authService);
+        SellerController sellerController   = new SellerController(sellerService);
 
         // BƯỚC 4: Khởi tạo cổng điều phối mạng trung tâm - DISPATCHER
-        RequestDispatcher dispatcher = new RequestDispatcher(authController, auctionController, bidController);
+        RequestDispatcher dispatcher = new RequestDispatcher(authController, auctionController, bidController, sellerController);
 
         // =========================================================================
         // KHỞI CHẠY TẦNG MẠNG SOCKET

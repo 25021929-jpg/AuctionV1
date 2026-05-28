@@ -31,8 +31,14 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public List<SellerItemDto> listMyItems() throws IOException {
+        JsonObject request = new JsonObject();
+        Long sellerId = UserSession.getInstance().getUserId();
+        if (sellerId != null) {
+            request.addProperty("sellerId", sellerId);
+        }
+
         Response<JsonElement> res = SocketClient.getInstance()
-                .send(ActionConstants.SELLER_ITEM_LIST_MY, null, JsonElement.class);
+                .send(ActionConstants.SELLER_ITEM_LIST_MY, request, JsonElement.class);
 
         JsonElement data = ResponseUtils.unwrap(ActionConstants.SELLER_ITEM_LIST_MY, res);
         JsonArray arr;
@@ -80,7 +86,10 @@ public class SellerServiceImpl implements SellerService {
         }
 
         Long auctionId = item.getAuctionId() > 0 ? item.getAuctionId() : null;
-        DeleteSellerItemRequest request = new DeleteSellerItemRequest(item.getItemId(), auctionId);
+        long sellerId = UserSession.getInstance().getUserId() != null
+                ? UserSession.getInstance().getUserId()
+                : 0L;
+        DeleteSellerItemRequest request = new DeleteSellerItemRequest(item.getItemId(), auctionId, sellerId);
 
         Response<Void> res = SocketClient.getInstance()
                 .send(ActionConstants.SELLER_ITEM_DELETE, request, Void.class);

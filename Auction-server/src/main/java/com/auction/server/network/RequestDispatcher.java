@@ -3,33 +3,42 @@ package com.auction.server.network;
 import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.auction.controller.AuctionController;
 import com.auction.server.feature.bidding.controller.BidController;
+import com.auction.server.feature.seller.controller.SellerController;
 import com.auction.shared.dto.Response;
-import com.auction.shared.protocol.ActionConstants; // Sử dụng Single Source of Truth từ shared protocol
-import com.auction.shared.protocol.WireMessage;      // Thay thế class Request cũ bằng WireMessage
+import com.auction.shared.protocol.ActionConstants;
+import com.auction.shared.protocol.WireMessage;
+import com.auction.shared.protocol.WireMessageType;
 
 public class RequestDispatcher {
 
     private final AuthController authController;
     private final AuctionController auctionController;
     private final BidController bidController;
+    private final SellerController sellerController;
 
-    // Toàn bộ các Controller này chỉ được khởi tạo DUY NHẤT 1 LẦN khi Server bật lên
-    // Áp dụng DI: Nhận toàn bộ các Controller đã dựng sẵn dưới dạng Singleton từ MainServer đẩy sang
     public RequestDispatcher(AuthController authController,
                              AuctionController auctionController,
-                             BidController bidController) {
+                             BidController bidController,
+                             SellerController sellerController) {
         this.authController = authController;
         this.auctionController = auctionController;
         this.bidController = bidController;
+        this.sellerController = sellerController;
     }
 
     /**
-     * Nhận gói tin Envelope mạng WireMessage, bóc tách và phân phối đến đúng Controller.
+     * Routes a socket envelope to the matching feature controller.
+     *
+     * <p>The network layer owns {@link WireMessage}. Controllers still receive the
+     * raw JSON body so they can be migrated independently in smaller steps.</p>
      */
     public Response<?> dispatch(WireMessage request) {
-
         if (request == null) {
             return Response.fail("Request is null");
+        }
+
+        if (request.getType() != WireMessageType.REQUEST) {
+            return Response.fail("Message type must be REQUEST");
         }
 
         if (request.getAction() == null || request.getAction().trim().isEmpty()) {
@@ -37,37 +46,46 @@ public class RequestDispatcher {
         }
 
         String action = request.getAction().trim();
-
-        // Chuyển đổi dữ liệu nghiệp vụ (data) bên trong WireMessage thành dạng String JSON thô
-        // để truyền vào cấu trúc các hàm có sẵn của Controller (ví dụ: login(String requestBody)).
-        String requestBody = request.getData() != null ? request.getData().toString() : "";
+        String requestBody = request.getData() != null ? request.getData().toString() : "{}";
 
         try {
             switch (action) {
-
-                // ===== AUTH ACTIONS (Khớp đồng bộ với ActionConstants) =====
                 case ActionConstants.AUTH_REGISTER:
                     return authController.register(requestBody);
 
                 case ActionConstants.AUTH_LOGIN:
                     return authController.login(requestBody);
 
-                // ===== AUCTION ACTIONS =====
                 case "AUCTION_CREATE":
                     return auctionController.createAuction(requestBody);
 
-                case ActionConstants.AUCTION_GET_LIST: // Thay vì chuỗi "AUCTION_LIST" cũ để khớp Client
+                case ActionConstants.AUCTION_GET_LIST:
                     return auctionController.getAllAuctions(requestBody);
 
-                case ActionConstants.AUCTION_GET_DETAIL: // Thay vì "AUCTION_DETAIL" cũ
+                case ActionConstants.AUCTION_GET_DETAIL:
                     return auctionController.getAuctionDetail(requestBody);
 
-                // ===== BIDDING ACTIONS =====
-                case ActionConstants.BID_PLACE_BID: // Khớp hoàn toàn với hằng số "BID_PLACE_BID"
+                case ActionConstants.AUCTION_SUBSCRIBE:
+                case ActionConstants.AUCTION_UNSUBSCRIBE:
+                    return Response.success("Subscription updated", null);
+
+                case ActionConstants.BID_PLACE_BID:
                     return bidController.placeBid(requestBody);
 
                 case "BID_HISTORY":
                     return bidController.getBidHistory(requestBody);
+
+                case ActionConstants.SELLER_ITEM_LIST_MY:
+                    return sellerController.listMyItems(requestBody);
+
+                case ActionConstants.SELLER_ITEM_CREATE:
+                    return sellerController.createItem(requestBody);
+
+                case ActionConstants.SELLER_ITEM_UPDATE:
+                    return sellerController.updateItem(requestBody);
+
+                case ActionConstants.SELLER_ITEM_DELETE:
+                    return sellerController.deleteItem(requestBody);
 
                 default:
                     return Response.fail("Unsupported action: " + action);

@@ -9,6 +9,7 @@ import com.auction.client.core.event.EventType;
 import com.auction.client.core.event.NetworkEventPayload;
 import com.auction.client.core.event.ServerEventMapper;
 import com.auction.shared.dto.Response;
+import com.auction.shared.protocol.JsonSupport;
 import com.auction.shared.protocol.WireMessage;
 import com.auction.shared.protocol.WireMessageType;
 import com.google.gson.*;
@@ -49,7 +50,7 @@ public class SocketClient implements ServerCommunicator {
     private Socket         socket;
     private BufferedReader reader;
     private PrintWriter    writer;
-    private final Gson     gson = new Gson();
+    private final Gson     gson = JsonSupport.createGson();
 
     /** Thread đọc message từ server (RESPONSE/EVENT). */
     private ExecutorService readerExecutor;

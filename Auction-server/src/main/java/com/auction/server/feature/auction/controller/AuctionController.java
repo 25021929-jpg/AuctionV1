@@ -1,16 +1,12 @@
 package com.auction.server.feature.auction.controller;
 
-import com.auction.server.database.HibernateUtil;
+import com.auction.server.feature.auction.AuctionException;
 import com.auction.server.feature.auction.dto.AuctionDetailResponse;
 import com.auction.server.feature.auction.dto.AuctionResponse;
-import com.auction.server.feature.auth.repository.HibernateUserRepository;
-import com.auction.server.feature.auction.AuctionException;
 import com.auction.server.feature.auction.dto.CreateAuctionRequest;
 import com.auction.server.feature.auction.service.AuctionService;
-import com.auction.server.feature.auction.repository.HibernateAuctionItemRepository;
-import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
-import com.auction.server.feature.auction.repository.HibernateCategoryRepository;
 import com.auction.shared.dto.Response;
+import com.auction.shared.protocol.JsonSupport;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -33,7 +29,7 @@ import java.util.List;
 public class AuctionController {
 
     private final AuctionService auctionService;
-    private final Gson gson = new Gson(); // Gson thread-safe, dùng chung được
+    private final Gson gson = JsonSupport.createGson(); // Gson thread-safe, dùng chung được
 
     // =========================================================================
     // KIẾN TRÚC DI (Constructor Injection):
@@ -60,7 +56,7 @@ public class AuctionController {
             int page = obj != null && obj.has("page") ? obj.get("page").getAsInt() : 0;
             int size = obj != null && obj.has("size") ? obj.get("size").getAsInt() : 20;
 
-            return Response.success(auctionService.getAllAuctions(page, size));
+            return Response.success("Auctions loaded", auctionService.getAllAuctions(page, size));
 
         } catch (AuctionException e) {
             // Lỗi nghiệp vụ — message có nghĩa, trả thẳng cho client
@@ -84,7 +80,7 @@ public class AuctionController {
             JsonObject obj = gson.fromJson(requestBody, JsonObject.class);
             long auctionId = obj.get("auctionId").getAsLong();
 
-            return Response.success(auctionService.getAuctionDetail(auctionId));
+            return Response.success("Auction detail loaded", auctionService.getAuctionDetail(auctionId));
 
         } catch (AuctionException e) {
             return Response.fail(e.getMessage());
@@ -105,7 +101,7 @@ public class AuctionController {
         try {
             CreateAuctionRequest request = gson.fromJson(requestBody, CreateAuctionRequest.class);
 
-            return Response.success(auctionService.createAuction(request));
+            return Response.success("Auction created", auctionService.createAuction(request));
 
         } catch (AuctionException e) {
             return Response.fail(e.getMessage());
