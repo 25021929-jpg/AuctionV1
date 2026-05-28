@@ -1,6 +1,6 @@
 package com.auction.client.feature.auth.validator;
 
-import com.auction.client.feature.auth.dto.request.LoginRequest;
+import com.auction.shared.dto.auth.request.LoginRequest;
 import com.auction.validation.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

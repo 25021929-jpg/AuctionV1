@@ -1,5 +1,5 @@
 package com.auction.client.feature.auth.validator;
-import com.auction.client.feature.auth.dto.request.RegisterRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
 import com.auction.validation.*;
 import com.auction.validation.rules.*;
 
