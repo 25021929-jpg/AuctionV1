@@ -35,17 +35,13 @@ public class AuctionController {
     private final AuctionService auctionService;
     private final Gson gson = new Gson(); // Gson thread-safe, dùng chung được
 
-    // ─── Constructor production: tự tạo dependency
-    public AuctionController() {
-        this.auctionService = new AuctionService(
-                new HibernateAuctionSessionRepository(HibernateUtil.getSessionFactory()),
-                new HibernateAuctionItemRepository(HibernateUtil.getSessionFactory()),
-                new HibernateCategoryRepository(HibernateUtil.getSessionFactory()),
-                new HibernateUserRepository(HibernateUtil.getSessionFactory())
-        );
-    }
-
+    // =========================================================================
+    // KIẾN TRÚC DI (Constructor Injection):
+    // Xóa bỏ hoàn toàn Constructor mặc định tự ý 'new' các tầng Repository/Service.
+    // Việc này giúp Controller hoàn toàn độc lập với hạ tầng dữ liệu cụ thể (Hibernate).
+    // =========================================================================
     // ─── Constructor test: inject mock service
+    //-Contructor sử dụng chính
     public AuctionController(AuctionService auctionService) {
         this.auctionService = auctionService;
     }

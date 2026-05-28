@@ -3,8 +3,9 @@ package com.auction.server.network;
 import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.auction.controller.AuctionController;
 import com.auction.server.feature.bidding.controller.BidController;
-import com.auction.shared.dto.Request;
 import com.auction.shared.dto.Response;
+import com.auction.shared.protocol.ActionConstants; // Sử dụng Single Source of Truth từ shared protocol
+import com.auction.shared.protocol.WireMessage;      // Thay thế class Request cũ bằng WireMessage
 
 public class RequestDispatcher {
 
@@ -12,53 +13,61 @@ public class RequestDispatcher {
     private final AuctionController auctionController;
     private final BidController bidController;
 
-    public RequestDispatcher() {
-        this.authController = new AuthController();
-        this.auctionController = new AuctionController();
-        this.bidController = new BidController();
+    // Toàn bộ các Controller này chỉ được khởi tạo DUY NHẤT 1 LẦN khi Server bật lên
+    // Áp dụng DI: Nhận toàn bộ các Controller đã dựng sẵn dưới dạng Singleton từ MainServer đẩy sang
+    public RequestDispatcher(AuthController authController,
+                             AuctionController auctionController,
+                             BidController bidController) {
+        this.authController = authController;
+        this.auctionController = auctionController;
+        this.bidController = bidController;
     }
 
-    public Response<?> dispatch(Request request) {
+    /**
+     * Nhận gói tin Envelope mạng WireMessage, bóc tách và phân phối đến đúng Controller.
+     */
+    public Response<?> dispatch(WireMessage request) {
 
-        // Kiểm tra request có null không
         if (request == null) {
             return Response.fail("Request is null");
         }
 
-        // Kiểm tra action có null/rỗng không
         if (request.getAction() == null || request.getAction().trim().isEmpty()) {
             return Response.fail("Action is required");
         }
 
         String action = request.getAction().trim();
 
-        // Dựa vào action để gọi đúng controller
+        // Chuyển đổi dữ liệu nghiệp vụ (data) bên trong WireMessage thành dạng String JSON thô
+        // để truyền vào cấu trúc các hàm có sẵn của Controller (ví dụ: login(String requestBody)).
+        String requestBody = request.getData() != null ? request.getData().toString() : "";
+
         try {
             switch (action) {
 
-                // ===== AUTH ACTIONS =====
-                case "AUTH_REGISTER":
-                    return authController.register(request.getBody());
+                // ===== AUTH ACTIONS (Khớp đồng bộ với ActionConstants) =====
+                case ActionConstants.AUTH_REGISTER:
+                    return authController.register(requestBody);
 
-                case "AUTH_LOGIN":
-                    return authController.login(request.getBody());
+                case ActionConstants.AUTH_LOGIN:
+                    return authController.login(requestBody);
 
                 // ===== AUCTION ACTIONS =====
                 case "AUCTION_CREATE":
-                    return auctionController.createAuction(request.getBody());
+                    return auctionController.createAuction(requestBody);
 
-                case "AUCTION_LIST":
-                    return auctionController.getAllAuctions(request.getBody());
+                case ActionConstants.AUCTION_GET_LIST: // Thay vì chuỗi "AUCTION_LIST" cũ để khớp Client
+                    return auctionController.getAllAuctions(requestBody);
 
-                case "AUCTION_DETAIL":
-                    return auctionController.getAuctionDetail(request.getBody());
+                case ActionConstants.AUCTION_GET_DETAIL: // Thay vì "AUCTION_DETAIL" cũ
+                    return auctionController.getAuctionDetail(requestBody);
 
                 // ===== BIDDING ACTIONS =====
-                case "BID_PLACE":
-                    return bidController.placeBid(request.getBody());
+                case ActionConstants.BID_PLACE_BID: // Khớp hoàn toàn với hằng số "BID_PLACE_BID"
+                    return bidController.placeBid(requestBody);
 
                 case "BID_HISTORY":
-                    return bidController.getBidHistory(request.getBody());
+                    return bidController.getBidHistory(requestBody);
 
                 default:
                     return Response.fail("Unsupported action: " + action);

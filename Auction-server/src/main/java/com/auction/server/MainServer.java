@@ -2,7 +2,21 @@ package com.auction.server;
 
 import com.auction.server.database.DatabaseConnection;
 import com.auction.server.database.HibernateUtil;
+import com.auction.server.feature.auction.controller.AuctionController;
+import com.auction.server.feature.auction.repository.HibernateAuctionItemRepository;
+import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
+import com.auction.server.feature.auction.repository.HibernateCategoryRepository;
+import com.auction.server.feature.auction.service.AuctionService;
+import com.auction.server.feature.auth.controller.AuthController;
+import com.auction.server.feature.auth.repository.HibernateUserRepository;
+import com.auction.server.feature.auth.service.AuthService;
+import com.auction.server.feature.bidding.controller.BidController;
+import com.auction.server.feature.bidding.repository.HibernateBidRepository;
+import com.auction.server.feature.bidding.repository.HibernatePaymentRepository;
+import com.auction.server.feature.bidding.service.BidService;
+import com.auction.server.network.RequestDispatcher; // THÊM IMPORT
 import com.auction.server.network.ServerSocketManager;
+import org.hibernate.SessionFactory;
 
 /**
  * Entry point for Auction Server. Starts the ServerSocketManager on the
@@ -11,13 +25,54 @@ import com.auction.server.network.ServerSocketManager;
 public class MainServer {
 
     public static void main(String[] args) {
-        // Pool DB phải có trước khi ClientHandler / repository xử lý request
+        // Bước 1: Pool DB phải có trước khi ClientHandler / repository xử lý request
         DatabaseConnection.initializePool();
-        // Bước 2: Hibernate sau — truyền pool vào
 
+        // Bước 2: Hibernate sau — truyền pool vào
         HibernateUtil.initialize(DatabaseConnection.getDataSource());
         Runtime.getRuntime().addShutdownHook(new Thread(DatabaseConnection::shutdownPool));
 
+
+        // =========================================================================
+        // KIẾN TRÚC DI (Dependency Injection):
+        // Khởi tạo duy nhất MỘT RequestDispatcher dùng chung cho toàn bộ Server tại đây.
+        // Điều này ngăn chặn việc mỗi Client kết nối vào lại tự ý 'new RequestDispatcher()'
+        // gây lãng phí tài nguyên RAM và lặp đi lặp lại việc khởi tạo Controller/Repository.
+        // =========================================================================
+
+        // Trích xuất SessionFactory chung để phân phát cho tất cả các tầng Repository
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+
+        // =========================================================================
+        // KIẾN TRÚC LẮP RÁP HỆ THỐNG TẬP TRUNG (Manual Dependency Injection Chain)
+        // Lợi ích: Đảm bảo mỗi Class nghiệp vụ chỉ tồn tại DUY NHẤT 1 ĐỐI TƯỢNG (Singleton)
+        // trên bộ nhớ Heap suốt vòng đời ứng dụng, ngăn chặn việc cấp phát RAM bừa bãi.
+        // =========================================================================
+
+        // BƯỚC 1: Khởi tạo tầng nền tảng hạ tầng - REPOSITORIES
+        HibernateAuctionSessionRepository auctionSessionRepo = new HibernateAuctionSessionRepository(sessionFactory);
+        HibernateAuctionItemRepository auctionItemRepo       = new HibernateAuctionItemRepository(sessionFactory);
+        HibernateCategoryRepository categoryRepo             = new HibernateCategoryRepository(sessionFactory);
+        HibernateUserRepository userRepo                     = new HibernateUserRepository(sessionFactory);
+        HibernateBidRepository bidRepo                       = new HibernateBidRepository(sessionFactory);
+        HibernatePaymentRepository paymentRepo               = new HibernatePaymentRepository(sessionFactory);
+
+        // BƯỚC 2: Khởi tạo tầng lõi xử lý nghiệp vụ - SERVICES (Bơm các Repository tương ứng vào)
+        AuctionService auctionService = new AuctionService(auctionSessionRepo, auctionItemRepo, categoryRepo, userRepo);
+        BidService bidService         = new BidService(auctionSessionRepo, bidRepo, paymentRepo,userRepo);
+        AuthService authService       = new AuthService(userRepo); // Đảm bảo lớp AuthService của bạn cũng dùng Constructor DI
+
+        // BƯỚC 3: Khởi tạo tầng giao tiếp API - CONTROLLERS (Bơm các Service tương ứng vào)
+        AuctionController auctionController = new AuctionController(auctionService);
+        BidController bidController         = new BidController(bidService);
+        AuthController authController       = new AuthController(authService);
+
+        // BƯỚC 4: Khởi tạo cổng điều phối mạng trung tâm - DISPATCHER
+        RequestDispatcher dispatcher = new RequestDispatcher(authController, auctionController, bidController);
+
+        // =========================================================================
+        // KHỞI CHẠY TẦNG MẠNG SOCKET
+        // =========================================================================
         int port = 8888;
         if (args != null && args.length > 0) {
             try {
@@ -26,10 +81,10 @@ public class MainServer {
                 System.out.println("Invalid port argument, using default 8888");
             }
         }
-
         System.out.println("Starting Auction Server on port " + port);
-        ServerSocketManager server = new ServerSocketManager(port);
+
+        // Truyền dispatcher tập trung vào bộ quản lý Socket
+        ServerSocketManager server = new ServerSocketManager(port, dispatcher);
         server.start();
     }
 }
-

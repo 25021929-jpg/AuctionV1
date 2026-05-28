@@ -13,9 +13,9 @@ public class ClientHandler implements Runnable {
     private final RequestDispatcher requestDispatcher;
     private final Gson gson;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, RequestDispatcher requestDispatcher) {
         this.socket = socket;
-        this.requestDispatcher = new RequestDispatcher();
+        this.requestDispatcher = requestDispatcher;
         this.gson = new Gson();
     }
 

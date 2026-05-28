@@ -15,14 +15,6 @@ public class BidController {
 
     private final BidService bidService;
 
-    public BidController() {
-        this.bidService = new BidService(
-            new HibernateAuctionSessionRepository(HibernateUtil.getSessionFactory()),
-            new HibernateBidRepository(HibernateUtil.getSessionFactory()),
-            new HibernatePaymentRepository(HibernateUtil.getSessionFactory())
-        );
-    }
-
     // Constructor với DI (cho test)
     public BidController(BidService bidService) {
         this.bidService = bidService;
