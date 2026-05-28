@@ -4,59 +4,55 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.auction.client.feature.seller.controller.SellerDashboardController"
-            style="-fx-background-color: #7FC8F7; -fx-font-family: 'Segoe UI', Arial;">
+            prefWidth="1100" prefHeight="720"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
 
     <padding>
-        <Insets top="22" right="22" bottom="22" left="22"/>
+        <Insets top="24" right="28" bottom="24" left="28"/>
     </padding>
 
     <top>
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <Button text="← Back" onAction="#handleBack"
-                    style="-fx-background-color: rgba(255,255,255,0.65); -fx-background-radius: 10; -fx-text-fill: #0B2B4A; -fx-font-weight: bold;"/>
-            <Label text="Seller Dashboard"
-                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0B2B4A;"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="← Trang chủ" onAction="#handleBack" styleClass="btn-ghost"/>
+            <VBox spacing="3">
+                <Label text="Quản lý sản phẩm" styleClass="page-title"/>
+                <Label text="Tạo, sửa, xóa sản phẩm đấu giá dành cho Seller." styleClass="page-subtitle"/>
+            </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <ProgressIndicator fx:id="loadingIndicator" maxWidth="18" maxHeight="18" visible="false"/>
-            <Button fx:id="btnRefresh" text="Refresh" onAction="#handleRefresh"
-                    style="-fx-background-color: rgba(25,118,210,0.15); -fx-text-fill: #0D47A1; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 12 8 12;"/>
-            <Button fx:id="btnAdd" text="+ Add" onAction="#handleAdd"
-                    style="-fx-background-color: #1976D2; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 12 8 12;"/>
-            <Button fx:id="btnEdit" text="Edit" onAction="#handleEdit"
-                    style="-fx-background-color: rgba(25,118,210,0.15); -fx-text-fill: #0D47A1; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 12 8 12;"/>
-            <Button fx:id="btnDelete" text="Delete" onAction="#handleDelete"
-                    style="-fx-background-color: rgba(211,47,47,0.15); -fx-text-fill: #B71C1C; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 12 8 12;"/>
+            <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+            <Button fx:id="btnRefresh" text="Tải lại" onAction="#handleRefresh" styleClass="btn-ghost"/>
+            <Button fx:id="btnAdd" text="+ Thêm" onAction="#handleAdd" styleClass="btn-primary"/>
+            <Button fx:id="btnEdit" text="Sửa" onAction="#handleEdit" styleClass="btn-secondary"/>
+            <Button fx:id="btnDelete" text="Xóa" onAction="#handleDelete" styleClass="btn-danger"/>
         </HBox>
     </top>
 
     <center>
-        <VBox spacing="10"
-              style="-fx-background-color: rgba(255,255,255,0.92); -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0.15, 0, 6);">
+        <VBox spacing="12" styleClass="panel">
             <padding>
-                <Insets top="14" right="14" bottom="14" left="14"/>
+                <Insets top="18" right="18" bottom="18" left="18"/>
             </padding>
 
-            <Label text="CRUD sản phẩm đấu giá (dành cho Seller)."
-                   style="-fx-text-fill: rgba(11,43,74,0.85);"/>
+            <HBox alignment="CENTER_LEFT">
+                <VBox spacing="2">
+                    <Label text="Danh sách sản phẩm của bạn" styleClass="section-title"/>
+                    <Label text="Chọn một dòng rồi dùng Sửa/Xóa. Nếu server chưa hỗ trợ SELLER_*, các nút sẽ báo lỗi rõ ràng." styleClass="section-subtitle"/>
+                </VBox>
+            </HBox>
 
-            <TableView fx:id="tblItems" prefHeight="520"
-                       style="-fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: rgba(11,43,74,0.12);">
+            <TableView fx:id="tblItems" VBox.vgrow="ALWAYS" prefHeight="540">
                 <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="80" />
-                    <TableColumn fx:id="colName" text="Tên" prefWidth="220" />
-                    <TableColumn fx:id="colStartPrice" text="Giá khởi điểm" prefWidth="140" />
-                    <TableColumn fx:id="colCurrentPrice" text="Giá hiện tại" prefWidth="140" />
-                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="120" />
-                    <TableColumn fx:id="colEndTime" text="Kết thúc" prefWidth="180" />
+                    <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+                    <TableColumn fx:id="colName" text="Tên sản phẩm" prefWidth="260"/>
+                    <TableColumn fx:id="colStartPrice" text="Giá khởi điểm" prefWidth="150"/>
+                    <TableColumn fx:id="colCurrentPrice" text="Giá hiện tại" prefWidth="150"/>
+                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="130"/>
+                    <TableColumn fx:id="colEndTime" text="Kết thúc" prefWidth="190"/>
                 </columns>
             </TableView>
-
-            <Label wrapText="true"
-                   text="Lưu ý: Nếu server chưa hỗ trợ action SELLER_*, Refresh/Add/Edit/Delete sẽ báo lỗi."
-                   style="-fx-text-fill: rgba(11,43,74,0.70); -fx-font-size: 12px;"/>
-
         </VBox>
     </center>
 

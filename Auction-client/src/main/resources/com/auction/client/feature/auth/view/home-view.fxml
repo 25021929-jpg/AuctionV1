@@ -1,93 +1,184 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.auction.client.feature.auth.controller.HomeController"
-           style="-fx-background-color: #7FC8F7;">
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.feature.auth.controller.HomeController"
+            prefWidth="1100" prefHeight="720"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
 
-    <!-- Card container -->
-    <VBox maxWidth="520"
-          spacing="14"
-          style="-fx-background-color: rgba(255,255,255,0.92);
-                 -fx-background-radius: 18;
-                 -fx-border-radius: 18;
-                 -fx-border-color: rgba(255,255,255,0.55);
-                 -fx-border-width: 1;
-                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 18, 0.15, 0, 6);">
-        <padding>
-            <Insets top="22" right="22" bottom="22" left="22"/>
-        </padding>
+    <!-- LEFT SIDEBAR -->
+    <left>
+        <VBox prefWidth="260" spacing="18" style="-fx-background-color: #051529;-fx-border-color: transparent rgba(21,101,255,0.2) transparent transparent;-fx-border-width: 0 1 0 0;                  -fx-padding: 50px 40px;">
+            <VBox spacing="10" alignment="CENTER_LEFT">
+                <ImageView fitHeight="54" fitWidth="54" preserveRatio="true">
+                    <image>
+                        <Image url="@/com/auction/client/css/logo.png"/>
+                    </image>
+                </ImageView>
+                <VBox spacing="2">
+                    <Label text="TVP AUCTION" styleClass="sidebar-brand-title"/>
+                    <Label text="Đấu giá trực tuyến" styleClass="sidebar-brand-subtitle"/>
+                </VBox>
+            </VBox>
 
-        <!-- Header -->
-        <VBox spacing="4">
-            <Label text="Home"
-                   style="-fx-font-size: 22px; -fx-font-weight: 800; -fx-text-fill: #0B2545;"/>
-            <Label fx:id="lblWelcome" text="Chọn chức năng bạn muốn sử dụng"
-                   style="-fx-font-size: 13px; -fx-text-fill: rgba(11,37,69,0.75);"/>
+            <Pane styleClass="divider"/>
+
+            <VBox spacing="8">
+                <Button fx:id="btnNavHome" text="Trang chủ" onAction="#handleShowHome"
+                        maxWidth="1.7976931348623157E308" styleClass="side-nav-button"/>
+                <Button fx:id="btnNavProfile" text="Trang cá nhân" onAction="#handleShowProfile"
+                        maxWidth="1.7976931348623157E308" styleClass="side-nav-button"/>
+                <Button fx:id="btnNavHistory" text="Lịch sử giao dịch" onAction="#handleShowHistory"
+                        maxWidth="1.7976931348623157E308" styleClass="side-nav-button"/>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <VBox spacing="10" styleClass="sidebar-user-card">
+                <Label fx:id="lblWelcome" text="Xin chào" styleClass="info-value" wrapText="true"/>
+                <Label fx:id="lblRole" text="Vai trò" styleClass="muted-label"/>
+            </VBox>
+
+            <Button text="Đăng xuất" onAction="#handleLogout"
+                    maxWidth="1.7976931348623157E308" styleClass="logout-button"/>
         </VBox>
+    </left>
 
-        <Separator opacity="0.35"/>
+    <!-- MAIN CONTENT -->
+    <center>
+        <StackPane styleClass="content-area">
 
-        <!-- Main actions -->
-        <VBox spacing="10">
-            <Button text="Danh sách phiên đấu giá"
-                    onAction="#handleOpenAuctionList"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: #1F7AE0;
-                           -fx-text-fill: white;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;"/>
+            <!-- TAB 1: HOME / AUCTIONS -->
+            <VBox fx:id="homePane" spacing="18" styleClass="content-page">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="4">
+                        <Label text="Trang chủ" styleClass="page-title"/>
+                        <Label text="Theo dõi các sản phẩm đang được đấu giá và vào phòng đấu giá khi cần." styleClass="page-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+                    <Button fx:id="btnRefreshAuctions" text="Tải lại" onAction="#handleRefreshAuctions" styleClass="btn-ghost"/>
+                </HBox>
 
-            <Button fx:id="btnSeller" text="Seller Dashboard"
-                    onAction="#handleOpenSeller"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: rgba(31,122,224,0.12);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;
-                           -fx-border-color: rgba(31,122,224,0.25);
-                           -fx-border-radius: 12;
-                           -fx-border-width: 1;"/>
+                <HBox spacing="14">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                        <Label text="Đang mở" styleClass="stat-label"/>
+                        <Label text="Realtime" styleClass="stat-value"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                        <Label text="Thao tác nhanh" styleClass="stat-label"/>
+                        <Label text="Double-click để xem chi tiết" styleClass="info-value"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                        <Label text="Gợi ý" styleClass="stat-label"/>
+                        <Label text="Đặt giá cao hơn giá hiện tại" styleClass="info-value"/>
+                    </VBox>
+                </HBox>
 
-            <Button fx:id="btnAdmin" text="Admin Dashboard"
-                    onAction="#handleOpenAdmin"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: rgba(31,122,224,0.12);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;
-                           -fx-border-color: rgba(31,122,224,0.25);
-                           -fx-border-radius: 12;
-                           -fx-border-width: 1;"/>
-        </VBox>
+                <VBox spacing="12" VBox.vgrow="ALWAYS" styleClass="panel">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <VBox spacing="2">
+                            <Label text="Sản phẩm đang đấu giá" styleClass="section-title"/>
+                            <Label text="Danh sách này lấy trực tiếp từ server." styleClass="section-subtitle"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="btnSeller" text="Quản lý sản phẩm" onAction="#handleOpenSeller" styleClass="btn-secondary"/>
+                        <Button fx:id="btnAdmin" text="Quản trị hệ thống" onAction="#handleOpenAdmin" styleClass="btn-secondary"/>
+                    </HBox>
 
-        <Region prefHeight="6"/>
+                    <TableView fx:id="auctionTable" VBox.vgrow="ALWAYS" prefHeight="420">
+                        <columns>
+                            <TableColumn fx:id="colHomeAuctionId" text="ID" prefWidth="70"/>
+                            <TableColumn fx:id="colHomeItemName" text="Sản phẩm" prefWidth="320"/>
+                            <TableColumn fx:id="colHomePrice" text="Giá hiện tại" prefWidth="160"/>
+                            <TableColumn fx:id="colHomeStatus" text="Trạng thái" prefWidth="150"/>
+                        </columns>
+                    </TableView>
 
-        <Separator opacity="0.35"/>
+                    <Label text="Mẹo: double-click vào một sản phẩm để xem chi tiết phiên đấu giá." styleClass="muted-label" wrapText="true"/>
+                </VBox>
+            </VBox>
 
-        <!-- Footer -->
-        <HBox spacing="10">
-            <Region HBox.hgrow="ALWAYS"/>
+            <!-- TAB 2: PROFILE -->
+            <VBox fx:id="profilePane" spacing="18" visible="false" managed="false" styleClass="content-page">
+                <VBox spacing="4">
+                    <Label text="Trang cá nhân" styleClass="page-title"/>
+                    <Label text="Thông tin tài khoản hiện đang đăng nhập." styleClass="page-subtitle"/>
+                </VBox>
 
-            <Button text="Đăng xuất"
-                    onAction="#handleLogout"
-                    style="-fx-background-color: rgba(0,0,0,0.08);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 10;
-                           -fx-padding: 8 12;"/>
-        </HBox>
+                <VBox spacing="16" styleClass="panel">
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <VBox alignment="CENTER" spacing="2" prefWidth="74" prefHeight="74"
+                              style="-fx-background-color: rgba(79,195,247,0.10); -fx-border-color: rgba(79,195,247,0.25); -fx-border-width: 1; -fx-background-radius: 20; -fx-border-radius: 20;">
+                            <Label text="USER" styleClass="field-label"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label fx:id="lblProfileName" text="Tên người dùng" styleClass="section-title"/>
+                            <Label fx:id="lblProfileRole" text="Vai trò" styleClass="page-subtitle"/>
+                        </VBox>
+                    </HBox>
 
-    </VBox>
-</StackPane>
+                    <Separator/>
+
+                    <GridPane hgap="18" vgap="14">
+                        <columnConstraints>
+                            <ColumnConstraints minWidth="150"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                            <ColumnConstraints minWidth="150"/>
+                            <ColumnConstraints hgrow="ALWAYS"/>
+                        </columnConstraints>
+
+                        <Label text="Tên đăng nhập" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="info-label"/>
+                        <Label fx:id="lblProfileUsername" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="info-value"/>
+
+                        <Label text="Email" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="info-label"/>
+                        <Label fx:id="lblProfileEmail" text="-" GridPane.rowIndex="0" GridPane.columnIndex="3" styleClass="info-value"/>
+
+                        <Label text="Số điện thoại" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="info-label"/>
+                        <Label fx:id="lblProfilePhone" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="info-value"/>
+
+                        <Label text="Ngày sinh" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="info-label"/>
+                        <Label fx:id="lblProfileDob" text="-" GridPane.rowIndex="1" GridPane.columnIndex="3" styleClass="info-value"/>
+
+                        <Label text="Số dư" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="info-label"/>
+                        <Label fx:id="lblProfileBalance" text="Chưa cập nhật" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="price-value"/>
+                    </GridPane>
+
+                    <Label text="Lưu ý: nếu server chưa gửi số dư hoặc lịch sử giao dịch, giao diện sẽ hiển thị trạng thái Chưa cập nhật thay vì lỗi." styleClass="muted-label" wrapText="true"/>
+                </VBox>
+            </VBox>
+
+            <!-- TAB 3: TRANSACTION HISTORY -->
+            <VBox fx:id="historyPane" spacing="18" visible="false" managed="false" styleClass="content-page">
+                <VBox spacing="4">
+                    <Label text="Lịch sử giao dịch" styleClass="page-title"/>
+                    <Label text="Theo dõi các lần nạp tiền, đặt giá, thanh toán và hoàn tiền." styleClass="page-subtitle"/>
+                </VBox>
+
+                <VBox spacing="12" VBox.vgrow="ALWAYS" styleClass="panel">
+                    <HBox alignment="CENTER_LEFT">
+                        <VBox spacing="2">
+                            <Label text="Giao dịch gần đây" styleClass="section-title"/>
+                            <Label text="Phần này đã có giao diện, chỉ cần nối thêm API lịch sử giao dịch từ server." styleClass="section-subtitle"/>
+                        </VBox>
+                    </HBox>
+
+                    <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" prefHeight="500">
+                        <columns>
+                            <TableColumn fx:id="colHistoryTime" text="Thời gian" prefWidth="170"/>
+                            <TableColumn fx:id="colHistoryType" text="Loại giao dịch" prefWidth="180"/>
+                            <TableColumn fx:id="colHistoryAmount" text="Số tiền" prefWidth="150"/>
+                            <TableColumn fx:id="colHistoryNote" text="Ghi chú" prefWidth="360"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+
+        </StackPane>
+    </center>
+</BorderPane>

@@ -4,46 +4,52 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.auction.client.feature.auction.controller.AuctionListController"
-            style="-fx-background-color: #7FC8F7; -fx-font-family: 'Segoe UI', Arial;">
+            prefWidth="1050" prefHeight="700"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
 
     <padding>
-        <Insets top="22" right="22" bottom="22" left="22"/>
+        <Insets top="24" right="28" bottom="24" left="28"/>
     </padding>
 
     <top>
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <Button text="← Back" onAction="#handleBack"
-                    style="-fx-background-color: rgba(255,255,255,0.65); -fx-background-radius: 10; -fx-text-fill: #0B2B4A; -fx-font-weight: bold;"/>
-            <Label text="Danh sách phiên đấu giá"
-                   style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0B2B4A;"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="← Trang chủ" onAction="#handleBack" styleClass="btn-ghost"/>
+            <VBox spacing="3">
+                <Label text="Danh sách phiên đấu giá" styleClass="page-title"/>
+                <Label text="Chọn một phiên để xem chi tiết và vào phòng đấu giá realtime." styleClass="page-subtitle"/>
+            </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <ProgressIndicator fx:id="loadingIndicator" maxWidth="18" maxHeight="18" visible="false"/>
-            <Button fx:id="btnRefresh" text="Refresh" onAction="#handleRefresh"
-                    style="-fx-background-color: #1976D2; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 8 14 8 14;"/>
+            <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+            <Button fx:id="btnRefresh" text="Tải lại" onAction="#handleRefresh" styleClass="btn-primary"/>
         </HBox>
     </top>
 
     <center>
-        <VBox spacing="10"
-              style="-fx-background-color: rgba(255,255,255,0.92); -fx-background-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0.15, 0, 6);">
+        <VBox spacing="12" styleClass="panel">
             <padding>
-                <Insets top="14" right="14" bottom="14" left="14"/>
+                <Insets top="18" right="18" bottom="18" left="18"/>
             </padding>
 
-            <TableView fx:id="auctionTable" prefHeight="560"
-                       style="-fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: rgba(11,43,74,0.12);">
+            <HBox alignment="CENTER_LEFT">
+                <VBox spacing="2">
+                    <Label text="Sản phẩm đang được đấu giá" styleClass="section-title"/>
+                    <Label text="Double-click vào một dòng để mở màn chi tiết." styleClass="section-subtitle"/>
+                </VBox>
+            </HBox>
+
+            <TableView fx:id="auctionTable" VBox.vgrow="ALWAYS" prefHeight="540">
                 <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="70" />
-                    <TableColumn fx:id="colName" text="Sản phẩm" prefWidth="240" />
-                    <TableColumn fx:id="colPrice" text="Giá hiện tại" prefWidth="140" />
-                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="120" />
+                    <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+                    <TableColumn fx:id="colName" text="Sản phẩm" prefWidth="360"/>
+                    <TableColumn fx:id="colPrice" text="Giá hiện tại" prefWidth="170"/>
+                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="150"/>
                 </columns>
             </TableView>
 
-            <Label text="Mẹo: double-click vào 1 dòng để xem chi tiết." wrapText="true"
-                   style="-fx-text-fill: rgba(11,43,74,0.75); -fx-font-size: 12px;"/>
+            <Label text="Mẹo: đặt giá chỉ nên thực hiện trong màn phòng đấu giá để dữ liệu realtime rõ ràng hơn." wrapText="true" styleClass="muted-label"/>
         </VBox>
     </center>
 
