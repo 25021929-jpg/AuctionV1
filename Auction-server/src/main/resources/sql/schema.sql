@@ -38,6 +38,15 @@ CREATE TABLE categories (
                             sort_order  INT NOT NULL DEFAULT 0,
                             FOREIGN KEY (parent_id) REFERENCES categories(category_id) ON DELETE SET NULL
 );
+
+-- Dữ liệu nền bắt buộc để seller có thể đăng sản phẩm ngay sau khi tạo schema.
+-- SellerService kiểm tra categoryId phải tồn tại trước khi tạo AuctionItem/AuctionSession.
+INSERT INTO categories (category_id, category_name, slug, description, sort_order)
+VALUES
+    (1, 'Phone', 'phone', 'Mobile phones and accessories', 1),
+    (2, 'Laptop', 'laptop', 'Laptops and computers', 2),
+    (3, 'Watch', 'watch', 'Smart watches and mechanical watches', 3),
+    (4, 'Motorbike', 'motorbike', 'Used motorbikes', 4);
 -- ============================================================
 -- 3. BẢNG ITEMS (hàng hóa)
 -- ============================================================

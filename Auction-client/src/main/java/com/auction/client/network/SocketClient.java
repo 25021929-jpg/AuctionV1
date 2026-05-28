@@ -108,6 +108,17 @@ public class SocketClient implements ServerCommunicator {
         pending.clear();
     }
 
+    private synchronized void clearSocketState() {
+        closeQuietly(reader);
+        if (writer != null) {
+            writer.close();
+            writer = null;
+        }
+        closeQuietly(socket);
+        reader = null;
+        socket = null;
+    }
+
     private static void closeQuietly(Closeable closeable) {
         try {
             if (closeable != null) closeable.close();
@@ -127,7 +138,9 @@ public class SocketClient implements ServerCommunicator {
     public boolean isConnected() {
         return socket != null
                 && !socket.isClosed()
-                && socket.isConnected();
+                && socket.isConnected()
+                && !socket.isInputShutdown()
+                && !socket.isOutputShutdown();
     }
 
     // ── Send ──────────────────────────────────────────────────────
@@ -175,6 +188,7 @@ public class SocketClient implements ServerCommunicator {
         writer.println(gson.toJson(req));
         if (writer.checkError()) {
             pending.remove(requestId);
+            clearSocketState();
             throw new ConnectionException("Không gửi được request đến server.");
         }
 
@@ -242,6 +256,13 @@ public class SocketClient implements ServerCommunicator {
                 }
             }
         } catch (Exception e) {
+            /*
+             * readLine() là nơi phát hiện server đóng kết nối. Java Socket có thể vẫn
+             * trả isConnected() == true sau khi peer đã đóng, nên phải chủ động xóa
+             * state để request sau đi qua nhánh reconnect trong send().
+             */
+            clearSocketState();
+
             // Fail all pending to avoid deadlocks
             for (CompletableFuture<WireMessage> f : pending.values()) {
                 f.completeExceptionally(e);

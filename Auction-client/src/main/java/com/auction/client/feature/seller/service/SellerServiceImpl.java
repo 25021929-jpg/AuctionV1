@@ -1,6 +1,7 @@
 package com.auction.client.feature.seller.service;
 
 import com.auction.shared.protocol.ActionConstants;
+import com.auction.client.core.error.ApiException;
 import com.auction.client.core.error.ResponseUtils;
 import com.auction.client.core.session.UserSession;
 import com.auction.shared.dto.seller.SellerItemDto;
@@ -32,10 +33,7 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public List<SellerItemDto> listMyItems() throws IOException {
         JsonObject request = new JsonObject();
-        Long sellerId = UserSession.getInstance().getUserId();
-        if (sellerId != null) {
-            request.addProperty("sellerId", sellerId);
-        }
+        request.addProperty("sellerId", requireCurrentUserId(ActionConstants.SELLER_ITEM_LIST_MY));
 
         Response<JsonElement> res = SocketClient.getInstance()
                 .send(ActionConstants.SELLER_ITEM_LIST_MY, request, JsonElement.class);
@@ -70,7 +68,7 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public void updateItem(SellerItemDto item) throws IOException {
         UpdateSellerItemRequest request = new UpdateSellerItemRequest();
-        copyEditableFields(item, request);
+        copyEditableFields(item, request, ActionConstants.SELLER_ITEM_UPDATE);
         request.setItemId(item.getItemId());
         request.setAuctionId(item.getAuctionId());
 
@@ -86,9 +84,7 @@ public class SellerServiceImpl implements SellerService {
         }
 
         Long auctionId = item.getAuctionId() > 0 ? item.getAuctionId() : null;
-        long sellerId = UserSession.getInstance().getUserId() != null
-                ? UserSession.getInstance().getUserId()
-                : 0L;
+        long sellerId = requireCurrentUserId(ActionConstants.SELLER_ITEM_DELETE);
         DeleteSellerItemRequest request = new DeleteSellerItemRequest(item.getItemId(), auctionId, sellerId);
 
         Response<Void> res = SocketClient.getInstance()
@@ -96,22 +92,27 @@ public class SellerServiceImpl implements SellerService {
         ResponseUtils.unwrap(ActionConstants.SELLER_ITEM_DELETE, res);
     }
 
-    private CreateSellerItemRequest toCreateRequest(SellerItemDto item) {
+    private CreateSellerItemRequest toCreateRequest(SellerItemDto item) throws ApiException {
         CreateSellerItemRequest request = new CreateSellerItemRequest();
-        copyEditableFields(item, request);
+        copyEditableFields(item, request, ActionConstants.SELLER_ITEM_CREATE);
         return request;
     }
 
-    private void copyEditableFields(SellerItemDto item, CreateSellerItemRequest request) {
-        Long sellerId = UserSession.getInstance().getUserId();
-        if (sellerId != null) {
-            request.setSellerId(sellerId);
-        }
+    private void copyEditableFields(SellerItemDto item, CreateSellerItemRequest request, String action) throws ApiException {
+        request.setSellerId(requireCurrentUserId(action));
         request.setCategoryId(item.getCategoryId());
         request.setName(item.getName());
         request.setDescription(item.getDescription());
         request.setStartPrice(item.getStartPrice());
         request.setStartTime(item.getStartTime());
         request.setEndTime(item.getEndTime());
+    }
+
+    private long requireCurrentUserId(String action) throws ApiException {
+        Long userId = UserSession.getInstance().getUserId();
+        if (userId == null || userId <= 0) {
+            throw new ApiException(action, "Bạn cần đăng nhập trước khi quản lý sản phẩm bán.");
+        }
+        return userId;
     }
 }

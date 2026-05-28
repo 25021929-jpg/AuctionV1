@@ -212,19 +212,27 @@ public class SellerDashboardController implements Initializable, DisposableContr
         TextField tfName = new TextField(existing == null ? "" : safe(existing.getName()));
         TextArea taDesc = new TextArea(existing == null ? "" : safe(existing.getDescription()));
         taDesc.setPrefRowCount(3);
-        TextField tfCategoryId = new TextField(existing == null || existing.getCategoryId() <= 0 ? "" : String.valueOf(existing.getCategoryId()));
+        LocalDateTime defaultStartTime = LocalDateTime.now().withNano(0);
+        LocalDateTime defaultEndTime = defaultStartTime.plusDays(1);
+
+        /*
+         * Category is required by the server because auction_items.category_id is a
+         * foreign key. The schema seeds category id 1, so defaulting to 1 makes the
+         * seller form usable immediately in a fresh database.
+         */
+        TextField tfCategoryId = new TextField(existing == null || existing.getCategoryId() <= 0 ? "1" : String.valueOf(existing.getCategoryId()));
         TextField tfStartPrice = new TextField(existing == null ? "" : MoneyFormat.plain(existing.getStartPrice()));
-        TextField tfStartTime = new TextField(existing == null || existing.getStartTime() == null ? "" : existing.getStartTime().toString());
-        TextField tfEndTime = new TextField(existing == null || existing.getEndTime() == null ? "" : existing.getEndTime().toString());
+        TextField tfStartTime = new TextField(existing == null || existing.getStartTime() == null ? defaultStartTime.toString() : existing.getStartTime().toString());
+        TextField tfEndTime = new TextField(existing == null || existing.getEndTime() == null ? defaultEndTime.toString() : existing.getEndTime().toString());
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.addRow(0, new Label("Tên"), tfName);
         grid.addRow(1, new Label("Mô tả"), taDesc);
-        grid.addRow(2, new Label("Category ID"), tfCategoryId);
+        grid.addRow(2, new Label("Category ID (1=Phone, 2=Laptop, 3=Watch, 4=Motorbike)"), tfCategoryId);
         grid.addRow(3, new Label("Giá khởi điểm"), tfStartPrice);
-        grid.addRow(4, new Label("StartTime (ISO, optional)"), tfStartTime);
+        grid.addRow(4, new Label("StartTime (ISO)"), tfStartTime);
         grid.addRow(5, new Label("EndTime (ISO)"), tfEndTime);
         dialog.getDialogPane().setContent(grid);
 
