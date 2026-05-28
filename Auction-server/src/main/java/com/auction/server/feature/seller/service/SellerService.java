@@ -62,8 +62,11 @@ public class SellerService {
         validateCreate(request);
 
         return DbExecutor.runAndReturn(() -> {
+            categoryRepository.ensureDefaultCategories();
             categoryRepository.findById(toCategoryId(request.getCategoryId()))
                     .orElseThrow(() -> new SellerException("Category not found: " + request.getCategoryId()));
+            userRepository.findById(request.getSellerId())
+                    .orElseThrow(() -> new SellerException("Seller not found: " + request.getSellerId()));
 
             // getReference avoids loading full User/Category rows when we only need foreign keys.
             User seller = userRepository.getReference(request.getSellerId());
@@ -101,6 +104,7 @@ public class SellerService {
             AuctionSession auction = findOwnedAuction(request.getSellerId(), request.getItemId(), request.getAuctionId());
             ensureEditable(auction);
 
+            categoryRepository.ensureDefaultCategories();
             categoryRepository.findById(toCategoryId(request.getCategoryId()))
                     .orElseThrow(() -> new SellerException("Category not found: " + request.getCategoryId()));
 

@@ -33,7 +33,9 @@ public final class SellerItemFormValidator {
         }
 
         String normalizedDescription = description == null ? "" : description.trim();
-        if (normalizedDescription.length() > MAX_DESCRIPTION_LENGTH) {
+        if (normalizedDescription.isEmpty()) {
+            errors.add(new FieldError("description", "Mô tả sản phẩm không được rỗng"));
+        } else if (normalizedDescription.length() > MAX_DESCRIPTION_LENGTH) {
             errors.add(new FieldError("description", "Mô tả tối đa " + MAX_DESCRIPTION_LENGTH + " ký tự"));
         }
 

@@ -236,6 +236,17 @@ public class SellerDashboardController implements Initializable, DisposableContr
         grid.addRow(5, new Label("EndTime (ISO)"), tfEndTime);
         dialog.getDialogPane().setContent(grid);
 
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            if (!validateSellerForm(tfName, taDesc, tfCategoryId, tfStartPrice, tfStartTime, tfEndTime)) {
+                /*
+                 * JavaFX Dialog closes on OK by default. Consume the OK event when
+                 * validation fails so the seller keeps the values and can fix them.
+                 */
+                event.consume();
+            }
+        });
+
         dialog.setResultConverter(btn -> {
             if (btn != ButtonType.OK) return null;
 
@@ -281,6 +292,37 @@ public class SellerDashboardController implements Initializable, DisposableContr
         });
 
         return dialog.showAndWait();
+    }
+
+    private boolean validateSellerForm(TextField tfName,
+                                       TextArea taDesc,
+                                       TextField tfCategoryId,
+                                       TextField tfStartPrice,
+                                       TextField tfStartTime,
+                                       TextField tfEndTime) {
+        LocalDateTime startTime;
+        LocalDateTime endTime;
+        try {
+            parseCategoryId(tfCategoryId.getText());
+            startTime = parseDateTimeOrNull(tfStartTime.getText(), "StartTime");
+            endTime = parseDateTimeOrNull(tfEndTime.getText(), "EndTime");
+        } catch (IllegalArgumentException ex) {
+            AlertHelper.showError("Sai dữ liệu", ex.getMessage());
+            return false;
+        }
+
+        ValidationResult result = SellerItemFormValidator.validate(
+                tfName.getText(),
+                taDesc.getText(),
+                tfStartPrice.getText(),
+                startTime,
+                endTime
+        );
+        if (!result.valid()) {
+            AlertHelper.showError("Dữ liệu chưa hợp lệ", firstError(result));
+            return false;
+        }
+        return true;
     }
 
     private LocalDateTime parseDateTimeOrNull(String raw, String fieldName) {

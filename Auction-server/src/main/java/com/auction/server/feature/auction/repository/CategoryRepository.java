@@ -40,6 +40,9 @@ public interface CategoryRepository {
 
     Category save(Category category);
 
+    /** Ensure baseline categories exist for seller item creation in old/local databases. */
+    void ensureDefaultCategories();
+
     /** Proxy — không hit DB, dùng để set FK */
     Category getReference(Integer id);
 }
