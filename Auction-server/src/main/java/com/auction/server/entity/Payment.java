@@ -1,18 +1,14 @@
 package com.auction.server.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "payments")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(of = {"id"})
 public class Payment {
 
     @Id
@@ -20,12 +16,8 @@ public class Payment {
     @Column(name = "id")
     private Long id;
 
-    // ===== 1:1 với AuctionSession =====
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auction_id", nullable = false, unique = true)
-    // unique=true: 1 auction chỉ có 1 payment
-    // Payment giữ FK nên có @JoinColumn
-    // AuctionSession phía bên kia có mappedBy="auctionSession"
     private AuctionSession auctionSession;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,12 +32,10 @@ public class Payment {
     private BigDecimal amount;
 
     @Column(name = "platform_fee", nullable = false, precision = 15, scale = 2)
-    @Builder.Default
     private BigDecimal platformFee = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 15)
-    @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
@@ -54,16 +44,52 @@ public class Payment {
 
     @Column(name = "transaction_ref", unique = true, length = 100)
     private String transactionRef;
-    // Mã giao dịch từ cổng thanh toán — unique, nullable
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
-    // null khi chưa thanh toán xong
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public enum PaymentStatus  { PENDING, COMPLETED, FAILED, REFUNDED }
-    public enum PaymentMethod  { WALLET, BANK_TRANSFER, MOMO, VNPAY }
+    public Payment() {
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public AuctionSession getAuctionSession() { return auctionSession; }
+    public void setAuctionSession(AuctionSession auctionSession) { this.auctionSession = auctionSession; }
+    public User getBuyer() { return buyer; }
+    public void setBuyer(User buyer) { this.buyer = buyer; }
+    public User getSeller() { return seller; }
+    public void setSeller(User seller) { this.seller = seller; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public BigDecimal getPlatformFee() { return platformFee; }
+    public void setPlatformFee(BigDecimal platformFee) { this.platformFee = platformFee; }
+    public PaymentStatus getStatus() { return status; }
+    public void setStatus(PaymentStatus status) { this.status = status; }
+    public PaymentMethod getMethod() { return method; }
+    public void setMethod(PaymentMethod method) { this.method = method; }
+    public String getTransactionRef() { return transactionRef; }
+    public void setTransactionRef(String transactionRef) { this.transactionRef = transactionRef; }
+    public LocalDateTime getPaidAt() { return paidAt; }
+    public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Payment payment)) return false;
+        return Objects.equals(id, payment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    public enum PaymentStatus { PENDING, COMPLETED, FAILED, REFUNDED }
+    public enum PaymentMethod { WALLET, BANK_TRANSFER, MOMO, VNPAY }
 }

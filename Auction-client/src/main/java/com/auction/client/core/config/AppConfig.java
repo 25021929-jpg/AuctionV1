@@ -11,9 +11,26 @@ public final class AppConfig {
         // utility
     }
 
-    public static final String SERVER_HOST = "172.20.10.3";
-    public static final int SERVER_PORT = 8888;
+    /*
+     * Client và server thường được chạy cùng một máy khi học/dev, vì vậy mặc định
+     * dùng loopback address. Nếu cần kết nối sang máy khác trong LAN, truyền thêm:
+     * -Dauction.server.host=<ip-server> -Dauction.server.port=<port>
+     */
+    public static final String SERVER_HOST = System.getProperty("auction.server.host", "127.0.0.1");
+    public static final int SERVER_PORT = intProperty("auction.server.port", 8888);
 
     public static final int CONNECT_TIMEOUT_MS = 5_000;
     public static final int READ_TIMEOUT_MS = 10_000;
+
+    private static int intProperty(String key, int defaultValue) {
+        String value = System.getProperty(key);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

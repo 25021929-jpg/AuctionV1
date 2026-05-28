@@ -42,6 +42,9 @@ public class DbExecutor {
         try {
             session.beginTransaction();
 
+            // setDefaultReadOnly() chỉ hợp lệ sau khi transaction đã active.
+            session.setDefaultReadOnly(true);
+
             // Truyền session vào action để Repository dùng getCurrentSession()
             // Service không gọi action(session) — action là lambda không tham số
             // Session được lấy ngầm qua getCurrentSession() trong Repository
@@ -68,11 +71,12 @@ public class DbExecutor {
     public static <T> T query(Supplier<T> action) {
         Session session = sessionFactory.getCurrentSession();
         try {
-            // Báo cho Hibernate: "Đừng chụp Snapshot (Dirty Checking)"
-            session.setDefaultReadOnly(true);
+
 
             // Vẫn phải mở Transaction để Hibernate quản lý vòng đời Session
             session.beginTransaction();
+            // Báo cho Hibernate: "Đừng chụp Snapshot (Dirty Checking)"
+            session.setDefaultReadOnly(true);
 
             T result = action.get();
 

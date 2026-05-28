@@ -9,7 +9,6 @@ import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
 import com.auction.client.feature.auth.service.AuthService;
 import com.auction.client.feature.auth.service.AuthServiceImpl;
-import com.auction.client.network.SocketClient;
 import com.auction.shared.dto.auth.request.RegisterRequest;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
@@ -117,11 +116,6 @@ public class RegisterController {
         ValidationResult result = validator.validate(request);
         if (!result.valid()) {
             FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
-            return;
-        }
-
-        if (!SocketClient.getInstance().isConnected()) {
-            showToast("Đang kết nối server, vui lòng thử lại!", Toast.Type.WARNING, 2, null);
             return;
         }
 

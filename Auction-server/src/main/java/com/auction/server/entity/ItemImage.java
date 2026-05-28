@@ -1,16 +1,11 @@
 package com.auction.server.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.EqualsAndHashCode;
+
+import java.util.Objects;
 
 @Entity
 @Table(name = "item_images")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@EqualsAndHashCode(of = {"id"})
 public class ItemImage {
 
     @Id
@@ -26,10 +21,34 @@ public class ItemImage {
     private String imageUrl;
 
     @Column(name = "is_primary", nullable = false)
-    @Builder.Default
     private Boolean isPrimary = false;
 
     @Column(name = "sort_order", nullable = false)
-    @Builder.Default
     private Integer sortOrder = 0;
+
+    public ItemImage() {
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public AuctionItem getItem() { return item; }
+    public void setItem(AuctionItem item) { this.item = item; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public Boolean getIsPrimary() { return isPrimary; }
+    public void setIsPrimary(Boolean primary) { isPrimary = primary; }
+    public Integer getSortOrder() { return sortOrder; }
+    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemImage itemImage)) return false;
+        return Objects.equals(id, itemImage.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

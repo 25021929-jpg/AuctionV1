@@ -138,7 +138,21 @@ public class SocketClient implements ServerCommunicator {
             Class<T> responseType) throws IOException {
 
         if (!isConnected()) {
-            throw new ConnectionException("Chưa kết nối đến server. Vui lòng kiểm tra server đã chạy chưa.");
+            try {
+                /*
+                 * MainClient có connect nền lúc mở app, nhưng nếu lúc đó server chưa chạy
+                 * hoặc mạng vừa rớt thì request đầu tiên không nên thất bại ngay. Thử nối
+                 * lại tại đây giúp mọi service dùng SocketClient có cùng hành vi retry.
+                 */
+                connect();
+            } catch (IOException e) {
+                throw new ConnectionException(
+                        "Không thể kết nối đến server "
+                                + HOST + ":" + PORT
+                                + ". Hãy kiểm tra SocketServer đã chạy đúng port chưa.",
+                        e
+                );
+            }
         }
 
         // PHƯƠNG ÁN 1: 1 line JSON, phân biệt RESPONSE/EVENT bằng field "type".

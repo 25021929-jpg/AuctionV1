@@ -1,7 +1,6 @@
 package com.auction.server.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -10,24 +9,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
-@Getter                             // Lombok tự tạo getter cho mọi field
-@Setter                             // Lombok tự tạo setter cho mọi field
-@NoArgsConstructor                  // Constructor không tham số — JPA BẮT BUỘC phải có
-@AllArgsConstructor                 // Constructor đủ tất cả tham số
-@Builder                            // User.builder().username("a").build()
-@ToString(exclude = {"items", "bids", "payments"})
-// exclude: tránh StackOverflow khi print — vì items lại chứa User, vòng lặp vô tận
-@EqualsAndHashCode(of = {"id"})
-// So sánh User chỉ dựa vào id, không dựa vào tất cả field
-// Quan trọng khi dùng trong Set hoặc so sánh entity
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // IDENTITY = dùng AUTO_INCREMENT của MySQL
     @Column(name = "id")
     private Long id;
 
@@ -42,64 +31,86 @@ public class User {
 
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
-    // Lưu ý: tên field là passwordHash (camelCase)
-    // map với cột password_hash (snake_case) trong DB
 
     @Enumerated(EnumType.STRING)
-    // STRING: lưu "ADMIN", "SELLER", "BUYER" — không lưu 0, 1, 2
-    // Nếu dùng ORDINAL: thêm MODERATOR vào giữa → số thứ tự thay đổi → dữ liệu cũ sai
     @Column(name = "role", nullable = false, length = 10)
-    @Builder.Default                // khi dùng @Builder, cần @Builder.Default để giá trị mặc định hoạt động
     private Role role = Role.BIDDER;
 
     @Column(name = "balance", nullable = false, precision = 15, scale = 2)
-    @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
-    // precision=15: tổng 15 chữ số
-    // scale=2: 2 chữ số thập phân
-    // → tối đa 9,999,999,999,999.99
 
     @Column(name = "phone", length = 20)
-    private String phone;           // nullable — không bắt buộc
+    private String phone;
 
     @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;  // LocalDate: chỉ ngày, không giờ phút giây
+    private LocalDate dateOfBirth;
 
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
     @Column(name = "is_active", nullable = false)
-    @Builder.Default
     private Boolean isActive = true;
-    // Boolean (wrapper) thay vì boolean (primitive)
-    // → cho phép null, Hibernate map TINYINT(1) ↔ Boolean tự động
 
     @CreationTimestamp
-    // Hibernate tự set = NOW() khi INSERT
-    // Bạn không cần set thủ công trong code
     @Column(name = "created_at", nullable = false, updatable = false)
-    // updatable=false: cột này không bao giờ bị UPDATE sau khi INSERT
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    // Hibernate tự cập nhật = NOW() mỗi khi object thay đổi
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // ===== QUAN HỆ =====
-
     @OneToMany(mappedBy = "seller", fetch = FetchType.LAZY)
-    // mappedBy = "seller": tên field bên AuctionItem trỏ về User
-    // LAZY: không load list này cho đến khi gọi getItems()
-    // @OneToMany không có @JoinColumn vì User không giữ FK
-    @Builder.Default
     private List<AuctionItem> items = new ArrayList<>();
 
     @OneToMany(mappedBy = "bidder", fetch = FetchType.LAZY)
-    @Builder.Default
     private List<Bid> bids = new ArrayList<>();
 
-    // Enum định nghĩa ngay trong class — gọn hơn tạo file riêng
+    public User() {
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean active) { isActive = active; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public List<AuctionItem> getItems() { return items; }
+    public void setItems(List<AuctionItem> items) { this.items = items; }
+    public List<Bid> getBids() { return bids; }
+    public void setBids(List<Bid> bids) { this.bids = bids; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User user)) return false;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     public enum Role {
         ADMIN, SELLER, BIDDER
     }

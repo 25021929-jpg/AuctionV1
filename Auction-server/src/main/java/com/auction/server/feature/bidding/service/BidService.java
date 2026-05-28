@@ -138,13 +138,12 @@ public class BidService {
             User bidder = userRepository.getReference(request.getBidderId());
 
             // Bước 5: Tạo và lưu Bid mới
-            Bid newBid = Bid.builder()
-                    .auctionSession(auction)    // auction đang bị lock
-                    .bidder(bidder)             // proxy — không query DB
-                    .bidAmount(bidAmount)       // BigDecimal — chính xác
-                    .bidTime(LocalDateTime.now())
-                    .isWinning(true)            // bid này đang thắng
-                    .build();
+            Bid newBid = new Bid();
+            newBid.setAuctionSession(auction);  // auction đang bị lock
+            newBid.setBidder(bidder);           // proxy — không query DB
+            newBid.setBidAmount(bidAmount);     // BigDecimal — chính xác
+            newBid.setBidTime(LocalDateTime.now());
+            newBid.setIsWinning(true);          // bid này đang thắng
 
             // save() ghi vào Thread-bound session → cùng transaction với lock
             Bid savedBid = bidRepository.save(newBid);

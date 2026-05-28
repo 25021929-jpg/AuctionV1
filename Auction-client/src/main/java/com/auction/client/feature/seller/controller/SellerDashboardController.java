@@ -15,7 +15,6 @@ import com.auction.client.core.util.MoneyFormat;
 import com.auction.client.feature.seller.service.SellerService;
 import com.auction.client.feature.seller.service.SellerServiceImpl;
 import com.auction.client.feature.seller.validator.SellerItemFormValidator;
-import com.auction.shared.domain.UserRole;
 import com.auction.shared.dto.seller.SellerItemDto;
 import com.auction.validation.ValidationResult;
 import javafx.beans.binding.Bindings;
@@ -60,7 +59,15 @@ public class SellerDashboardController implements Initializable, DisposableContr
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
+            /*
+             * Seller Dashboard chỉ yêu cầu user đã đăng nhập.
+             *
+             * User mới đăng ký đang được server gán role BIDDER mặc định. Nếu client
+             * yêu cầu role SELLER ở đây, chính client tạo rào cản khiến một tài khoản
+             * không thể vừa bid vừa sell. Quyền sở hữu item vẫn được server kiểm tra
+             * bằng sellerId khi list/update/delete sản phẩm.
+             */
+            AccessGuard.requireLogin();
         } catch (Exception ex) {
             AlertHelper.showException("Không có quyền", ex);
             SceneNavigator.switchScene(ScenePaths.HOME);
@@ -170,7 +177,8 @@ public class SellerDashboardController implements Initializable, DisposableContr
 
     private void loadMyItemsAsync() {
         try {
-            AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
+            // Refresh cũng chỉ cần đăng nhập; quyền sở hữu item được kiểm tra ở server.
+            AccessGuard.requireLogin();
         } catch (Exception ex) {
             tblItems.getItems().clear();
             AlertHelper.showException("Không có quyền", ex);

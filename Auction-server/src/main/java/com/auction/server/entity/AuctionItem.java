@@ -1,20 +1,16 @@
 package com.auction.server.entity;
+
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import jakarta.persistence.*;
-import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "auction_items")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@ToString(exclude = {"auctionSession", "images"})
-@EqualsAndHashCode(of = {"itemId"})
 public class AuctionItem {
 
     @Id
@@ -22,15 +18,10 @@ public class AuctionItem {
     @Column(name = "item_id")
     private Long itemId;
 
-    // ===== FK → User (seller) =====
     @ManyToOne(fetch = FetchType.LAZY)
-    // FetchType.LAZY: không load User khi load AuctionItem
-    // Chỉ load khi gọi item.getSeller()
     @JoinColumn(name = "seller_id", nullable = false)
-    // JoinColumn: chỉ định tên cột FK trong bảng auction_items
     private User seller;
 
-    // ===== FK → Category =====
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -39,18 +30,14 @@ public class AuctionItem {
     private String itemName;
 
     @Column(name = "description", columnDefinition = "TEXT")
-    // columnDefinition = "TEXT": override kiểu cột
-    // Nếu không có → Hibernate dùng VARCHAR(255) mặc định → mô tả dài bị cắt
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "condition", nullable = false, length = 10)
-    @Builder.Default
     private ItemCondition condition = ItemCondition.GOOD;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
     private ItemStatus status = ItemStatus.DRAFT;
 
     @CreationTimestamp
@@ -61,28 +48,50 @@ public class AuctionItem {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // ===== QUAN HỆ NGƯỢC =====
-
     @OneToOne(mappedBy = "item", fetch = FetchType.LAZY)
-    // mappedBy = "item": field bên AuctionSession
-    // AuctionSession giữ FK (item_id), nên AuctionItem không có @JoinColumn
     private AuctionSession auctionSession;
 
-    @OneToMany(
-            mappedBy = "item",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            // CascadeType.ALL: mọi thao tác trên AuctionItem đều lan sang ItemImage
-            // save(item) → save(images) luôn
-            // delete(item) → delete(images) luôn
-            orphanRemoval = true
-            // orphanRemoval: xoá image khỏi list → DELETE image đó trong DB
-            // ví dụ: item.getImages().remove(img) → Hibernate tự DELETE img
-    )
-    @Builder.Default
+    @OneToMany(mappedBy = "item", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemImage> images = new ArrayList<>();
 
-    // Enum
+    public AuctionItem() {
+    }
+
+    public Long getItemId() { return itemId; }
+    public void setItemId(Long itemId) { this.itemId = itemId; }
+    public User getSeller() { return seller; }
+    public void setSeller(User seller) { this.seller = seller; }
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
+    public String getItemName() { return itemName; }
+    public void setItemName(String itemName) { this.itemName = itemName; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public ItemCondition getCondition() { return condition; }
+    public void setCondition(ItemCondition condition) { this.condition = condition; }
+    public ItemStatus getStatus() { return status; }
+    public void setStatus(ItemStatus status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public AuctionSession getAuctionSession() { return auctionSession; }
+    public void setAuctionSession(AuctionSession auctionSession) { this.auctionSession = auctionSession; }
+    public List<ItemImage> getImages() { return images; }
+    public void setImages(List<ItemImage> images) { this.images = images; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AuctionItem that)) return false;
+        return Objects.equals(itemId, that.itemId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemId);
+    }
+
     public enum ItemCondition { NEW, LIKE_NEW, GOOD, FAIR, POOR }
-    public enum ItemStatus    { DRAFT, PENDING_REVIEW, APPROVED, REJECTED, ARCHIVED }
+    public enum ItemStatus { DRAFT, PENDING_REVIEW, APPROVED, REJECTED, ARCHIVED }
 }

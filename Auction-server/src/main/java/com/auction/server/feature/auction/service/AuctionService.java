@@ -128,26 +128,24 @@ public class AuctionService {
             User seller = userRepository.getReference(request.getSellerId());
 
             // Tạo AuctionItem trước — AuctionSession phụ thuộc vào Item
-            AuctionItem item = AuctionItem.builder()
-                    .seller(seller)
-                    .category(categoryRepository.getReference(request.getCategoryId()))
-                    .itemName(request.getItemName().trim())
-                    .description(request.getDescription().trim())
-                    .status(AuctionItem.ItemStatus.DRAFT)
-                    .condition(AuctionItem.ItemCondition.GOOD)
-                    .build();
+            AuctionItem item = new AuctionItem();
+            item.setSeller(seller);
+            item.setCategory(categoryRepository.getReference(request.getCategoryId()));
+            item.setItemName(request.getItemName().trim());
+            item.setDescription(request.getDescription().trim());
+            item.setStatus(AuctionItem.ItemStatus.DRAFT);
+            item.setCondition(AuctionItem.ItemCondition.GOOD);
 
             item = auctionItemRepository.save(item);
 
             // currentPrice = startingPrice ban đầu, tăng dần khi có bid
-            AuctionSession auction = AuctionSession.builder()
-                    .item(item)
-                    .startingPrice(request.getStartingPrice())
-                    .currentPrice(request.getStartingPrice())
-                    .startTime(request.getStartTime())
-                    .endTime(request.getEndTime())
-                    .status(AuctionSession.AuctionStatus.SCHEDULED)
-                    .build();
+            AuctionSession auction = new AuctionSession();
+            auction.setItem(item);
+            auction.setStartingPrice(request.getStartingPrice());
+            auction.setCurrentPrice(request.getStartingPrice());
+            auction.setStartTime(request.getStartTime());
+            auction.setEndTime(request.getEndTime());
+            auction.setStatus(AuctionSession.AuctionStatus.SCHEDULED);
 
             AuctionSession saved = auctionSessionRepository.save(auction);
 

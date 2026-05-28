@@ -1,9 +1,11 @@
 package com.auction.server.feature.auth.controller;
 
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.*;
 import com.auction.server.feature.auth.service.AuthService;
 import com.auction.shared.dto.Response;
+import com.auction.shared.dto.auth.request.LoginRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
+import com.auction.shared.protocol.JsonSupport;
 import com.google.gson.Gson;
 
 public class AuthController {
@@ -13,7 +15,7 @@ public class AuthController {
     // SỬ dụng Dependency INJECTION dễ mock test,...
     public AuthController(AuthService authService) {
         this.authService = authService;
-        this.gson = new Gson();
+        this.gson = JsonSupport.createGson();
     }
 
     public Response<com.auction.shared.dto.AuthResponse> register(String body) {
@@ -28,6 +30,7 @@ public class AuthController {
             return Response.fail(e.getMessage());
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.fail("Internal server error");
         }
     }
@@ -44,6 +47,7 @@ public class AuthController {
             return Response.fail(e.getMessage());
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.fail("Internal server error");
         }
     }

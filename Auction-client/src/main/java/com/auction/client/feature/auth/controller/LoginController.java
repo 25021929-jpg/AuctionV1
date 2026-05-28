@@ -10,8 +10,6 @@ import com.auction.client.core.ui.UIAnimations;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
 import com.auction.client.feature.auth.service.AuthService;
 import com.auction.client.feature.auth.service.AuthServiceImpl;
-import com.auction.client.network.SocketClient;
-import com.auction.shared.domain.UserRole;
 import com.auction.shared.dto.AuthResponse;
 import com.auction.shared.dto.auth.request.LoginRequest;
 import com.auction.validation.ValidationResult;
@@ -82,11 +80,6 @@ public class LoginController {
             return;
         }
 
-        if (!SocketClient.getInstance().isConnected()) {
-            showToast("Đang kết nối server, vui lòng thử lại!", Toast.Type.WARNING, 2, null);
-            return;
-        }
-
         loginButton.setDisable(true);
 
         Thread thread = new Thread(() -> {
@@ -96,7 +89,7 @@ public class LoginController {
 
                 Platform.runLater(() -> {
                     loginButton.setDisable(false);
-                    showToast("✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateByRole);
+                    showToast("✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateHome);
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> {
@@ -110,15 +103,17 @@ public class LoginController {
         thread.start();
     }
 
-    private void navigateByRole() {
-        UserRole role = UserSession.getInstance().getRole();
-        if (role == UserRole.ADMIN) {
-            SceneNavigator.switchScene(ScenePaths.ADMIN_DASHBOARD);
-        } else if (role == UserRole.SELLER) {
-            SceneNavigator.switchScene(ScenePaths.SELLER_DASHBOARD);
-        } else {
-            SceneNavigator.switchScene(ScenePaths.AUCTION_LIST);
-        }
+    private void navigateHome() {
+        /*
+         * Không điều hướng cứng theo role sau khi đăng nhập.
+         *
+         * Lý do:
+         * - Với mô hình hiện tại, một tài khoản có thể vừa bid vừa đăng sản phẩm bán.
+         * - Nếu tự chuyển BIDDER vào danh sách đấu giá và SELLER vào Seller Dashboard,
+         *   client đang ngầm coi BIDDER/SELLER là hai loại tài khoản loại trừ nhau.
+         * - Home là màn trung gian đúng hơn: user tự chọn workflow muốn làm tiếp.
+         */
+        SceneNavigator.switchScene(ScenePaths.HOME);
     }
 
     @FXML

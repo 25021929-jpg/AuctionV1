@@ -30,7 +30,16 @@ public class HomeController {
 
         UserRole role = session.getRole();
         lblWelcome.setText("Xin chào, " + session.displayName() + " (" + roleText(role) + ")");
-        setVisibleAndManaged(btnSeller, role == UserRole.SELLER || role == UserRole.ADMIN);
+        /*
+         * Seller Dashboard không còn bị khóa theo role SELLER.
+         *
+         * Backend hiện tại dùng sellerId để xác định chủ sản phẩm, không yêu cầu
+         * User.role == SELLER. Vì vậy client cũng không nên giấu chức năng bán
+         * hàng với user BIDDER mặc định sau đăng ký.
+         */
+        setVisibleAndManaged(btnSeller, true);
+
+        // Admin vẫn là quyền quản trị riêng, nên chỉ ADMIN mới thấy Admin Dashboard.
         setVisibleAndManaged(btnAdmin, role == UserRole.ADMIN);
     }
 
@@ -42,7 +51,12 @@ public class HomeController {
     @FXML
     public void handleOpenSeller() {
         try {
-            AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
+            /*
+             * Đã đăng nhập là đủ để bán hàng trong mô hình hiện tại.
+             * Nếu sau này có quy trình duyệt seller, hãy thêm sellerStatus/canSell
+             * từ server thay vì dùng role BIDDER/SELLER loại trừ nhau.
+             */
+            AccessGuard.requireLogin();
             SceneNavigator.switchScene(ScenePaths.SELLER_DASHBOARD);
         } catch (Exception ex) {
             AlertHelper.showException("Không có quyền", ex);

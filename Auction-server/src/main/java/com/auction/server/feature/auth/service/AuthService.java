@@ -3,13 +3,13 @@ package com.auction.server.feature.auth.service;
 import com.auction.server.database.DbExecutor;
 import com.auction.server.database.HibernateUtil;
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.LoginRequest;
-import com.auction.server.feature.auth.dto.RegisterRequest;
 import com.auction.server.feature.auth.repository.HibernateUserRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
 import com.auction.server.feature.auth.util.PasswordUtil;
 import com.auction.shared.dto.AuthResponse;
 import com.auction.shared.dto.UserInfo;
+import com.auction.shared.dto.auth.request.LoginRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
 import com.auction.server.entity.User;
 
 import java.time.LocalDate;
@@ -82,15 +82,14 @@ public class AuthService {
                 throw new AuthException("Lỗi trùng tên Email");
             }
 
-            User user = User.builder()
-                    .fullName(fullName)
-                    .username(username)
-                    .email(email)
-                    .phone(phone)
-                    .dateOfBirth(dob)
-                    .passwordHash(passwordHash)
-                    .role(User.Role.BIDDER)
-                    .build();
+            User user = new User();
+            user.setFullName(fullName);
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPhone(phone);
+            user.setDateOfBirth(dob);
+            user.setPasswordHash(passwordHash);
+            user.setRole(User.Role.BIDDER);
 
             User saved = userRepository.save(user);
             return AuthResponse.fromUserInfo(toUserInfo(saved));
@@ -121,12 +120,14 @@ public class AuthService {
         validateLogin(request);
 
         final String loginId = request.identity().trim();
+        final String emailLoginId = loginId.toLowerCase();
 
         // [TX read-only] chỉ query — DbExecutor.query() tắt dirty checking
         // connection giữ ~1ms rồi trả về pool ngay
         User user = DbExecutor.query(() ->
                 userRepository.findByUsername(loginId)
-                        .or(() -> userRepository.findByEmail(loginId))
+                        // Email đã được lưu lowercase khi đăng ký, nên login bằng email cũng normalize.
+                        .or(() -> userRepository.findByEmail(emailLoginId))
                         .orElse(null)
         );
 
@@ -135,6 +136,7 @@ public class AuthService {
         //
         // Không nói rõ "sai username" hay "sai password" — bảo mật hơn
         if (user == null
+                || Boolean.FALSE.equals(user.getIsActive())
                 || !PasswordUtil.verifyPassword(request.password(), user.getPasswordHash())) {
             throw new AuthException("Sai tên đăng nhập hoặc mật khẩu");
         }
@@ -215,8 +217,8 @@ public class AuthService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getDateOfBirth(),
-                user.getRole()
+                user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
+                user.getRole() != null ? user.getRole().name() : null
         );
     }
 }

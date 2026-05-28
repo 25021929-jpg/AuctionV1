@@ -71,26 +71,24 @@ public class SellerService {
 
             // Creating a seller item is atomic: item metadata and auction session are saved
             // in the same transaction, so a partial product cannot be left without a session.
-            AuctionItem item = AuctionItem.builder()
-                    .seller(seller)
-                    .category(category)
-                    .itemName(request.getName().trim())
-                    .description(request.getDescription().trim())
-                    .condition(AuctionItem.ItemCondition.GOOD)
-                    .status(AuctionItem.ItemStatus.APPROVED)
-                    .build();
+            AuctionItem item = new AuctionItem();
+            item.setSeller(seller);
+            item.setCategory(category);
+            item.setItemName(request.getName().trim());
+            item.setDescription(request.getDescription().trim());
+            item.setCondition(AuctionItem.ItemCondition.GOOD);
+            item.setStatus(AuctionItem.ItemStatus.APPROVED);
 
             item = auctionItemRepository.save(item);
 
-            AuctionSession auction = AuctionSession.builder()
-                    .item(item)
-                    .startingPrice(request.getStartPrice())
-                    .currentPrice(request.getStartPrice())
-                    .minBidStep(DEFAULT_MIN_BID_STEP)
-                    .startTime(request.getStartTime())
-                    .endTime(request.getEndTime())
-                    .status(initialAuctionStatus(request.getStartTime()))
-                    .build();
+            AuctionSession auction = new AuctionSession();
+            auction.setItem(item);
+            auction.setStartingPrice(request.getStartPrice());
+            auction.setCurrentPrice(request.getStartPrice());
+            auction.setMinBidStep(DEFAULT_MIN_BID_STEP);
+            auction.setStartTime(request.getStartTime());
+            auction.setEndTime(request.getEndTime());
+            auction.setStatus(initialAuctionStatus(request.getStartTime()));
 
             return toDto(auctionSessionRepository.save(auction));
         });

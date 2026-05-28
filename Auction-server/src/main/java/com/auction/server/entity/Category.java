@@ -1,55 +1,67 @@
 package com.auction.server.entity;
+
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "categories")
-@Getter @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@ToString(exclude = {"children", "items"})
-@EqualsAndHashCode(of = {"categoryId"})
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id")
     private Integer categoryId;
-    // Dùng Integer (không phải Long) vì danh mục thường ít — INT đủ
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "category_name", nullable = false, length = 100)
     private String name;
 
     @Column(name = "slug", nullable = false, unique = true, length = 100)
     private String slug;
-    // slug: url-friendly, ví dụ "dien-tu", "thoi-trang"
 
     @Column(name = "sort_order", nullable = false)
-    @Builder.Default
     private Integer sortOrder = 0;
-
-    // ===== SELF-REFERENCING — quan hệ cha/con trong cùng bảng =====
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    // parent_id có thể NULL → Category gốc không có cha
-    // Không có nullable=false vì danh mục gốc có parent=null
     private Category parent;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    @Builder.Default
     private List<Category> children = new ArrayList<>();
-    // Danh sách danh mục con
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    @Builder.Default
     private List<AuctionItem> items = new ArrayList<>();
-    //getter
-    public String getCategoryName() {
-    return name;
+
+    public Category() {
+    }
+
+    public Integer getCategoryId() { return categoryId; }
+    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getCategoryName() { return name; }
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+    public Integer getSortOrder() { return sortOrder; }
+    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
+    public Category getParent() { return parent; }
+    public void setParent(Category parent) { this.parent = parent; }
+    public List<Category> getChildren() { return children; }
+    public void setChildren(List<Category> children) { this.children = children; }
+    public List<AuctionItem> getItems() { return items; }
+    public void setItems(List<AuctionItem> items) { this.items = items; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Category category)) return false;
+        return Objects.equals(categoryId, category.categoryId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(categoryId);
     }
 }
