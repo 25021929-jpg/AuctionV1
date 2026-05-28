@@ -48,4 +48,8 @@ public class Category {
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     @Builder.Default
     private List<AuctionItem> items = new ArrayList<>();
+    //getter
+    public String getCategoryName() {
+    return name;
+    }
 }

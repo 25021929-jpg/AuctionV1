@@ -43,12 +43,6 @@ public class RequestDispatcher {
                 case "AUTH_LOGIN":
                     return authController.login(request.getBody());
 
-                case "AUTH_FORGOT_PASSWORD":
-                    return authController.forgotPassword(request.getBody());
-
-                case "AUTH_RESET_PASSWORD":
-                    return authController.resetPassword(request.getBody());
-
                 // ===== AUCTION ACTIONS =====
                 case "AUCTION_CREATE":
                     return auctionController.createAuction(request.getBody());

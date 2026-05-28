@@ -27,6 +27,13 @@ public interface PaymentRepository {
     Optional<Payment> findByAuction(Long auctionId);
 
     /**
+     * Tìm payment của một phiên đấu giá và load đầy đủ quan hệ cần hiển thị
+     * (buyer, seller, auctionSession, item). Dùng khi caller cần render chi tiết
+     * của payment trong 1 truy vấn duy nhất để tránh N+1.
+     */
+    Optional<Payment> findByAuctionWithDetails(Long auctionId);
+
+    /**
      * Lịch sử mua hàng của buyer — phân trang.
      * Dùng cho: trang "Đơn hàng của tôi".
      */

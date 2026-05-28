@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 
 public class AuctionDetailResponse {
 
-    private int auctionId;
-    private int itemId;
+    private Long auctionId;
+    private Long itemId;
     private String itemName;
     private String description;
     private String categoryName;
@@ -24,8 +24,8 @@ public class AuctionDetailResponse {
     }
 
     public AuctionDetailResponse(
-            int auctionId,
-            int itemId,
+            Long auctionId,
+            Long itemId,
             String itemName,
             String description,
             String categoryName,
@@ -49,19 +49,19 @@ public class AuctionDetailResponse {
         this.status = status;
     }
 
-    public int getAuctionId() {
+    public Long getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(int auctionId) {
+    public void setAuctionId(Long auctionId) {
         this.auctionId = auctionId;
     }
 
-    public int getItemId() {
+    public Long getItemId() {
         return itemId;
     }
 
-    public void setItemId(int itemId) {
+    public void setItemId(Long itemId) {
         this.itemId = itemId;
     }
 

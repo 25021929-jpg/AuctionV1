@@ -2,8 +2,6 @@ package com.auction.server.feature.auth.service;
 
 import com.auction.server.database.DbExecutor;
 import com.auction.server.database.HibernateUtil;
-import com.auction.server.exception.auth.InvalidCredentialsException;
-import com.auction.server.exception.business.DuplicateDataException;
 import com.auction.server.feature.auth.AuthException;
 import com.auction.server.feature.auth.dto.LoginRequest;
 import com.auction.server.feature.auth.dto.RegisterRequest;
@@ -78,10 +76,10 @@ public class AuthService {
         return DbExecutor.runAndReturn(() -> {
 
             if (userRepository.existsByUsername(username)) {
-                throw new DuplicateDataException("User", "username", username);
+                throw new AuthException("Lỗi trùng tên đăng nhập");
             }
             if (userRepository.existsByEmail(email)) {
-                throw new DuplicateDataException("User", "email", email);
+                throw new AuthException("Lỗi trùng tên Email");
             }
 
             User user = User.builder()
@@ -115,7 +113,7 @@ public class AuthService {
      *   - Không phân biệt "sai username" hay "sai password"
      *     → chống Account Enumeration Attack
      *
-     * @throws InvalidCredentialsException nếu sai thông tin đăng nhập
+     * @throws AuthException nếu sai thông tin đăng nhập
      */
     public AuthResponse login(LoginRequest request) {
 
@@ -138,7 +136,7 @@ public class AuthService {
         // Không nói rõ "sai username" hay "sai password" — bảo mật hơn
         if (user == null
                 || !PasswordUtil.verifyPassword(request.password(), user.getPasswordHash())) {
-            throw new InvalidCredentialsException();
+            throw new AuthException("Sai tên đăng nhập hoặc mật khẩu");
         }
 
         // Trả UserInfo — không có passwordHash

@@ -47,27 +47,11 @@ public class DbExecutor {
             // Session được lấy ngầm qua getCurrentSession() trong Repository
             action.run(); // Lambda không tham số! Service hoàn toàn mù tịt về Session.
             session.getTransaction().commit();
-
         } catch (Exception e) {
-            // Rollback trước khi throw — không để transaction treo
-            if (session.getTransaction() != null &&
-                    session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
-            }
-            throw new RuntimeException(e);
+            handleException(session, e);
         }
-        // Không đóng session ở đây!
-        // Với thread context, Hibernate tự quản lý vòng đời session
     }
 
-    /**
-     * Chạy logic có transaction — trả về giá trị.
-     * Dùng cho: placeBid trả về BidResult, createAuction trả về AuctionSession...
-     *
-     * @param action lambda trả về kết quả
-     * @return kết quả từ lambda
-     */
-    // Dùng cho logic có trả về kết quả
     public static <T> T runAndReturn(Supplier<T> action) {
         Session session = sessionFactory.getCurrentSession();
         try {
@@ -76,17 +60,11 @@ public class DbExecutor {
             session.getTransaction().commit();
             return result;
         } catch (Exception e) {
-            if (session.getTransaction() != null && session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
-            }
-            throw new RuntimeException(e);
+            handleException(session, e);
+            return null; // unreachable
         }
     }
 
-    /**
-     * Chạy logic chỉ đọc (Read-only).
-     * Dùng cho: getAuctionList, getUserProfile, getBidHistory...
-     */
     public static <T> T query(Supplier<T> action) {
         Session session = sessionFactory.getCurrentSession();
         try {
@@ -102,16 +80,22 @@ public class DbExecutor {
             session.getTransaction().commit();
             return result;
         } catch (Exception e) {
-            if (session.getTransaction() != null && session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
-            }
-            throw new RuntimeException(e);
+            handleException(session, e);
+            return null; // unreachable
         } finally {
-            // Trả lại trạng thái (thực ra sau commit session đã đóng,
-            // nhưng viết cẩn thận nếu dùng cơ chế open-session-in-view)
             if (session.isOpen()) {
                 session.setDefaultReadOnly(false);
             }
         }
+    }
+
+    private static void handleException(Session session, Exception e) {
+        if (session.getTransaction() != null && session.getTransaction().isActive()) {
+            session.getTransaction().rollback();
+        }
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        throw new RuntimeException("Database error", e);
     }
 }

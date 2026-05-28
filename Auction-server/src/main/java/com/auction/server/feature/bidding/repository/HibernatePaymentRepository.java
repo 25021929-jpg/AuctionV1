@@ -57,6 +57,22 @@ public class HibernatePaymentRepository
                 .findFirst();
     }
 
+    @Override
+    public Optional<Payment> findByAuctionWithDetails(Long auctionId) {
+        return sessionFactory.getCurrentSession()
+                .createQuery(
+                        "FROM Payment p " +
+                                "JOIN FETCH p.buyer b " +
+                                "JOIN FETCH p.seller s " +
+                                "JOIN FETCH p.auctionSession a " +
+                                "JOIN FETCH a.item i " +
+                                "WHERE a.auctionId = :id",
+                        Payment.class)
+                .setParameter("id", auctionId)
+                .getResultStream()
+                .findFirst();
+    }
+
     /**
      * Lịch sử mua của buyer.
      *
