@@ -7,7 +7,11 @@ import com.auction.shared.protocol.WireMessageType;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -16,6 +20,7 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private final RequestDispatcher requestDispatcher;
     private final Gson gson;
+    private PrintWriter writer;
 
     public ClientHandler(Socket socket, RequestDispatcher requestDispatcher) {
         this.socket = socket;
@@ -29,43 +34,40 @@ public class ClientHandler implements Runnable {
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)
                 );
-
-                PrintWriter writer = new PrintWriter(
+                PrintWriter socketWriter = new PrintWriter(
                         new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8),
                         true
                 )
         ) {
+            this.writer = socketWriter;
             String requestJson;
 
-            // Đọc từng dòng JSON client gửi lên
             while ((requestJson = reader.readLine()) != null) {
-
                 WireMessage request = null;
                 try {
-                    // Convert JSON -> WireMessage object
                     request = gson.fromJson(requestJson, WireMessage.class);
-
-                    // Gửi request vào dispatcher để xử lý đúng action
-                    Response<?> response = requestDispatcher.dispatch(request);
-
-                    // Convert Response object -> WireMessage JSON
-                    String responseJson = gson.toJson(toWireResponse(request, response));
-
-                    // Gửi JSON response về client
-                    writer.println(responseJson);
-
+                    Response<?> response = requestDispatcher.dispatch(request, this);
+                    send(toWireResponse(request, response));
                 } catch (Exception e) {
-                    // Nếu lỗi bất ngờ khi xử lý 1 request
-                    writer.println(gson.toJson(toInvalidRequestResponse(request)));
+                    send(toInvalidRequestResponse(request));
                 }
             }
 
         } catch (IOException e) {
             System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
-
         } finally {
+            AuctionRoomRegistry.leaveAll(this);
+            writer = null;
             closeSocket();
         }
+    }
+
+    public synchronized boolean send(WireMessage message) {
+        if (writer == null) {
+            return false;
+        }
+        writer.println(gson.toJson(message));
+        return !writer.checkError();
     }
 
     private void closeSocket() {
