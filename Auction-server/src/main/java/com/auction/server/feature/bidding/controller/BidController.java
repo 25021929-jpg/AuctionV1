@@ -4,7 +4,12 @@ import com.auction.server.feature.bidding.BidException;
 import com.auction.server.feature.bidding.dto.BidResponse;
 import com.auction.server.feature.bidding.dto.PlaceBidRequest;
 import com.auction.server.feature.bidding.service.BidService;
+import com.auction.server.network.BroadcastService;
 import com.auction.shared.dto.Response;
+import com.auction.shared.protocol.ActionConstants;
+import com.auction.shared.protocol.JsonSupport;
+import com.auction.shared.protocol.WireMessage;
+import com.auction.shared.protocol.WireMessageType;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -14,7 +19,7 @@ import java.util.List;
 public class BidController {
 
     private final BidService bidService;
-    private final Gson gson = new Gson();
+    private final Gson gson = JsonSupport.createGson();
 
     public BidController(BidService bidService) {
         this.bidService = bidService;
@@ -24,6 +29,7 @@ public class BidController {
         try {
             PlaceBidRequest request = parsePlaceBidRequest(requestBody);
             BidResponse response = bidService.placeBid(request);
+            BroadcastService.broadcastToRoom(response.getAuctionSessionId(), toBidUpdatedEvent(response));
             return Response.success("Bid placed successfully", response);
         } catch (BidException e) {
             return Response.fail(e.getMessage());
@@ -83,5 +89,23 @@ public class BidController {
             return null;
         }
         return obj.get(field).getAsBigDecimal();
+    }
+
+    private WireMessage toBidUpdatedEvent(BidResponse response) {
+        JsonObject data = new JsonObject();
+        data.addProperty("auctionId", response.getAuctionSessionId());
+        data.addProperty("auctionSessionId", response.getAuctionSessionId());
+        data.addProperty("bidId", response.getBidId());
+        data.addProperty("bidderId", response.getBidderId());
+        data.add("bidAmount", gson.toJsonTree(response.getBidAmount()));
+        data.add("currentPrice", gson.toJsonTree(response.getBidAmount()));
+        data.addProperty("timestamp", System.currentTimeMillis());
+        data.add("bid", gson.toJsonTree(response));
+
+        WireMessage event = new WireMessage();
+        event.setType(WireMessageType.EVENT);
+        event.setAction(ActionConstants.EVENT_BID_UPDATED);
+        event.setData(data);
+        return event;
     }
 }

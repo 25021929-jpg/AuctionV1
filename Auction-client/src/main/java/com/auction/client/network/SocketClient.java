@@ -68,6 +68,7 @@ public class SocketClient implements ServerCommunicator {
 
         Socket s = new Socket();
         s.connect(new InetSocketAddress(HOST, PORT), CONNECT_TIMEOUT);
+        s.setTcpNoDelay(true);
         // Không set SO_TIMEOUT cho reader realtime. Nếu set 10s, readLoop sẽ tự báo mất kết nối
         // dù server vẫn còn sống nhưng tạm thời chưa gửi message nào.
 

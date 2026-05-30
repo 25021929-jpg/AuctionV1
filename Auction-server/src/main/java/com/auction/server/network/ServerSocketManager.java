@@ -20,6 +20,7 @@ public class ServerSocketManager {
             while (true) {
                 // Đợi Client kết nối (Hàm này block luồng chính cho đến khi có khách)
                 Socket clientSocket = serverSocket.accept();
+                clientSocket.setTcpNoDelay(true);
                 System.out.println("Client connected");
 
                 ClientHandler clientHandler = new ClientHandler(clientSocket,requestDispatcher);

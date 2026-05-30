@@ -1,13 +1,14 @@
 package com.auction.server.network;
 
-import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.auction.controller.AuctionController;
+import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.bidding.controller.BidController;
 import com.auction.server.feature.seller.controller.SellerController;
 import com.auction.shared.dto.Response;
 import com.auction.shared.protocol.ActionConstants;
 import com.auction.shared.protocol.WireMessage;
 import com.auction.shared.protocol.WireMessageType;
+import com.google.gson.JsonObject;
 
 public class RequestDispatcher {
 
@@ -26,13 +27,11 @@ public class RequestDispatcher {
         this.sellerController = sellerController;
     }
 
-    /**
-     * Routes a socket envelope to the matching feature controller.
-     *
-     * <p>The network layer owns {@link WireMessage}. Controllers still receive the
-     * raw JSON body so they can be migrated independently in smaller steps.</p>
-     */
     public Response<?> dispatch(WireMessage request) {
+        return dispatch(request, null);
+    }
+
+    public Response<?> dispatch(WireMessage request, ClientHandler clientHandler) {
         if (request == null) {
             return Response.fail("Request is null");
         }
@@ -66,8 +65,10 @@ public class RequestDispatcher {
                     return auctionController.getAuctionDetail(requestBody);
 
                 case ActionConstants.AUCTION_SUBSCRIBE:
+                    return subscribeAuction(request, clientHandler);
+
                 case ActionConstants.AUCTION_UNSUBSCRIBE:
-                    return Response.success("Subscription updated", null);
+                    return unsubscribeAuction(request, clientHandler);
 
                 case ActionConstants.BID_PLACE_BID:
                     return bidController.placeBid(requestBody);
@@ -93,5 +94,48 @@ public class RequestDispatcher {
         } catch (Exception e) {
             return Response.fail("Error processing request: " + e.getMessage());
         }
+    }
+
+    private Response<Void> subscribeAuction(WireMessage request, ClientHandler clientHandler) {
+        if (clientHandler == null) {
+            return Response.fail("Client handler is required for subscription");
+        }
+
+        Long auctionId = extractAuctionId(request);
+        if (auctionId == null || auctionId <= 0) {
+            return Response.fail("AuctionId is required for subscription");
+        }
+
+        AuctionRoomRegistry.join(auctionId, clientHandler);
+        return Response.success("Subscription updated", null);
+    }
+
+    private Response<Void> unsubscribeAuction(WireMessage request, ClientHandler clientHandler) {
+        if (clientHandler == null) {
+            return Response.fail("Client handler is required for subscription");
+        }
+
+        Long auctionId = extractAuctionId(request);
+        if (auctionId == null || auctionId <= 0) {
+            return Response.fail("AuctionId is required for subscription");
+        }
+
+        AuctionRoomRegistry.leave(auctionId, clientHandler);
+        return Response.success("Subscription updated", null);
+    }
+
+    private Long extractAuctionId(WireMessage request) {
+        if (request == null || request.getData() == null || !request.getData().isJsonObject()) {
+            return null;
+        }
+
+        JsonObject data = request.getData().getAsJsonObject();
+        if (data.has("auctionId") && !data.get("auctionId").isJsonNull()) {
+            return data.get("auctionId").getAsLong();
+        }
+        if (data.has("auctionSessionId") && !data.get("auctionSessionId").isJsonNull()) {
+            return data.get("auctionSessionId").getAsLong();
+        }
+        return null;
     }
 }
