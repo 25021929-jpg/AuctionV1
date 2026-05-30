@@ -1,39 +1,173 @@
-name: CI - Build & Test
+# ══════════════════════════════════════════════════════════════════
+# CI Pipeline — AuctionV1
+# ══════════════════════════════════════════════════════════════════
+#
+# Mục tiêu: Tự động build + test mỗi khi push code hoặc tạo PR
+# vào nhánh main/dev, đảm bảo code luôn compile được và test pass.
+#
+# Cấu trúc project:
+#   Auction-shared  ← compile + test (JUnit, không cần JavaFX)
+#   Auction-server  ← compile + test (JUnit, không cần JavaFX)
+#   Auction-client  ← chỉ compile   (JavaFX cần display — skip test trên CI)
+#
+# ══════════════════════════════════════════════════════════════════
 
-# Chạy khi push hoặc tạo Pull Request vào nhánh main hoặc dev
+name: CI — Build & Test
+
+# ── Trigger ────────────────────────────────────────────────────────
+# Chạy khi push hoặc PR vào các nhánh quan trọng
 on:
   push:
-    branches: [ main, dev, feature/gui-login ]
+    branches:
+      - main
+      - dev
+      - "feature/**"   # bắt tất cả feature/xxx
   pull_request:
-    branches: [ main, dev ]
+    branches:
+      - main
 
+# ── Concurrency ────────────────────────────────────────────────────
+# Nếu push liên tiếp vào cùng 1 nhánh, hủy run cũ,
+# chỉ giữ run mới nhất — tiết kiệm CI minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ── Jobs ───────────────────────────────────────────────────────────
 jobs:
-  build-and-test:
+
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │  Job 1: Compile toàn bộ 3 module                           │
+  # └─────────────────────────────────────────────────────────────┘
+  build:
+    name: Build (all modules)
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Lấy code từ GitHub về
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      # 2. Cài Java 21
-      - name: Set up JDK 21
+      # 2. Cài JDK 17 (khớp với pom.xml: maven.compiler.release=17)
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
 
-      # 3. Cache thư viện Maven (tránh download lại mỗi lần chạy)
+      # 3. Cache Maven local repo (~/.m2)
+      #    key dùng hash của tất cả pom.xml → invalidate khi đổi dependency
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      # 4. Build toàn bộ project
-      - name: Build with Maven
-        run: mvn compile --no-transfer-progress
+      # 4. Compile toàn bộ (shared → server → client theo thứ tự module)
+      #    -T 1C : dùng 1 thread / CPU core → tăng tốc trên runner nhiều core
+      #    --no-transfer-progress : tắt log download (đỡ spam log)
+      - name: Compile all modules
+        run: mvn compile -T 1C --no-transfer-progress
 
-      # 5. Chạy toàn bộ JUnit test
-      - name: Run tests
-        run: mvn test --no-transfer-progress
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │  Job 2: Test Auction-shared + Auction-server               │
+  # │  (Auction-client skip vì cần JavaFX display)               │
+  # └─────────────────────────────────────────────────────────────┘
+  test:
+    name: Test (shared + server)
+    runs-on: ubuntu-latest
+
+    # Đợi build pass trước khi chạy test
+    needs: build
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Chỉ test 2 module không cần JavaFX display
+      # -pl : chọn module cụ thể
+      # -am : also-make → build dependency (shared) trước khi test server
+      - name: Run tests (shared + server)
+        run: |
+          mvn test \
+            --no-transfer-progress \
+            -pl Auction-shared,Auction-server \
+            -am
+
+      # Upload báo cáo test (Surefire XML) để xem trên GitHub
+      # always() → upload dù test pass hay fail
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            Auction-shared/target/surefire-reports/
+            Auction-server/target/surefire-reports/
+          retention-days: 7
+
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │  Job 3: Test Auction-client (JavaFX với virtual display)   │
+  # │  Chạy song song với job test để tiết kiệm thời gian        │
+  # └─────────────────────────────────────────────────────────────┘
+  test-client:
+    name: Test (client — JavaFX headless)
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Cài virtual display — JavaFX cần X11 display để khởi động
+      # xvfb (X Virtual Framebuffer) giả lập màn hình, không render thật
+      - name: Install virtual display (Xvfb)
+        run: sudo apt-get install -y --no-install-recommends xvfb
+
+      # Chạy test client qua xvfb-run
+      # -a : tự chọn display number còn trống (tránh conflict)
+      - name: Run client tests (via Xvfb)
+        run: |
+          xvfb-run -a mvn test \
+            --no-transfer-progress \
+            -pl Auction-client \
+            -am \
+            -Djava.awt.headless=true
+
+      - name: Upload client test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-client
+          path: Auction-client/target/surefire-reports/
+          retention-days: 7
