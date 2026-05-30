@@ -1,0 +1,39 @@
+name: CI - Build & Test
+
+# Chạy khi push hoặc tạo Pull Request vào nhánh main hoặc dev
+on:
+  push:
+    branches: [ main, dev, feature/gui-login ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Lấy code từ GitHub về
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Cài Java 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Cache thư viện Maven (tránh download lại mỗi lần chạy)
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      # 4. Build toàn bộ project
+      - name: Build with Maven
+        run: mvn compile --no-transfer-progress
+
+      # 5. Chạy toàn bộ JUnit test
+      - name: Run tests
+        run: mvn test --no-transfer-progress
