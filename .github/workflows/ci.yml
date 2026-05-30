@@ -27,8 +27,7 @@ on:
       - main
 
 # ── Concurrency ────────────────────────────────────────────────────
-# Nếu push liên tiếp vào cùng 1 nhánh, hủy run cũ,
-# chỉ giữ run mới nhất — tiết kiệm CI minutes
+# Nếu push liên tiếp vào cùng 1 nhánh, hủy run cũ, chỉ giữ run mới nhất
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -37,14 +36,14 @@ concurrency:
 jobs:
 
   # ┌─────────────────────────────────────────────────────────────┐
-  # │  Job 1: Compile toàn bộ 3 module                           │
+  # │  Job 1: Test Auction-shared + Auction-server                        │
   # └─────────────────────────────────────────────────────────────┘
   build:
-    name: Build (all modules)
+    name: Test (shared + server)
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # Tải toàn bộ mã nguồn của dự án từ GitHub về máy ảo của Runner để có code xử lý.
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -56,7 +55,7 @@ jobs:
           distribution: "temurin"
 
       # 3. Cache Maven local repo (~/.m2)
-      #    key dùng hash của tất cả pom.xml → invalidate khi đổi dependency
+      #    key: Chuỗi định danh cho bộ cache.
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -65,53 +64,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 4. Compile toàn bộ (shared → server → client theo thứ tự module)
-      #    -T 1C : dùng 1 thread / CPU core → tăng tốc trên runner nhiều core
-      #    --no-transfer-progress : tắt log download (đỡ spam log)
-      - name: Compile all modules
-        run: mvn compile -T 1C --no-transfer-progress
-
-  # ┌─────────────────────────────────────────────────────────────┐
-  # │  Job 2: Test Auction-shared + Auction-server               │
-  # │  (Auction-client skip vì cần JavaFX display)               │
-  # └─────────────────────────────────────────────────────────────┘
-  test:
-    name: Test (shared + server)
-    runs-on: ubuntu-latest
-
-    # Đợi build pass trước khi chạy test
-    needs: build
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: "17"
-          distribution: "temurin"
-
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      # Chỉ test 2 module không cần JavaFX display
-      # -pl : chọn module cụ thể
-      # -am : also-make → build dependency (shared) trước khi test server
+      # 4. Chạy file JUnit của 2 module
       - name: Run tests (shared + server)
         run: |
           mvn test \
+            -T 1C \
             --no-transfer-progress \
             -pl Auction-shared,Auction-server \
             -am
 
-      # Upload báo cáo test (Surefire XML) để xem trên GitHub
-      # always() → upload dù test pass hay fail
+      #5. Maven sẽ sinh ra các file báo cáo kết quả dạng XML/TXT, rồi đẩy lên giao diện Github
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -123,8 +85,7 @@ jobs:
           retention-days: 7
 
   # ┌─────────────────────────────────────────────────────────────┐
-  # │  Job 3: Test Auction-client (JavaFX với virtual display)   │
-  # │  Chạy song song với job test để tiết kiệm thời gian        │
+  # │  Job 2: Test Auction-client (JavaFX với virtual display)        │
   # └─────────────────────────────────────────────────────────────┘
   test-client:
     name: Test (client — JavaFX headless)
@@ -141,6 +102,8 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
+      #Cache Maven local repo (~/.m2)
+      #key: Chuỗi định danh cho bộ cache.
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -150,12 +113,12 @@ jobs:
             ${{ runner.os }}-maven-
 
       # Cài virtual display — JavaFX cần X11 display để khởi động
-      # xvfb (X Virtual Framebuffer) giả lập màn hình, không render thật
+      #Xvfb sẽ tạo ra một màn hình ảo nằm hoàn toàn trong bộ nhớ RAM. JavaFX sẽ bị "lừa" rằng đang có một màn hình thật để vẽ giao diện lên đó,
+      #giúp các đoạn code test giao diện chạy bình thường.
       - name: Install virtual display (Xvfb)
         run: sudo apt-get install -y --no-install-recommends xvfb
 
       # Chạy test client qua xvfb-run
-      # -a : tự chọn display number còn trống (tránh conflict)
       - name: Run client tests (via Xvfb)
         run: |
           xvfb-run -a mvn test \
@@ -164,6 +127,7 @@ jobs:
             -am \
             -Djava.awt.headless=true
 
+      #Gom toàn bộ kết quả kiểm thử của riêng module Client để đẩy lên GitHub.
       - name: Upload client test reports
         if: always()
         uses: actions/upload-artifact@v4
