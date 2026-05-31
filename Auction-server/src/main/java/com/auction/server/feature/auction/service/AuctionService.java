@@ -12,6 +12,7 @@ import com.auction.server.feature.auction.dto.AuctionDetailResponse;
 import com.auction.server.feature.auction.repository.AuctionItemRepository;
 import com.auction.server.feature.auction.repository.AuctionSessionRepository;
 import com.auction.server.feature.auction.repository.CategoryRepository;
+import com.auction.shared.dto.category.CategoryDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -67,10 +68,27 @@ public class AuctionService {
         if (page < 0) throw new AuctionException("Page must be >= 0");
         if (size <= 0 || size > 100) throw new AuctionException("Size must be between 1 and 100");
 
+        refreshAuctionStatuses();
         return DbExecutor.query(() ->
                 auctionSessionRepository.findActive(page, size)
                         .stream()
                         .map(this::toSummaryDto) // map trong session — tránh LazyInit
+                        .toList()
+        );
+    }
+
+
+    /**
+     * Lấy danh mục sản phẩm trực tiếp từ bảng categories.
+     *
+     * <p>Client dùng dữ liệu này để render ComboBox chọn danh mục. Không hard-code
+     * categoryId/categoryName ở giao diện vì dữ liệu thật nằm ở database.</p>
+     */
+    public List<CategoryDto> listCategories() {
+        return DbExecutor.query(() ->
+                categoryRepository.findAllSorted()
+                        .stream()
+                        .map(this::toCategoryDto)
                         .toList()
         );
     }
@@ -90,6 +108,7 @@ public class AuctionService {
             throw new AuctionException("Invalid auction id");
         }
 
+        refreshAuctionStatuses();
         return DbExecutor.query(() ->
                 auctionSessionRepository.findByIdWithDetails(auctionId)
                         .map(this::toDetailDto)  // map trong session — tránh LazyInit
@@ -145,13 +164,56 @@ public class AuctionService {
             auction.setCurrentPrice(request.getStartingPrice());
             auction.setStartTime(request.getStartTime());
             auction.setEndTime(request.getEndTime());
-            auction.setStatus(AuctionSession.AuctionStatus.SCHEDULED);
+            auction.setStatus(initialAuctionStatus(request.getStartTime(), request.getEndTime()));
 
             AuctionSession saved = auctionSessionRepository.save(auction);
 
             // map trong session — tránh LazyInitializationException
             return toSummaryDto(saved);
         });
+    }
+
+
+    /**
+     * Đồng bộ trạng thái phiên trước khi đọc danh sách/chi tiết.
+     *
+     * Dự án hiện không có scheduler chạy nền ổn định, nên nếu không làm bước này
+     * phiên đã tới giờ vẫn nằm SCHEDULED và người dùng không thể đặt giá.
+     */
+    private void refreshAuctionStatuses() {
+        DbExecutor.runAndReturn(() -> {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            List<AuctionSession> scheduledToStart = auctionSessionRepository.findScheduledToStart();
+
+            List<Long> shouldStart = scheduledToStart.stream()
+                    .filter(a -> a.getEndTime() != null && a.getEndTime().isAfter(now))
+                    .map(AuctionSession::getAuctionId)
+                    .toList();
+            if (!shouldStart.isEmpty()) {
+                auctionSessionRepository.bulkUpdateStatus(shouldStart, AuctionSession.AuctionStatus.ACTIVE);
+            }
+
+            /*
+             * Không chuyển ACTIVE/SCHEDULED sang ENDED tại đây nữa.
+             * Việc kết thúc phiên phải đi qua AuctionStatusScheduler để đồng thời
+             * chốt ví: trừ số dư winner, cộng số dư seller và ghi lịch sử giao dịch.
+             * Nếu đọc danh sách mà tự bulk-update status ở đây thì tiền sẽ không được
+             * xử lý, gây lệch dữ liệu.
+             */
+            return null;
+        });
+    }
+
+    private AuctionSession.AuctionStatus initialAuctionStatus(java.time.LocalDateTime startTime,
+                                                              java.time.LocalDateTime endTime) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (endTime != null && !endTime.isAfter(now)) {
+            return AuctionSession.AuctionStatus.ENDED;
+        }
+        if (startTime != null && !startTime.isAfter(now)) {
+            return AuctionSession.AuctionStatus.ACTIVE;
+        }
+        return AuctionSession.AuctionStatus.SCHEDULED;
     }
 
     // =====================================================
@@ -185,14 +247,35 @@ public class AuctionService {
         if (request.getEndTime() == null) {
             throw new AuctionException("End time is required");
         }
+        java.time.LocalDateTime now = java.time.LocalDateTime.now().withSecond(0).withNano(0);
+        /*
+         * Nếu startTime <= now và endTime còn ở tương lai, phiên hợp lệ và sẽ
+         * được tạo ở trạng thái ACTIVE. Điều kiện bắt buộc là startTime < endTime.
+         */
         if (!request.getEndTime().isAfter(request.getStartTime())) {
             throw new AuctionException("End time must be after start time");
+        }
+        if (!request.getEndTime().isAfter(now)) {
+            throw new AuctionException("End time must be after current time");
         }
     }
 
     // =====================================================
     // PRIVATE — MAPPING
     // =====================================================
+
+
+    private CategoryDto toCategoryDto(com.auction.server.entity.Category category) {
+        Long parentId = category.getParent() == null || category.getParent().getCategoryId() == null
+                ? null
+                : category.getParent().getCategoryId().longValue();
+        return new CategoryDto(
+                category.getCategoryId() == null ? 0L : category.getCategoryId().longValue(),
+                category.getCategoryName(),
+                category.getSlug(),
+                parentId
+        );
+    }
 
     /**
      * Map → AuctionResponse (tóm tắt, dùng cho danh sách).
@@ -207,6 +290,8 @@ public class AuctionService {
         }
         dto.setStartingPrice(a.getStartingPrice());
         dto.setCurrentPrice(a.getCurrentPrice());
+        dto.setMinBidStep(a.getMinBidStep());
+        dto.setTotalBids(a.getTotalBids());
         dto.setStartTime(a.getStartTime());
         dto.setEndTime(a.getEndTime());
         dto.setStatus(a.getStatus() != null ? a.getStatus().name() : null);
@@ -231,8 +316,13 @@ public class AuctionService {
                 dto.setSellerName(a.getItem().getSeller().getFullName());
             }
         }
+        if (a.getWinner() != null) {
+            dto.setLeaderUsername(a.getWinner().getUsername());
+        }
         dto.setStartingPrice(a.getStartingPrice());
         dto.setCurrentPrice(a.getCurrentPrice());
+        dto.setMinBidStep(a.getMinBidStep());
+        dto.setTotalBids(a.getTotalBids());
         dto.setStartTime(a.getStartTime());
         dto.setEndTime(a.getEndTime());
         dto.setStatus(a.getStatus() != null ? a.getStatus().name() : null);

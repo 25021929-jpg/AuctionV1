@@ -80,8 +80,17 @@ public class User {
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-    public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public BigDecimal getBalance() { return balance == null ? BigDecimal.ZERO : balance; }
+    public void setBalance(BigDecimal balance) {
+        if (balance == null) {
+            this.balance = BigDecimal.ZERO;
+            return;
+        }
+        if (balance.signum() < 0) {
+            throw new IllegalArgumentException("Số dư tài khoản không được âm");
+        }
+        this.balance = balance;
+    }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }

@@ -42,8 +42,8 @@ public class DbExecutor {
         try {
             session.beginTransaction();
 
-            // setDefaultReadOnly() chỉ hợp lệ sau khi transaction đã active.
-            session.setDefaultReadOnly(true);
+            // Không bật readOnly ở run(): đây là nhánh dành cho mutation (save/update/delete).
+            // Nếu setDefaultReadOnly(true), Hibernate có thể bỏ qua dirty checking và làm thao tác ghi không có hiệu lực.
 
             // Truyền session vào action để Repository dùng getCurrentSession()
             // Service không gọi action(session) — action là lambda không tham số

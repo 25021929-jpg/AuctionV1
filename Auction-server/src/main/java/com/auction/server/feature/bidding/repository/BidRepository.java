@@ -10,6 +10,7 @@ public interface BidRepository {
     Optional<Bid> findWinningBid(Long auctionId);
     List<Bid> findByBidder(Long bidderId, int page, int size);
     boolean existsByAuctionAndBidder(Long auctionId, Long bidderId);
+    List<Long> findDistinctBidderIdsByAuction(Long auctionId);
     long countByAuction(Long auctionId);
     Optional<BigDecimal> findMaxAmount(Long auctionId);
     Bid save(Bid bid);

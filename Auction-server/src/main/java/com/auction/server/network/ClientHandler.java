@@ -30,6 +30,7 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
+        BroadcastService.register(this);
         try (
                 BufferedReader reader = new BufferedReader(
                         new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8)
@@ -56,6 +57,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.out.println("Client disconnected: " + socket.getRemoteSocketAddress());
         } finally {
+            BroadcastService.unregister(this);
             AuctionRoomRegistry.leaveAll(this);
             writer = null;
             closeSocket();

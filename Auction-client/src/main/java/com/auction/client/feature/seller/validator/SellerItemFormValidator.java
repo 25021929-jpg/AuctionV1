@@ -23,6 +23,15 @@ public final class SellerItemFormValidator {
                                             String startPriceText,
                                             LocalDateTime startTime,
                                             LocalDateTime endTime) {
+        return validate(name, description, startPriceText, startTime, endTime, false);
+    }
+
+    public static ValidationResult validate(String name,
+                                            String description,
+                                            String startPriceText,
+                                            LocalDateTime startTime,
+                                            LocalDateTime endTime,
+                                            boolean requireStartNotPast) {
         List<FieldError> errors = new ArrayList<>();
 
         String normalizedName = name == null ? "" : name.trim();
@@ -48,10 +57,24 @@ public final class SellerItemFormValidator {
             errors.add(new FieldError("startPrice", "Giá khởi điểm phải là số hợp lệ"));
         }
 
+        if (startTime == null) {
+            errors.add(new FieldError("startTime", "Thời gian bắt đầu không được rỗng"));
+        }
+
         if (endTime == null) {
             errors.add(new FieldError("endTime", "Thời gian kết thúc không được rỗng"));
         }
 
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        /*
+         * Cho phép startTime bằng hoặc nhỏ hơn thời điểm hiện tại để Seller có thể
+         * tạo phiên mở ngay. Điều kiện quan trọng là endTime phải còn ở tương lai
+         * và startTime phải đứng trước endTime. Việc này cũng tránh lỗi race-condition
+         * khi người dùng nhập đúng phút hiện tại nhưng bấm OK sau vài giây.
+         */
+        if (endTime != null && !endTime.isAfter(now)) {
+            errors.add(new FieldError("endTime", "Thời gian kết thúc phải lớn hơn thời gian hiện tại"));
+        }
         if (startTime != null && endTime != null && !startTime.isBefore(endTime)) {
             errors.add(new FieldError("endTime", "Thời gian bắt đầu phải trước thời gian kết thúc"));
         }

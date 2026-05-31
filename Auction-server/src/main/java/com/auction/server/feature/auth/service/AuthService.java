@@ -13,6 +13,7 @@ import com.auction.shared.dto.auth.request.RegisterRequest;
 import com.auction.server.entity.User;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 /**
  * AuthService: xử lý nghiệp vụ đăng ký và đăng nhập.
@@ -66,6 +67,7 @@ public class AuthService {
         final String phone    = request.getPhone().trim();
         final String password = request.getPassword();
         final LocalDate dob   = LocalDate.parse(request.getDateOfBirth().trim());
+        final User.Role role   = parseRegisterRole(request.getRole());
 
         // Bước 3: Hash mật khẩu TRƯỚC KHI mở Transaction
         // Chấp nhận tốn 100ms CPU ngay cả khi trùng tài khoản, đổi lại an toàn tuyệt đối
@@ -89,7 +91,8 @@ public class AuthService {
             user.setPhone(phone);
             user.setDateOfBirth(dob);
             user.setPasswordHash(passwordHash);
-            user.setRole(User.Role.BIDDER);
+            user.setRole(role);
+            user.setBalance(BigDecimal.ZERO);
 
             User saved = userRepository.save(user);
             return AuthResponse.fromUserInfo(toUserInfo(saved));
@@ -181,6 +184,27 @@ public class AuthService {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new AuthException("Password confirmation does not match");
         }
+        parseRegisterRole(request.getRole());
+    }
+
+
+    /**
+     * Chỉ cho phép người dùng tự đăng ký vai trò nghiệp vụ thông thường.
+     * ADMIN không được tạo từ form đăng ký public.
+     */
+    private User.Role parseRegisterRole(String rawRole) {
+        if (isBlank(rawRole)) {
+            return User.Role.BIDDER;
+        }
+        try {
+            User.Role parsed = User.Role.valueOf(rawRole.trim().toUpperCase());
+            if (parsed == User.Role.ADMIN) {
+                throw new AuthException("Không thể tự đăng ký tài khoản ADMIN");
+            }
+            return parsed;
+        } catch (IllegalArgumentException ex) {
+            throw new AuthException("Role đăng ký không hợp lệ");
+        }
     }
 
     /** Validate format request đăng nhập. */
@@ -218,7 +242,8 @@ public class AuthService {
                 user.getEmail(),
                 user.getPhone(),
                 user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
-                user.getRole() != null ? user.getRole().name() : null
+                user.getRole() != null ? user.getRole().name() : null,
+                user.getBalance()
         );
     }
 }

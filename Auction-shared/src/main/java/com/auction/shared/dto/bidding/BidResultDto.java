@@ -14,6 +14,7 @@ public class BidResultDto {
     private BigDecimal newCurrentPrice;
     private String leaderUsername;
     private LocalDateTime bidTime;
+    private Boolean isWinning;
     private String message;
 
     public BidResultDto() {
@@ -37,6 +38,8 @@ public class BidResultDto {
     public void setLeaderUsername(String leaderUsername) { this.leaderUsername = leaderUsername; }
     public LocalDateTime getBidTime() { return bidTime; }
     public void setBidTime(LocalDateTime bidTime) { this.bidTime = bidTime; }
+    public Boolean getIsWinning() { return isWinning; }
+    public void setIsWinning(Boolean winning) { isWinning = winning; }
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
 }

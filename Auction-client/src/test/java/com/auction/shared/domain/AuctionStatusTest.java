@@ -14,24 +14,35 @@ class AuctionStatusTest {
     }
 
     @Test
-    void fromString_caseInsensitive_parses() {
-        assertEquals(AuctionStatus.OPEN, AuctionStatus.fromString("open"));
-        assertEquals(AuctionStatus.RUNNING, AuctionStatus.fromString("RUNNING"));
-        assertEquals(AuctionStatus.FINISHED, AuctionStatus.fromString("Finished"));
+    void fromString_caseInsensitive_parsesCurrentStatuses() {
+        assertEquals(AuctionStatus.SCHEDULED, AuctionStatus.fromString("scheduled"));
+        assertEquals(AuctionStatus.ACTIVE, AuctionStatus.fromString("ACTIVE"));
+        assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("Ended"));
+        assertEquals(AuctionStatus.CANCELED, AuctionStatus.fromString("canceled"));
     }
 
     @Test
-    void fromString_cancelled_variant_mapsToCanceled() {
+    void fromString_legacyStatuses_mapToCurrentStatuses() {
+        assertEquals(AuctionStatus.SCHEDULED, AuctionStatus.fromString("OPEN"));
+        assertEquals(AuctionStatus.ACTIVE, AuctionStatus.fromString("RUNNING"));
+        assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("FINISHED"));
+        assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("PAID"));
         assertEquals(AuctionStatus.CANCELED, AuctionStatus.fromString("CANCELLED"));
-        assertEquals(AuctionStatus.CANCELED, AuctionStatus.fromString("cancelled"));
     }
 
     @Test
-    void isBiddable_onlyOpenOrRunning() {
-        assertTrue(AuctionStatus.OPEN.isBiddable());
-        assertTrue(AuctionStatus.RUNNING.isBiddable());
-        assertFalse(AuctionStatus.FINISHED.isBiddable());
-        assertFalse(AuctionStatus.PAID.isBiddable());
+    void isBiddable_onlyActive() {
+        assertFalse(AuctionStatus.SCHEDULED.isBiddable());
+        assertTrue(AuctionStatus.ACTIVE.isBiddable());
+        assertFalse(AuctionStatus.ENDED.isBiddable());
         assertFalse(AuctionStatus.CANCELED.isBiddable());
+    }
+
+    @Test
+    void isFinishedLike_onlyEndedOrCanceled() {
+        assertFalse(AuctionStatus.SCHEDULED.isFinishedLike());
+        assertFalse(AuctionStatus.ACTIVE.isFinishedLike());
+        assertTrue(AuctionStatus.ENDED.isFinishedLike());
+        assertTrue(AuctionStatus.CANCELED.isFinishedLike());
     }
 }

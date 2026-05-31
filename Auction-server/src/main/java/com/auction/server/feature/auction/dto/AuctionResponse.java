@@ -16,6 +16,8 @@ public class AuctionResponse {
     private String itemName;
     private BigDecimal startingPrice;    // ✅ Đã đúng - BigDecimal
     private BigDecimal currentPrice;     // ✅ Đã đúng - BigDecimal
+    private BigDecimal minBidStep;
+    private Integer totalBids;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String status;
@@ -29,6 +31,8 @@ public class AuctionResponse {
             String itemName,
             BigDecimal startingPrice,
             BigDecimal currentPrice,
+            BigDecimal minBidStep,
+            Integer totalBids,
             LocalDateTime startTime,
             LocalDateTime endTime,
             String status
@@ -38,6 +42,8 @@ public class AuctionResponse {
         this.itemName = itemName;
         this.startingPrice = startingPrice;
         this.currentPrice = currentPrice;
+        this.minBidStep = minBidStep;
+        this.totalBids = totalBids;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
@@ -82,6 +88,22 @@ public class AuctionResponse {
 
     public void setCurrentPrice(BigDecimal currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public BigDecimal getMinBidStep() {
+        return minBidStep;
+    }
+
+    public void setMinBidStep(BigDecimal minBidStep) {
+        this.minBidStep = minBidStep;
+    }
+
+    public Integer getTotalBids() {
+        return totalBids;
+    }
+
+    public void setTotalBids(Integer totalBids) {
+        this.totalBids = totalBids;
     }
 
     public LocalDateTime getStartTime() {

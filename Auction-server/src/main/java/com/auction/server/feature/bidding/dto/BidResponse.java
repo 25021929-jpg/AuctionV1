@@ -40,6 +40,9 @@ public class BidResponse {
     private Long auctionSessionId;
     private Long bidderId;
 
+    // Username dùng cho hiển thị lịch sử bid ở client; tránh bắt client query user thêm.
+    private String bidderUsername;
+
     // BigDecimal cho tiền — chính xác tuyệt đối
     private BigDecimal bidAmount;
 
@@ -56,9 +59,16 @@ public class BidResponse {
     public BidResponse(Long bidId, Long auctionSessionId, Long bidderId,
                        BigDecimal bidAmount, LocalDateTime bidTime,
                        Boolean isWinning) {
+        this(bidId, auctionSessionId, bidderId, null, bidAmount, bidTime, isWinning);
+    }
+
+    public BidResponse(Long bidId, Long auctionSessionId, Long bidderId, String bidderUsername,
+                       BigDecimal bidAmount, LocalDateTime bidTime,
+                       Boolean isWinning) {
         this.bidId            = bidId;
         this.auctionSessionId = auctionSessionId;
         this.bidderId         = bidderId;
+        this.bidderUsername   = bidderUsername;
         this.bidAmount        = bidAmount;
         this.bidTime          = bidTime;
         this.isWinning        = isWinning;
@@ -73,6 +83,13 @@ public class BidResponse {
 
     public Long getBidderId()                    { return bidderId; }
     public void setBidderId(Long bidderId)       { this.bidderId = bidderId; }
+
+    public String getBidderUsername()            { return bidderUsername; }
+    public void setBidderUsername(String name)   { this.bidderUsername = name; }
+
+    /** Alias để client/shared DTO có thể đọc cùng một id phiên. */
+    public Long getAuctionId()                   { return auctionSessionId; }
+    public void setAuctionId(Long auctionId)     { this.auctionSessionId = auctionId; }
 
     public BigDecimal getBidAmount()             { return bidAmount; }
     public void setBidAmount(BigDecimal amount)  { this.bidAmount = amount; }

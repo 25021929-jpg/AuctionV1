@@ -13,27 +13,41 @@ import com.auction.client.core.ui.FxAsync;
 import com.auction.client.core.ui.SceneNavigator;
 import com.auction.client.core.ui.ScenePaths;
 import com.auction.client.feature.auction.controller.AuctionDetailController;
+import com.auction.client.feature.auction.controller.AuctionEndNotificationHelper;
 import com.auction.shared.dto.auction.AuctionDetailDto;
 import java.math.BigDecimal;
 import com.auction.client.feature.auction.service.AuctionService;
 import com.auction.client.feature.auction.service.AuctionServiceImpl;
 import com.auction.client.feature.bidding.service.BidService;
 import com.auction.client.feature.bidding.service.BidServiceImpl;
+import com.auction.client.core.session.UserSession;
+import com.auction.client.feature.wallet.ui.WalletDialog;
+import com.auction.client.feature.wallet.service.WalletService;
+import com.auction.client.feature.wallet.service.WalletServiceImpl;
 import com.auction.shared.domain.AuctionStatus;
+import com.auction.shared.dto.bidding.BidResultDto;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Màn hình đấu giá trực tiếp.
@@ -43,15 +57,28 @@ import java.time.format.DateTimeFormatter;
 public class LiveBiddingController implements DisposableController {
 
     @FXML private Label lblCurrentPrice;
+    @FXML private Label lblMinBidStep;
+    @FXML private Label lblMinimumBid;
+    @FXML private Label lblBalance;
+    @FXML private Label lblAuctionStatus;
+    @FXML private Label lblStartTime;
+    @FXML private Label lblEndTime;
     @FXML private TextField bidAmountField;
     @FXML private Button btnPlaceBid;
     @FXML private ProgressIndicator placingIndicator;
     @FXML private LineChart<String, Number> priceChart;
+    @FXML private TableView<BidHistoryRow> bidHistoryTable;
+    @FXML private TableColumn<BidHistoryRow, String> colBidTime;
+    @FXML private TableColumn<BidHistoryRow, String> colBidder;
+    @FXML private TableColumn<BidHistoryRow, String> colBidAmount;
+    @FXML private TableColumn<BidHistoryRow, String> colBidWinning;
 
     private final XYChart.Series<String, Number> series = new XYChart.Series<>();
+    private final ObservableList<BidHistoryRow> bidHistoryRows = FXCollections.observableArrayList();
 
     /** Giới hạn số điểm trên chart để tránh phình bộ nhớ khi chạy lâu. */
     private static final int MAX_CHART_POINTS = 120;
+    private static final int MAX_HISTORY_ROWS = 50;
 
     /** Auction đang xem (được truyền từ màn detail). */
     private Long auctionId;
@@ -59,6 +86,7 @@ public class LiveBiddingController implements DisposableController {
     private final BidService bidService = new BidServiceImpl();
 
     private final AuctionService auctionService = new AuctionServiceImpl();
+    private final WalletService walletService = new WalletServiceImpl();
 
     private boolean initialized = false;
     private boolean disposed = false;
@@ -72,6 +100,12 @@ public class LiveBiddingController implements DisposableController {
             DateTimeFormatter.ofPattern("HH:mm:ss")
                     .withZone(ZoneId.systemDefault());
 
+    private static final DateTimeFormatter BID_TIME_FMT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+    private static final DateTimeFormatter DETAIL_TIME_FMT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     /**
      * Giá hiện tại mà UI đang hiển thị.
      *
@@ -79,6 +113,7 @@ public class LiveBiddingController implements DisposableController {
      * Server vẫn là nơi kiểm tra cuối cùng.
      */
     private BigDecimal displayedCurrentPrice;
+    private BigDecimal minBidStep = BigDecimal.valueOf(1000);
 
     /** Trạng thái phiên đấu giá (từ detail hoặc event). */
     private AuctionStatus auctionStatus = null;
@@ -88,6 +123,7 @@ public class LiveBiddingController implements DisposableController {
         if (initialized && auctionId != null) {
             trySubscribe();
             loadInitialDetail();
+            loadBidHistory();
         }
     }
 
@@ -102,7 +138,13 @@ public class LiveBiddingController implements DisposableController {
         }
 
         priceChart.getData().add(series);
+        setupBidHistoryTable();
         lblCurrentPrice.setText("-");
+        refreshBalanceLabel();
+        if (lblAuctionStatus != null) lblAuctionStatus.setText("-");
+        if (lblStartTime != null) lblStartTime.setText("-");
+        if (lblEndTime != null) lblEndTime.setText("-");
+        refreshBidHints();
 
         initialized = true;
 
@@ -110,6 +152,7 @@ public class LiveBiddingController implements DisposableController {
         if (auctionId != null) {
             trySubscribe();
             loadInitialDetail();
+            loadBidHistory();
         }
 
         // Subscribe event đã map (EventType.BID_UPDATED)
@@ -154,12 +197,77 @@ public class LiveBiddingController implements DisposableController {
         );
     }
 
+    private void setupBidHistoryTable() {
+        if (bidHistoryTable == null) {
+            return;
+        }
+        colBidTime.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().timeText()));
+        colBidder.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().bidderText()));
+        colBidAmount.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().amountText()));
+        colBidWinning.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().winningText()));
+        bidHistoryTable.setItems(bidHistoryRows);
+    }
+
+    private void loadBidHistory() {
+        if (auctionId == null) {
+            return;
+        }
+        FxAsync.run(
+                () -> {
+                    try {
+                        return bidService.getBidHistory(auctionId, MAX_HISTORY_ROWS);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                this::applyBidHistory,
+                err -> {
+                    // Không chặn màn live nếu lịch sử bid chưa tải được.
+                    // Server vẫn kiểm tra nghiệp vụ khi người dùng đặt giá.
+                },
+                () -> {}
+        );
+    }
+
+    private void applyBidHistory(List<BidResultDto> history) {
+        if (history == null) {
+            return;
+        }
+        Platform.runLater(() -> {
+            bidHistoryRows.setAll(history.stream()
+                    .sorted(Comparator.comparing(BidResultDto::getBidTime,
+                            Comparator.nullsLast(Comparator.reverseOrder())))
+                    .map(BidHistoryRow::fromDto)
+                    .toList());
+
+            series.getData().clear();
+            history.stream()
+                    .filter(b -> b.getBidAmount() != null)
+                    .sorted(Comparator.comparing(BidResultDto::getBidTime,
+                            Comparator.nullsLast(Comparator.naturalOrder())))
+                    .forEach(b -> addChartPoint(formatBidTimeForChart(b.getBidTime()), b.getBidAmount()));
+        });
+    }
+
     private void applyDetail(AuctionDetailDto dto) {
         // Set current price nếu có.
         BigDecimal price = dto.getCurrentPrice();
         lblCurrentPrice.setText(price == null ? "-" : price.toPlainString());
         displayedCurrentPrice = price;
+        if (dto.getMinBidStep() != null && dto.getMinBidStep().signum() > 0) {
+            minBidStep = dto.getMinBidStep();
+        }
+        refreshBidHints();
         auctionStatus = dto.getStatus();
+        if (lblAuctionStatus != null) {
+            lblAuctionStatus.setText(auctionStatus == null ? "-" : auctionStatus.name());
+        }
+        if (lblStartTime != null) {
+            lblStartTime.setText(dto.getStartTime() == null ? "-" : DETAIL_TIME_FMT.format(dto.getStartTime()));
+        }
+        if (lblEndTime != null) {
+            lblEndTime.setText(dto.getEndTime() == null ? "-" : DETAIL_TIME_FMT.format(dto.getEndTime()));
+        }
         updateBiddingAvailability();
     }
 
@@ -185,7 +293,13 @@ public class LiveBiddingController implements DisposableController {
         final AuctionStatus finalStatus = AuctionStatus.fromString(status);
         Platform.runLater(() -> {
             auctionStatus = finalStatus;
+            if (lblAuctionStatus != null) lblAuctionStatus.setText(finalStatus == null ? "-" : finalStatus.name());
             updateBiddingAvailability();
+            if (finalStatus != null && finalStatus.isFinishedLike()) {
+                // Sau khi scheduler chốt phiên, tải lại ví để người thắng/seller thấy số dư mới.
+                refreshBalanceFromServer();
+                AuctionEndNotificationHelper.showIfEnded(event, auctionId, true);
+            }
         });
     }
 
@@ -227,11 +341,53 @@ public class LiveBiddingController implements DisposableController {
                 ? TIME_FMT.format(Instant.ofEpochMilli(ts))
                 : TIME_FMT.format(Instant.now());
 
+        BidResultDto bid = toBidResultDto(data, evAuctionId, currentPrice);
+
         Platform.runLater(() -> {
             lblCurrentPrice.setText(currentPrice.toPlainString());
             displayedCurrentPrice = currentPrice;
+            refreshBidHints();
+            prependBidHistoryRow(bid);
             addChartPoint(x, currentPrice);
         });
+    }
+
+    private BidResultDto toBidResultDto(JsonObject data, Long eventAuctionId, BigDecimal currentPrice) {
+        BidResultDto dto = new BidResultDto();
+        dto.setAuctionId(eventAuctionId == null ? 0L : eventAuctionId);
+        dto.setAuctionSessionId(eventAuctionId == null ? 0L : eventAuctionId);
+        Long bidId = tryGetLong(data, "bidId");
+        if (bidId != null) {
+            dto.setBidId(bidId);
+        }
+        Long bidderId = tryGetLong(data, "bidderId");
+        if (bidderId != null) {
+            dto.setBidderId(bidderId);
+        }
+        if (data.has("bidderUsername") && !data.get("bidderUsername").isJsonNull()) {
+            dto.setBidderUsername(data.get("bidderUsername").getAsString());
+        }
+        dto.setBidAmount(currentPrice);
+        dto.setNewCurrentPrice(currentPrice);
+        dto.setIsWinning(true);
+        dto.setBidTime(tryGetLocalDateTime(data, "bidTime"));
+        return dto;
+    }
+
+    private void prependBidHistoryRow(BidResultDto bid) {
+        if (bid == null || bidHistoryTable == null) {
+            return;
+        }
+        if (bid.getBidId() > 0) {
+            boolean exists = bidHistoryRows.stream().anyMatch(row -> row.bidId() == bid.getBidId());
+            if (exists) {
+                return;
+            }
+        }
+        bidHistoryRows.add(0, BidHistoryRow.fromDto(bid));
+        if (bidHistoryRows.size() > MAX_HISTORY_ROWS) {
+            bidHistoryRows.remove(MAX_HISTORY_ROWS, bidHistoryRows.size());
+        }
     }
 
     private static Long tryGetLong(JsonObject obj, String key) {
@@ -250,6 +406,50 @@ public class LiveBiddingController implements DisposableController {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private static LocalDateTime tryGetLocalDateTime(JsonObject obj, String key) {
+        try {
+            if (!obj.has(key) || obj.get(key).isJsonNull()) return null;
+            return LocalDateTime.parse(obj.get(key).getAsString());
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static String formatBidTimeForChart(LocalDateTime value) {
+        return value == null ? TIME_FMT.format(Instant.now()) : value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+    }
+
+    @FXML
+    public void handleOpenWallet() {
+        WalletDialog.showWallet();
+        refreshBalanceLabel();
+        updatePlaceBidButtonState();
+    }
+
+    private void refreshBalanceLabel() {
+        if (lblBalance != null) {
+            lblBalance.setText("Số dư: " + UserSession.getInstance().getBalance().stripTrailingZeros().toPlainString());
+        }
+    }
+
+    private void refreshBalanceFromServer() {
+        FxAsync.run(
+                () -> {
+                    try {
+                        return walletService.getSummary();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                summary -> Platform.runLater(() -> {
+                    refreshBalanceLabel();
+                    updatePlaceBidButtonState();
+                }),
+                err -> Platform.runLater(this::refreshBalanceLabel),
+                () -> {}
+        );
     }
 
     @FXML
@@ -273,6 +473,11 @@ public class LiveBiddingController implements DisposableController {
             return;
         }
 
+        if (amount.compareTo(UserSession.getInstance().getBalance()) > 0) {
+            AlertHelper.showError("Số dư không đủ", "Giá đặt không được vượt quá số dư hiện tại. Hãy nạp thêm tiền trước khi đấu giá.");
+            return;
+        }
+
         if (auctionId == null) {
             AlertHelper.showError("Thiếu dữ liệu", "Không xác định được phiên đấu giá.");
             return;
@@ -283,15 +488,18 @@ public class LiveBiddingController implements DisposableController {
             return;
         }
 
-        // Validate tối thiểu theo yêu cầu đề bài: bid phải cao hơn giá hiện tại.
-        // (Tránh gửi request vô ích; server vẫn kiểm tra lại.)
+        // Đồng bộ với rule server: giá mới phải >= giá hiện tại + bước giá tối thiểu.
         BigDecimal current = getDisplayedCurrentPriceSafe();
-        if (current != null && amount.compareTo(current) <= 0) {
-            AlertHelper.showError(
-                    "Giá đấu không hợp lệ",
-                    "Giá đặt phải lớn hơn giá hiện tại (" + current.toPlainString() + ")."
-            );
-            return;
+        if (current != null) {
+            BigDecimal minimumAcceptableBid = current.add(minBidStep);
+            if (amount.compareTo(minimumAcceptableBid) < 0) {
+                AlertHelper.showError(
+                        "Giá đấu không hợp lệ",
+                        "Giá đặt tối thiểu là " + minimumAcceptableBid.toPlainString()
+                                + " (giá hiện tại + bước giá " + minBidStep.toPlainString() + ")."
+                );
+                return;
+            }
         }
 
         setPlacing(true);
@@ -350,7 +558,7 @@ public class LiveBiddingController implements DisposableController {
     private void updatePlaceBidButtonState() {
         if (btnPlaceBid == null) return;
 
-        // Nếu phiên không cho phép bid (FINISHED/PAID/CANCELED), luôn disable.
+        // Nếu phiên không cho phép bid (SCHEDULED/ENDED/CANCELED), luôn disable.
         if (bidAmountField != null && bidAmountField.isDisable()) {
             btnPlaceBid.setDisable(true);
             return;
@@ -371,11 +579,26 @@ public class LiveBiddingController implements DisposableController {
         try {
             BigDecimal value = new BigDecimal(text.trim());
             BigDecimal current = getDisplayedCurrentPriceSafe();
+            BigDecimal minimumAcceptableBid = current == null ? null : current.add(minBidStep);
             boolean invalidAmount = value.signum() <= 0;
-            boolean notHigherThanCurrent = current != null && value.compareTo(current) <= 0;
-            btnPlaceBid.setDisable(invalidAmount || notHigherThanCurrent);
+            boolean lowerThanMinimum = minimumAcceptableBid != null && value.compareTo(minimumAcceptableBid) < 0;
+            boolean greaterThanBalance = value.compareTo(UserSession.getInstance().getBalance()) > 0;
+            btnPlaceBid.setDisable(invalidAmount || lowerThanMinimum || greaterThanBalance);
         } catch (Exception ignored) {
             btnPlaceBid.setDisable(true);
+        }
+    }
+
+    private void refreshBidHints() {
+        if (lblMinBidStep != null) {
+            lblMinBidStep.setText(minBidStep.toPlainString());
+        }
+        BigDecimal current = getDisplayedCurrentPriceSafe();
+        if (lblMinimumBid != null) {
+            lblMinimumBid.setText(current == null ? "-" : current.add(minBidStep).toPlainString());
+        }
+        if (bidAmountField != null && current != null) {
+            bidAmountField.setPromptText("Nhập giá ≥ " + current.add(minBidStep).toPlainString());
         }
     }
 
@@ -415,6 +638,39 @@ public class LiveBiddingController implements DisposableController {
                 // best-effort cleanup
             }
         }
+    }
+
+    /** Row model riêng cho TableView, không để FXML phụ thuộc trực tiếp vào DTO mạng. */
+    public static final class BidHistoryRow {
+        private final long bidId;
+        private final String timeText;
+        private final String bidderText;
+        private final String amountText;
+        private final String winningText;
+
+        private BidHistoryRow(long bidId, String timeText, String bidderText, String amountText, String winningText) {
+            this.bidId = bidId;
+            this.timeText = timeText;
+            this.bidderText = bidderText;
+            this.amountText = amountText;
+            this.winningText = winningText;
+        }
+
+        static BidHistoryRow fromDto(BidResultDto dto) {
+            String time = dto.getBidTime() == null ? "-" : BID_TIME_FMT.format(dto.getBidTime());
+            String bidder = dto.getBidderUsername() == null || dto.getBidderUsername().isBlank()
+                    ? "#" + dto.getBidderId()
+                    : dto.getBidderUsername();
+            String amount = dto.getBidAmount() == null ? "-" : dto.getBidAmount().toPlainString();
+            String status = Boolean.TRUE.equals(dto.getIsWinning()) ? "Đang dẫn đầu" : "Đã ghi";
+            return new BidHistoryRow(dto.getBidId(), time, bidder, amount, status);
+        }
+
+        long bidId() { return bidId; }
+        String timeText() { return timeText; }
+        String bidderText() { return bidderText; }
+        String amountText() { return amountText; }
+        String winningText() { return winningText; }
     }
 
 }

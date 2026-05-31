@@ -128,6 +128,6 @@ public class AuctionSession {
     }
 
     public enum AuctionStatus {
-        SCHEDULED, ACTIVE, ENDED, CANCELLED
+        SCHEDULED, ACTIVE, ENDED, CANCELED
     }
 }

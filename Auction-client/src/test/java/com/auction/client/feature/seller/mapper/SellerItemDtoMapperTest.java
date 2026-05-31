@@ -15,14 +15,14 @@ class SellerItemDtoMapperTest {
         o.addProperty("itemName", "Keyboard");
         o.addProperty("startingPrice", 100);
         o.addProperty("currentPrice", 120);
-        o.addProperty("status", "OPEN");
+        o.addProperty("status", "SCHEDULED");
 
         SellerItemDto dto = SellerItemDtoMapper.toDto(o);
         assertEquals(7, dto.getItemId());
         assertEquals("Keyboard", dto.getName());
         assertEquals(100.0, dto.getStartPrice().doubleValue());
         assertEquals(120.0, dto.getCurrentPrice().doubleValue());
-        assertEquals("OPEN", dto.getStatus());
+        assertEquals("SCHEDULED", dto.getStatus());
     }
 
     @Test

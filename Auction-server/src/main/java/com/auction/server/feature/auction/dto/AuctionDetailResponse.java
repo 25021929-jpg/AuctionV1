@@ -15,9 +15,12 @@ public class AuctionDetailResponse {
     private String description;
     private String categoryName;
     private String sellerName;
+    private String leaderUsername;
 
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
+    private BigDecimal minBidStep;
+    private Integer totalBids;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -101,6 +104,14 @@ public class AuctionDetailResponse {
         this.sellerName = sellerName;
     }
 
+    public String getLeaderUsername() {
+        return leaderUsername;
+    }
+
+    public void setLeaderUsername(String leaderUsername) {
+        this.leaderUsername = leaderUsername;
+    }
+
     public BigDecimal getStartingPrice() {
         return startingPrice;
     }
@@ -115,6 +126,22 @@ public class AuctionDetailResponse {
 
     public void setCurrentPrice(BigDecimal currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public BigDecimal getMinBidStep() {
+        return minBidStep;
+    }
+
+    public void setMinBidStep(BigDecimal minBidStep) {
+        this.minBidStep = minBidStep;
+    }
+
+    public Integer getTotalBids() {
+        return totalBids;
+    }
+
+    public void setTotalBids(Integer totalBids) {
+        this.totalBids = totalBids;
     }
 
     public LocalDateTime getStartTime() {

@@ -40,6 +40,7 @@ public class AuctionDetailController implements DisposableController {
     @FXML private Label lblCategory;
     @FXML private Label lblSeller;
     @FXML private Label lblLeader;
+    @FXML private Label lblTotalBids;
 
     @FXML private Button btnRefresh;
     @FXML private Button btnGoLive;
@@ -78,6 +79,7 @@ public class AuctionDetailController implements DisposableController {
         if (lblCategory != null) lblCategory.setText("-");
         if (lblSeller != null) lblSeller.setText("-");
         if (lblLeader != null) lblLeader.setText("-");
+        if (lblTotalBids != null) lblTotalBids.setText("0");
 
         // Nếu auctionId đã được set trước initialize (trường hợp hiếm), vẫn load.
         if (auctionId != null) {
@@ -110,6 +112,7 @@ public class AuctionDetailController implements DisposableController {
                     if (lblCategory != null) lblCategory.setText(blankAsDash(dto.getCategoryName()));
                     if (lblSeller != null) lblSeller.setText(blankAsDash(dto.getSellerName()));
                     if (lblLeader != null) lblLeader.setText(blankAsDash(dto.getLeaderUsername()));
+                    if (lblTotalBids != null) lblTotalBids.setText(String.valueOf(dto.getTotalBids()));
                     if (lblStartTime != null) {
                         lblStartTime.setText(dto.getStartTime() == null ? "-" : DT_FMT.format(dto.getStartTime()));
                     }

@@ -2,6 +2,7 @@ package com.auction.server.feature.auth.repository;
 
 import com.auction.server.entity.User;
 import org.hibernate.SessionFactory;
+import org.hibernate.LockMode;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +20,13 @@ public class HibernateUserRepository implements UserRepository {
     public Optional<User> findById(Long id) {
         return Optional.ofNullable(
                 sessionFactory.getCurrentSession().get(User.class, id)
+        );
+    }
+
+    @Override
+    public Optional<User> findByIdWithLock(Long id) {
+        return Optional.ofNullable(
+                sessionFactory.getCurrentSession().get(User.class, id, LockMode.PESSIMISTIC_WRITE)
         );
     }
 

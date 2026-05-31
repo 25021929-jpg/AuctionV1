@@ -78,6 +78,17 @@ public class HibernateBidRepository implements BidRepository {
     }
 
     @Override
+    public List<Long> findDistinctBidderIdsByAuction(Long auctionId) {
+        return sessionFactory.getCurrentSession()
+                .createQuery(
+                        "SELECT DISTINCT b.bidder.id FROM Bid b " +
+                                "WHERE b.auctionSession.auctionId = :auctionId",
+                        Long.class)
+                .setParameter("auctionId", auctionId)
+                .getResultList();
+    }
+
+    @Override
     public long countByAuction(Long auctionId) {
         return sessionFactory.getCurrentSession()
                 .createQuery(

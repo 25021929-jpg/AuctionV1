@@ -6,6 +6,7 @@ import com.auction.server.feature.auction.dto.AuctionResponse;
 import com.auction.server.feature.auction.dto.CreateAuctionRequest;
 import com.auction.server.feature.auction.service.AuctionService;
 import com.auction.shared.dto.Response;
+import com.auction.shared.dto.category.CategoryDto;
 import com.auction.shared.protocol.JsonSupport;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -65,6 +66,21 @@ public class AuctionController {
         } catch (Exception e) {
             // Lỗi hệ thống — không lộ chi tiết kỹ thuật ra client
             return Response.fail("System error while getting auctions");
+        }
+    }
+
+
+    /**
+     * Lấy danh mục sản phẩm từ bảng categories trong database.
+     * Client dùng kết quả này để hiển thị ComboBox tên danh mục thay vì bắt nhập categoryId.
+     */
+    public Response<List<CategoryDto>> getCategories(String requestBody) {
+        try {
+            return Response.success("Categories loaded", auctionService.listCategories());
+        } catch (AuctionException e) {
+            return Response.fail(e.getMessage());
+        } catch (Exception e) {
+            return Response.fail("System error while getting categories");
         }
     }
 

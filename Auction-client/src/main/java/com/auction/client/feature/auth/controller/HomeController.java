@@ -7,6 +7,7 @@ import com.auction.client.core.ui.AlertHelper;
 import com.auction.client.core.ui.SceneNavigator;
 import com.auction.client.core.ui.ScenePaths;
 import com.auction.shared.domain.UserRole;
+import com.auction.client.feature.wallet.ui.WalletDialog;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -15,6 +16,7 @@ import javafx.scene.control.Label;
 public class HomeController {
 
     @FXML private Label lblWelcome;
+    @FXML private Label lblBalance;
     @FXML private Button btnSeller;
     @FXML private Button btnAdmin;
 
@@ -30,14 +32,11 @@ public class HomeController {
 
         UserRole role = session.getRole();
         lblWelcome.setText("Xin chào, " + session.displayName() + " (" + roleText(role) + ")");
-        /*
-         * Seller Dashboard không còn bị khóa theo role SELLER.
-         *
-         * Backend hiện tại dùng sellerId để xác định chủ sản phẩm, không yêu cầu
-         * User.role == SELLER. Vì vậy client cũng không nên giấu chức năng bán
-         * hàng với user BIDDER mặc định sau đăng ký.
-         */
-        setVisibleAndManaged(btnSeller, true);
+        if (lblBalance != null) {
+            lblBalance.setText("Số dư: " + session.getBalance().stripTrailingZeros().toPlainString());
+        }
+        // Seller Dashboard chỉ hiện với SELLER/ADMIN để khớp cơ chế chọn role khi đăng ký.
+        setVisibleAndManaged(btnSeller, role == UserRole.SELLER || role == UserRole.ADMIN);
 
         // Admin vẫn là quyền quản trị riêng, nên chỉ ADMIN mới thấy Admin Dashboard.
         setVisibleAndManaged(btnAdmin, role == UserRole.ADMIN);
@@ -49,14 +48,17 @@ public class HomeController {
     }
 
     @FXML
+    public void handleOpenWallet() {
+        WalletDialog.showWallet();
+        if (lblBalance != null) {
+            lblBalance.setText("Số dư: " + UserSession.getInstance().getBalance().stripTrailingZeros().toPlainString());
+        }
+    }
+
+    @FXML
     public void handleOpenSeller() {
         try {
-            /*
-             * Đã đăng nhập là đủ để bán hàng trong mô hình hiện tại.
-             * Nếu sau này có quy trình duyệt seller, hãy thêm sellerStatus/canSell
-             * từ server thay vì dùng role BIDDER/SELLER loại trừ nhau.
-             */
-            AccessGuard.requireLogin();
+            AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
             SceneNavigator.switchScene(ScenePaths.SELLER_DASHBOARD);
         } catch (Exception ex) {
             AlertHelper.showException("Không có quyền", ex);

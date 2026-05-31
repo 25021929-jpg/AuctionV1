@@ -12,6 +12,8 @@ public class AuctionSummaryDto {
     private String itemName;
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
+    private BigDecimal minBidStep;
+    private int totalBids;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private AuctionStatus status;
@@ -31,6 +33,12 @@ public class AuctionSummaryDto {
     public BigDecimal getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
     public void setCurrentPrice(double currentPrice) { this.currentPrice = BigDecimal.valueOf(currentPrice); }
+    public BigDecimal getMinBidStep() { return minBidStep; }
+    public void setMinBidStep(BigDecimal minBidStep) { this.minBidStep = minBidStep; }
+    public void setMinBidStep(double minBidStep) { this.minBidStep = BigDecimal.valueOf(minBidStep); }
+    public int getTotalBids() { return totalBids; }
+    public void setTotalBids(int totalBids) { this.totalBids = totalBids; }
+    public void setTotalBids(Integer totalBids) { this.totalBids = totalBids == null ? 0 : totalBids; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }

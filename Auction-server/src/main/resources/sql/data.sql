@@ -9,16 +9,15 @@ VALUES
 -- Categories are required before creating seller items because auction_items.category_id is a foreign key.
 INSERT IGNORE INTO categories (category_id, category_name, slug, description, sort_order)
 VALUES
-    (1, 'Phone', 'phone', 'Mobile phones and accessories', 1),
-    (2, 'Laptop', 'laptop', 'Laptops and computers', 2),
-    (3, 'Watch', 'watch', 'Smart watches and mechanical watches', 3),
-    (4, 'Motorbike', 'motorbike', 'Used motorbikes', 4);
+    (1, 'Electronics', 'electronics', 'Electronic devices and accessories', 1),
+    (2, 'Art', 'art', 'Artworks and collectibles', 2),
+    (3, 'Vehicle', 'vehicle', 'Vehicles and transportation items', 3);
 
 INSERT INTO auction_items (seller_id, category_id, item_name, description)
 VALUES
-    (2, 1, 'iPhone 13 Pro Max', 'Demo item: good condition phone'),
-    (2, 2, 'Dell XPS 13', 'Demo item: thin laptop, 16GB RAM, 512GB SSD'),
-    (2, 3, 'Apple Watch Series 7', 'Demo item: working smart watch');
+    (2, 1, 'iPhone 13 Pro Max', 'Demo Electronics item: good condition phone'),
+    (2, 2, 'Tranh sơn mài thủ công', 'Demo Art item: handmade lacquer painting'),
+    (2, 3, 'Honda Wave Alpha', 'Demo Vehicle item: used motorbike in working condition');
 
 -- Use relative dates so demo auctions remain biddable whenever the seed file is run.
 INSERT INTO auction_sessions (

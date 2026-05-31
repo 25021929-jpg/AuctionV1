@@ -4,6 +4,7 @@ import com.auction.server.database.DbExecutor;
 import com.auction.server.entity.AuctionSession;
 import com.auction.server.entity.Bid;
 import com.auction.server.entity.User;
+import com.auction.server.entity.WalletTransaction;
 import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
 import com.auction.server.feature.auth.repository.HibernateUserRepository;
 import com.auction.server.feature.bidding.BidException;
@@ -15,6 +16,8 @@ import com.auction.server.feature.bidding.repository.HibernateBidRepository;
 import com.auction.server.feature.bidding.repository.HibernatePaymentRepository;
 import com.auction.server.feature.bidding.repository.PaymentRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
+import com.auction.server.feature.wallet.repository.HibernateWalletTransactionRepository;
+import com.auction.server.feature.wallet.repository.WalletTransactionRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -46,6 +49,8 @@ public class BidService {
     private final BidRepository            bidRepository;
     private final PaymentRepository        paymentRepository;
     private final UserRepository           userRepository;
+    @SuppressWarnings("unused")
+    private final WalletTransactionRepository walletTransactionRepository;
 
     /**
      * Constructor duy nhất — nhận interface, không nhận implementation.
@@ -59,11 +64,13 @@ public class BidService {
     public BidService(AuctionSessionRepository auctionSessionRepository,
                       BidRepository            bidRepository,
                       PaymentRepository        paymentRepository,
-                      UserRepository           userRepository) {
+                      UserRepository           userRepository,
+                      WalletTransactionRepository walletTransactionRepository) {
         this.auctionSessionRepository = auctionSessionRepository;
         this.bidRepository            = bidRepository;
         this.paymentRepository        = paymentRepository;
         this.userRepository           = userRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
     }
 
     /** Constructor mặc định dùng cho Production */
@@ -72,7 +79,8 @@ public class BidService {
             new HibernateAuctionSessionRepository(com.auction.server.database.HibernateUtil.getSessionFactory()),
             new HibernateBidRepository(com.auction.server.database.HibernateUtil.getSessionFactory()),
             new HibernatePaymentRepository(com.auction.server.database.HibernateUtil.getSessionFactory()),
-            new HibernateUserRepository(com.auction.server.database.HibernateUtil.getSessionFactory())
+            new HibernateUserRepository(com.auction.server.database.HibernateUtil.getSessionFactory()),
+            new HibernateWalletTransactionRepository(com.auction.server.database.HibernateUtil.getSessionFactory())
         );
     }
 
@@ -99,6 +107,8 @@ public class BidService {
                             "Không tìm thấy phiên đấu giá: " + request.getAuctionSessionId()
                     ));
 
+            refreshLockedAuctionStatus(auction);
+
             // Bước 3a: Kiểm tra phiên có đang active không
             // isActive() kiểm tra status == ACTIVE && endTime > now
             // Phải kiểm tra SAU khi lock — vì phiên có thể vừa kết thúc
@@ -109,6 +119,20 @@ public class BidService {
             BigDecimal bidAmount = request.getBidAmount();
             if (!auction.canAcceptBid(bidAmount)) {
                 throw new BidException("Giá đặt không hợp lệ (phải >= giá hiện tại + bước giá)");
+            }
+
+            User bidder = userRepository.findByIdWithLock(request.getBidderId())
+                    .orElseThrow(() -> new BidException("Không tìm thấy người đặt giá"));
+
+            if (auction.getItem() != null
+                    && auction.getItem().getSeller() != null
+                    && auction.getItem().getSeller().getId() != null
+                    && auction.getItem().getSeller().getId().equals(request.getBidderId())) {
+                throw new BidException("Seller không được tự đấu giá sản phẩm của chính mình");
+            }
+
+            if (bidAmount.compareTo(bidder.getBalance()) > 0) {
+                throw new BidException("Số dư không đủ. Bạn cần nạp thêm tiền trước khi đặt giá này");
             }
 
             // Bước 3c: Kiểm tra người đặt không phải winner hiện tại
@@ -135,8 +159,6 @@ public class BidService {
             //   Khi persist Bid có bidder là Transient User
             //   → Hibernate cố INSERT User mới → lỗi UNIQUE constraint (email đã có)
             //   getReference() tạo Persistent proxy → Hibernate chỉ set FK, không INSERT
-            User bidder = userRepository.getReference(request.getBidderId());
-
             // Bước 5: Tạo và lưu Bid mới
             Bid newBid = new Bid();
             newBid.setAuctionSession(auction);  // auction đang bị lock
@@ -167,7 +189,7 @@ public class BidService {
         if (auctionId == null || auctionId <= 0) {
             throw new BidException("AuctionId không hợp lệ");
         }
-        int safeLimit = Math.min(limit, 50);
+        int safeLimit = Math.max(1, Math.min(limit, 50));
 
         return DbExecutor.query(() -> {
             List<Bid> topBids = bidRepository.findTopByAuction(auctionId, safeLimit);
@@ -186,10 +208,31 @@ public class BidService {
                 bid.getBidId(),
                 bid.getAuctionSession().getAuctionId(),
                 bid.getBidder().getId(),
+                bid.getBidder().getUsername(),
                 bid.getBidAmount(),
                 bid.getBidTime(),
                 bid.getIsWinning()
         );
+    }
+
+
+    /**
+     * Cập nhật trạng thái ngay trong transaction đặt giá.
+     * Đây là lớp phòng thủ cuối cùng để phiên đã tới giờ có thể nhận bid
+     * ngay cả khi scheduler chưa chạy hoặc client vừa tạo phiên xong.
+     */
+    private void refreshLockedAuctionStatus(AuctionSession auction) {
+        LocalDateTime now = LocalDateTime.now();
+        if (auction.getStatus() == AuctionSession.AuctionStatus.SCHEDULED
+                && auction.getStartTime() != null
+                && !auction.getStartTime().isAfter(now)
+                && auction.getEndTime() != null
+                && auction.getEndTime().isAfter(now)) {
+            auction.setStatus(AuctionSession.AuctionStatus.ACTIVE);
+            auctionSessionRepository.save(auction);
+            return;
+        }
+
     }
 
     /**

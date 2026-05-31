@@ -21,6 +21,11 @@ public final class ActionConstants {
     public static final String AUCTION_UNSUBSCRIBE = com.auction.shared.protocol.ActionConstants.AUCTION_UNSUBSCRIBE;
 
     public static final String BID_PLACE_BID = com.auction.shared.protocol.ActionConstants.BID_PLACE_BID;
+    public static final String BID_GET_HISTORY = com.auction.shared.protocol.ActionConstants.BID_GET_HISTORY;
+
+    public static final String WALLET_DEPOSIT = com.auction.shared.protocol.ActionConstants.WALLET_DEPOSIT;
+    public static final String WALLET_GET_SUMMARY = com.auction.shared.protocol.ActionConstants.WALLET_GET_SUMMARY;
+    public static final String WALLET_GET_TRANSACTIONS = com.auction.shared.protocol.ActionConstants.WALLET_GET_TRANSACTIONS;
 
     public static final String SELLER_ITEM_LIST_MY = com.auction.shared.protocol.ActionConstants.SELLER_ITEM_LIST_MY;
     public static final String SELLER_ITEM_CREATE = com.auction.shared.protocol.ActionConstants.SELLER_ITEM_CREATE;
