@@ -42,7 +42,7 @@ class ResponseDtoTest {
 
             AuctionResponse dto = new AuctionResponse(
                     1L, 10L, "Đồng hồ Seiko",
-                    new BigDecimal("500000"), new BigDecimal("520000"),
+                    new BigDecimal("500000"), new BigDecimal("520000"),new BigDecimal(1000),10,
                     start, end, "ACTIVE"
             );
 
