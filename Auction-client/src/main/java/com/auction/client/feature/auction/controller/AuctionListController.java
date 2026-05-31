@@ -111,7 +111,12 @@ public class AuctionListController implements DisposableController {
         if (statusAutoRefreshTimer != null) {
             statusAutoRefreshTimer.stop();
         }
-        statusAutoRefreshTimer = new Timeline(new KeyFrame(Duration.seconds(1), event -> refreshWhenVisibleStatusBoundaryReached()));
+        statusAutoRefreshTimer = new Timeline(
+                new KeyFrame(
+                        Duration.seconds(15),
+                        event -> refreshWhenVisibleStatusBoundaryReached()
+                )
+        );
         statusAutoRefreshTimer.setCycleCount(Timeline.INDEFINITE);
         statusAutoRefreshTimer.play();
     }
