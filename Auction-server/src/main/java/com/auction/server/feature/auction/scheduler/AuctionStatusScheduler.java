@@ -156,6 +156,12 @@ public final class AuctionStatusScheduler {
         // ĐÚNG: kiểm tra tổng tài sản thực tế (balance + hold)
         BigDecimal totalAvailable = buyer.getBalance().add(buyer.getBalanceOnHold());
         if (totalAvailable.compareTo(amount) < 0) {
+            // Giải phóng hold của buyer — phiên thất bại, trả tiền lại
+            BigDecimal releaseAmount = amount.min(buyer.getBalanceOnHold());
+            buyer.setBalanceOnHold(buyer.getBalanceOnHold().subtract(releaseAmount));
+            buyer.setBalance(buyer.getBalance().add(releaseAmount));
+            userRepository.save(buyer);
+
             payment.setStatus(Payment.PaymentStatus.FAILED);
             payment.setTransactionRef("WALLET-FAILED-" + auction.getAuctionId());
             paymentRepository.save(payment);
