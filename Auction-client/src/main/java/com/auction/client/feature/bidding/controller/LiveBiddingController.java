@@ -558,7 +558,7 @@ public class LiveBiddingController implements DisposableController {
     private void updatePlaceBidButtonState() {
         if (btnPlaceBid == null) return;
 
-        // Nếu phiên không cho phép bid (SCHEDULED/ENDED/CANCELED), luôn disable.
+        // Nếu phiên không cho phép bid (SCHEDULED/ENDED/CANCELLED), luôn disable.
         if (bidAmountField != null && bidAmountField.isDisable()) {
             btnPlaceBid.setDisable(true);
             return;

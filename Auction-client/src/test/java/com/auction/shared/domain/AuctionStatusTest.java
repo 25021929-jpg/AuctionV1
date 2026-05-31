@@ -18,7 +18,7 @@ class AuctionStatusTest {
         assertEquals(AuctionStatus.SCHEDULED, AuctionStatus.fromString("scheduled"));
         assertEquals(AuctionStatus.ACTIVE, AuctionStatus.fromString("ACTIVE"));
         assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("Ended"));
-        assertEquals(AuctionStatus.CANCELED, AuctionStatus.fromString("canceled"));
+        assertEquals(AuctionStatus.CANCELLED, AuctionStatus.fromString("canceled"));
     }
 
     @Test
@@ -27,7 +27,7 @@ class AuctionStatusTest {
         assertEquals(AuctionStatus.ACTIVE, AuctionStatus.fromString("RUNNING"));
         assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("FINISHED"));
         assertEquals(AuctionStatus.ENDED, AuctionStatus.fromString("PAID"));
-        assertEquals(AuctionStatus.CANCELED, AuctionStatus.fromString("CANCELLED"));
+        assertEquals(AuctionStatus.CANCELLED, AuctionStatus.fromString("CANCELLED"));
     }
 
     @Test
@@ -35,7 +35,7 @@ class AuctionStatusTest {
         assertFalse(AuctionStatus.SCHEDULED.isBiddable());
         assertTrue(AuctionStatus.ACTIVE.isBiddable());
         assertFalse(AuctionStatus.ENDED.isBiddable());
-        assertFalse(AuctionStatus.CANCELED.isBiddable());
+        assertFalse(AuctionStatus.CANCELLED.isBiddable());
     }
 
     @Test
@@ -43,6 +43,6 @@ class AuctionStatusTest {
         assertFalse(AuctionStatus.SCHEDULED.isFinishedLike());
         assertFalse(AuctionStatus.ACTIVE.isFinishedLike());
         assertTrue(AuctionStatus.ENDED.isFinishedLike());
-        assertTrue(AuctionStatus.CANCELED.isFinishedLike());
+        assertTrue(AuctionStatus.CANCELLED.isFinishedLike());
     }
 }

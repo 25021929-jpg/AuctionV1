@@ -44,7 +44,7 @@
                 </VBox>
                 <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
                     <Label text="Hủy phiên" styleClass="stat-label"/>
-                    <Label text="Không xóa cứng; chuyển trạng thái sang CANCELED" styleClass="info-value" wrapText="true"/>
+                    <Label text="Không xóa cứng; chuyển trạng thái sang CANCELLED" styleClass="info-value" wrapText="true"/>
                 </VBox>
             </HBox>
 
