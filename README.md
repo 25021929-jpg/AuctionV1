@@ -26,11 +26,11 @@ AuctionV1/
 ## 4. Vị trí file JAR
 Sau khi build Maven, file JAR nằm tại:
 ```text
-Auction-server/target/Auction-server-1.0-SNAPSHOT.jar
-Auction-client/target/Auction-client-1.0-SNAPSHOT.jar
-Auction-shared/target/Auction-shared-1.0-SNAPSHOT.jar
+Auction-server/target/Auction-server.jar
+Auction-client/target/Auction-client.jar
+Auction-shared/target/Auction-shared.jar
 ```
-Lưu ý khi nộp cuối: cần kiểm tra lại JAR đã là executable fat JAR/uber JAR hoặc đã cấu hình manifest/main class phù hợp để chạy trực tiếp bằng `java -jar`.
+> Server và Client đều là executable fat JAR, chạy trực tiếp bằng `java -jar` không cần cài thêm thư viện.
 
 ## 5. Cài đặt môi trường
 1. Cài JDK 17.
@@ -48,31 +48,69 @@ Auction-server/src/main/resources/application.properties
 
 ## 6. Hướng dẫn build
 Tại thư mục gốc project:
-```bash
-mvn clean package
+```powershell
+mvn clean package -DskipTests
 ```
-Chạy test:
-```bash
+Bỏ `-DskipTests` nếu muốn chạy test luôn khi build.
+
+Chạy test riêng:
+```powershell
 mvn test
 ```
 
 ## 7. Hướng dẫn chạy Server/Client
-Chạy Server trước:
-```bash
-java -jar Auction-server/target/Auction-server-1.0-SNAPSHOT.jar
-```
-Hoặc trong IDE chạy class:
-```text
-com.auction.server.MainServer
+
+### Cách 1 — Dùng file `.bat` (khuyến nghị trên Windows)
+
+File `run-server.bat` và `run-client.bat` đã có sẵn trong thư mục gốc, xử lý tự động các bước: fix encoding UTF-8, kill port 8888 nếu bị chiếm, rồi chạy JAR.
+
+```powershell
+# Bước 1 — Chạy Server trước
+.\run-server.bat
+
+# Bước 2 — Mở cửa sổ PowerShell mới, chạy Client
+.\run-client.bat
 ```
 
-Sau đó mở một hoặc nhiều Client:
-```bash
-java -jar Auction-client/target/Auction-client-1.0-SNAPSHOT.jar
+---
+
+### Cách 2 — Dùng lệnh `java -jar` trực tiếp
+
+**Điều kiện trước khi chạy:**
+
+1. Đã build xong (`mvn clean package -DskipTests`)
+2. Port `8888` chưa bị chiếm — kiểm tra bằng:
+   ```powershell
+   netstat -ano | findstr :8888
+   ```
+   Nếu có kết quả → kill tiến trình đang chiếm (thay `<PID>` bằng số ở cột cuối):
+   ```powershell
+   taskkill /PID <PID> /F
+   ```
+   *(Bước này `run-server.bat` đã làm tự động)*
+
+3. Đứng đúng thư mục gốc `AuctionV1/` trong terminal
+
+**Chạy Server** (cửa sổ 1):
+```powershell
+java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -jar Auction-server/target/Auction-server.jar
 ```
-Hoặc dùng Maven/IDE:
-```bash
-mvn -pl Auction-client javafx:run
+
+**Chạy Client** (cửa sổ 2 — mở sau khi server đã khởi động):
+```powershell
+java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -jar Auction-client/target/Auction-client.jar
+```
+
+> **Lưu ý:** Flag `-Dfile.encoding=UTF-8` cần thiết trên Windows để tiếng Việt hiển thị đúng trong terminal. Nếu bỏ qua, log sẽ hiện `?` thay vì chữ Việt. *(Bước này `run-server.bat` và `run-client.bat` đã làm tự động)*
+
+**Dừng chương trình:** nhấn `Ctrl + C` trong cửa sổ terminal tương ứng.
+
+---
+
+### Cách 3 — Trong IDE (IntelliJ)
+```text
+Server: com.auction.server.MainServer
+Client: com.auction.client.MainClient  (hoặc mvn -pl Auction-client javafx:run)
 ```
 
 ## 8. Danh sách chức năng đã hoàn thành
@@ -91,7 +129,7 @@ mvn -pl Auction-client javafx:run
 - CI/CD GitHub Actions build/test tự động.
 
 ## 9. Link báo cáo PDF và video demo
-- Báo cáo PDF: https://drive.google.com/drive/folders/1EbBB7q815Guuul6l_dmG8fQnslC9sp8u?usp=drive_link
+- Báo cáo PDF và video: https://drive.google.com/drive/folders/1EbBB7q815Guuul6l_dmG8fQnslC9sp8u?usp=drive_link
 ## 10. Tài khoản demo
 Cập nhật theo `data.sql` sau khi chạy seed database:
 ```text

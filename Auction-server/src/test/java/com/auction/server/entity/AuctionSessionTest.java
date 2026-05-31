@@ -80,7 +80,7 @@ class AuctionSessionTest {
         }
 
         @Test
-        @DisplayName("false khi status = CANCELLED")
+        @DisplayName("false khi status = CANCELED")
         void isActive_cancelledStatus_returnsFalse() {
             auction.setStatus(AuctionSession.AuctionStatus.CANCELLED);
             auction.setEndTime(LocalDateTime.now().plusDays(1));

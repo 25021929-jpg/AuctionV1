@@ -19,6 +19,8 @@ class MoneyFormatTest {
         assertEquals(new BigDecimal("1500.50"), MoneyFormat.parse("1500,50"));
     }
 
+
+
     @Test
     void parseAcceptsVietnameseThousandsSeparator() {
         assertEquals(new BigDecimal("1000000"), MoneyFormat.parse("1.000.000"));

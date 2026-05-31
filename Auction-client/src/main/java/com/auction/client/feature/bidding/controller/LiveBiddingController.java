@@ -137,6 +137,9 @@ public class LiveBiddingController implements DisposableController {
             return;
         }
 
+        priceChart.setAnimated(false);
+        priceChart.setCreateSymbols(false);
+        priceChart.setLegendVisible(false);
         priceChart.getData().add(series);
         setupBidHistoryTable();
         lblCurrentPrice.setText("-");

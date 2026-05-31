@@ -38,6 +38,8 @@ class AuthUtilTest {
             assertThat(hash).isNotBlank();
         }
 
+
+
         @Test
         @DisplayName("hashPassword() trả về định dạng salt:hash (có dấu :)")
         void hashPassword_returnsCorrectFormat() {
