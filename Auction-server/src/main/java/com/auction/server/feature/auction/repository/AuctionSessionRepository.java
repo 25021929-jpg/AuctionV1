@@ -19,6 +19,7 @@ public interface AuctionSessionRepository {
     Optional<AuctionSession> findByIdWithDetails(Long id);
     List<AuctionSession> findActive(int page, int size);
     List<AuctionSession> findExpired();
+    List<AuctionSession> findEndedAwaitingSettlement();
     List<AuctionSession> findScheduledToStart();
     List<AuctionSession> findBySeller(Long sellerId, int page, int size);
 

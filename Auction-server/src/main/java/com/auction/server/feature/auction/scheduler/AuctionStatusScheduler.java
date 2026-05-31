@@ -100,6 +100,14 @@ public final class AuctionStatusScheduler {
                 changes.add(toStatusChange(auction, AuctionSession.AuctionStatus.ENDED.name()));
             }
 
+            /*
+             * Recovery path: older code, manual SQL, or an interrupted scheduler may leave an
+             * auction already marked ENDED while no payment/wallet settlement exists yet.
+             */
+            for (AuctionSession auction : auctionSessionRepository.findEndedAwaitingSettlement()) {
+                endAuctionAndSettle(auction);
+            }
+
             return changes;
         });
     }
