@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Contract cho bảng categories.
+ * Contract cho bảng categories (danh mục).
  *
  * Category có tính chất đặc biệt: self-referencing (cha-con).
  * Một category có thể có parent (danh mục cha)

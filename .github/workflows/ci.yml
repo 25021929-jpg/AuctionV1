@@ -119,13 +119,14 @@ jobs:
         run: sudo apt-get install -y --no-install-recommends xvfb
 
       # Chạy test client qua xvfb-run
+      # Djava.awt.headless=true: báo cho JVM không chờ màn hình thật ở tầng Java
       - name: Run client tests (via Xvfb)
         run: |
           xvfb-run -a mvn test \
             --no-transfer-progress \
             -pl Auction-client \
             -am \
-            -Djava.awt.headless=true
+            -Djava.awt.headless=true      
 
       #Gom toàn bộ kết quả kiểm thử của riêng module Client để đẩy lên GitHub.
       - name: Upload client test reports

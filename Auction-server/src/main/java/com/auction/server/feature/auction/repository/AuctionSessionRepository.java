@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Interface định nghĩa contract của AuctionSessionRepository.
- *
+ * Kho lưu trữ phiên đấu giá
  * Service chỉ biết interface này — không biết implementation.
  * Chữ ký hàm KHÔNG có Session, KHÔNG có Hibernate object.
  * Session được quản lý ngầm qua Thread-bound mechanism.

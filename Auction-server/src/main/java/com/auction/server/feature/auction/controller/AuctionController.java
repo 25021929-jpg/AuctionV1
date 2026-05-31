@@ -43,7 +43,7 @@ public class AuctionController {
     }
 
     // =====================================================
-    // GET ALL AUCTIONS
+    // Trả danh sách phiên đấu giá
     // =====================================================
 
     /**
@@ -52,6 +52,7 @@ public class AuctionController {
      */
     public Response<List<AuctionResponse>> getAllAuctions(String requestBody) {
         try {
+            //trả ds trang phiên đấu giá bắt đầu từ 0, và có 20 phiên
             JsonObject obj = gson.fromJson(requestBody, JsonObject.class);
             int page = obj != null && obj.has("page") ? obj.get("page").getAsInt() : 0;
             int size = obj != null && obj.has("size") ? obj.get("size").getAsInt() : 20;

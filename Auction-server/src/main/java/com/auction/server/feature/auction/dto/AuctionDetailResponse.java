@@ -3,6 +3,10 @@ package com.auction.server.feature.auction.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * DTO trả về danh sách phiên đấu giá.
+ */
+
 public class AuctionDetailResponse {
 
     private Long auctionId;
