@@ -93,15 +93,14 @@ File `run-server.bat` và `run-client.bat` đã có sẵn trong thư mục gốc
 
 **Chạy Server** (cửa sổ 1):
 ```powershell
-java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -jar Auction-server/target/Auction-server.jar
+java -jar Auction-server/target/Auction-server.jar
 ```
 
 **Chạy Client** (cửa sổ 2 — mở sau khi server đã khởi động):
 ```powershell
-java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -jar Auction-client/target/Auction-client.jar
+java -jar Auction-client/target/Auction-client.jar
 ```
 
-> **Lưu ý:** Flag `-Dfile.encoding=UTF-8` cần thiết trên Windows để tiếng Việt hiển thị đúng trong terminal. Nếu bỏ qua, log sẽ hiện `?` thay vì chữ Việt. *(Bước này `run-server.bat` và `run-client.bat` đã làm tự động)*
 
 **Dừng chương trình:** nhấn `Ctrl + C` trong cửa sổ terminal tương ứng.
 

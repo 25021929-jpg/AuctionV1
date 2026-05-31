@@ -43,10 +43,6 @@ public class HibernateUtil {
         // Định nghĩa "ngôn ngữ" giao tiếp với Database (ở đây là MySQL)
         config.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
 
-        // Bật debug: In toàn bộ câu lệnh SQL ra Console để lập trình viên dễ theo dõi
-        config.setProperty("hibernate.show_sql",     "true");
-        // Định dạng câu SQL cho đẹp mắt, dễ đọc thay vì viết trên một dòng thẳng tuột
-        config.setProperty("hibernate.format_sql",   "true");
 
         /*
          * Chế độ an toàn cho Production (validate):
