@@ -1,0 +1,9 @@
+@echo off
+chcp 65001 > nul
+echo Kiem tra port 8888...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8888 2^>nul') do (
+    echo Kill process PID %%a dang chiem port 8888...
+    taskkill /PID %%a /F > nul 2>&1
+)
+echo Khoi dong Auction Server...
+java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -jar Auction-server/target/Auction-server.jar
