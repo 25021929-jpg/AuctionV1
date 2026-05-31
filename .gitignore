@@ -1,4 +1,12 @@
-
+# =========================
+# Java / Maven
+# =========================
+**/target/*
+!**/target/*.jar
+*.class
+*.war
+*.ear
+*.log
 
 # Maven wrapper (giữ wrapper nếu bạn dùng)
 !.mvn/wrapper/maven-wrapper.jar
