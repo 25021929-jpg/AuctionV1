@@ -81,12 +81,14 @@ public class HibernateAuctionSessionRepository
     @Override
     public List<AuctionSession> findExpired() {
         return sessionFactory.getCurrentSession()
-                .createQuery(
-                        """
-                        FROM AuctionSession a
-                        WHERE a.status = :status
-                          AND a.endTime <= :now
-                        """, AuctionSession.class)
+                .createQuery("""
+                    FROM AuctionSession a
+                    LEFT JOIN FETCH a.winner
+                    LEFT JOIN FETCH a.item i
+                    LEFT JOIN FETCH i.seller
+                    WHERE a.status = :status
+                      AND a.endTime <= :now
+                    """, AuctionSession.class)
                 .setParameter("status", AuctionSession.AuctionStatus.ACTIVE)
                 .setParameter("now", LocalDateTime.now())
                 .getResultList();
@@ -95,30 +97,34 @@ public class HibernateAuctionSessionRepository
     @Override
     public List<AuctionSession> findEndedAwaitingSettlement() {
         return sessionFactory.getCurrentSession()
-                .createQuery(
-                        """
-                        FROM AuctionSession a
-                        WHERE a.status = :status
-                          AND a.winner IS NOT NULL
-                          AND NOT EXISTS (
-                              SELECT 1
-                              FROM Payment p
-                              WHERE p.auctionSession = a
-                          )
-                        """, AuctionSession.class)
+                .createQuery("""
+                    FROM AuctionSession a
+                    LEFT JOIN FETCH a.winner
+                    LEFT JOIN FETCH a.item i
+                    LEFT JOIN FETCH i.seller
+                    WHERE a.status = :status
+                      AND a.winner IS NOT NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM Payment p
+                          WHERE p.auctionSession = a
+                      )
+                    """, AuctionSession.class)
                 .setParameter("status", AuctionSession.AuctionStatus.ENDED)
                 .getResultList();
     }
 
     @Override
+    // findScheduledToStart() - thêm JOIN FETCH để cover nhánh else if
     public List<AuctionSession> findScheduledToStart() {
         return sessionFactory.getCurrentSession()
-                .createQuery(
-                        """
-                        FROM AuctionSession a
-                        WHERE a.status = :status
-                          AND a.startTime <= :now
-                        """, AuctionSession.class)
+                .createQuery("""
+                    FROM AuctionSession a
+                    LEFT JOIN FETCH a.winner
+                    LEFT JOIN FETCH a.item i
+                    LEFT JOIN FETCH i.seller
+                    WHERE a.status = :status
+                      AND a.startTime <= :now
+                    """, AuctionSession.class)
                 .setParameter("status", AuctionSession.AuctionStatus.SCHEDULED)
                 .setParameter("now", LocalDateTime.now())
                 .getResultList();

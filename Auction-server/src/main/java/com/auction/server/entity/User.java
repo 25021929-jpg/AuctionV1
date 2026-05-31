@@ -65,6 +65,9 @@ public class User {
     @OneToMany(mappedBy = "bidder", fetch = FetchType.LAZY)
     private List<Bid> bids = new ArrayList<>();
 
+    @Column(name = "balance_on_hold", nullable = false, precision = 15, scale = 2)
+    private BigDecimal balanceOnHold = BigDecimal.ZERO;
+
     public User() {
     }
 
@@ -107,6 +110,18 @@ public class User {
     public void setItems(List<AuctionItem> items) { this.items = items; }
     public List<Bid> getBids() { return bids; }
     public void setBids(List<Bid> bids) { this.bids = bids; }
+
+    //Lấy tiền đang sử dụng để đặt cọc, không thể rút ra được
+    public BigDecimal getBalanceOnHold() {
+        return balanceOnHold == null ? BigDecimal.ZERO : balanceOnHold;
+    }
+    public void setBalanceOnHold(BigDecimal balanceOnHold) {
+        if (balanceOnHold == null || balanceOnHold.signum() < 0) {
+            throw new IllegalArgumentException("balanceOnHold không được âm");
+        }
+        this.balanceOnHold = balanceOnHold;
+    }
+
 
     @Override
     public boolean equals(Object o) {

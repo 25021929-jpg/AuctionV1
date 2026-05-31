@@ -153,17 +153,33 @@ public final class AuctionStatusScheduler {
         payment.setPlatformFee(BigDecimal.ZERO);
         payment.setMethod(Payment.PaymentMethod.WALLET);
 
-        if (buyer.getBalance().compareTo(amount) < 0) {
-            // Không để số dư âm. Ghi FAILED để biết phiên đã được xử lý và không trừ tiền sai.
+        // ĐÚNG: kiểm tra tổng tài sản thực tế (balance + hold)
+        BigDecimal totalAvailable = buyer.getBalance().add(buyer.getBalanceOnHold());
+        if (totalAvailable.compareTo(amount) < 0) {
+            // Giải phóng hold của buyer — phiên thất bại, trả tiền lại
+            BigDecimal releaseAmount = amount.min(buyer.getBalanceOnHold());
+            buyer.setBalanceOnHold(buyer.getBalanceOnHold().subtract(releaseAmount));
+            buyer.setBalance(buyer.getBalance().add(releaseAmount));
+            userRepository.save(buyer);
+
             payment.setStatus(Payment.PaymentStatus.FAILED);
             payment.setTransactionRef("WALLET-FAILED-" + auction.getAuctionId());
             paymentRepository.save(payment);
             return;
         }
 
-        BigDecimal buyerBalanceAfter = buyer.getBalance().subtract(amount);
-        BigDecimal sellerBalanceAfter = seller.getBalance().add(amount);
+        //Đặt lại số dư bidder
+        // Tiền winner đang bị hold — chỉ cần giải phóng hold, không trừ balance thêm
+        BigDecimal currentHold = buyer.getBalanceOnHold();
+        BigDecimal releaseFromHold = amount.min(currentHold);
+        BigDecimal extraCharge = amount.subtract(releaseFromHold); // trường hợp hold < amount (không nên xảy ra)
+
+        buyer.setBalanceOnHold(currentHold.subtract(releaseFromHold));
+        // Nếu có extraCharge (edge case) thì trừ thêm từ balance
+        BigDecimal buyerBalanceAfter = buyer.getBalance().subtract(extraCharge);
         buyer.setBalance(buyerBalanceAfter);
+        BigDecimal sellerBalanceAfter = seller.getBalance().add(amount);
+        //Đặt lại số dư seller
         seller.setBalance(sellerBalanceAfter);
         userRepository.save(buyer);
         userRepository.save(seller);
@@ -173,8 +189,10 @@ public final class AuctionStatusScheduler {
         payment.setPaidAt(LocalDateTime.now());
         paymentRepository.save(payment);
 
+        // Ghi lịch sử: balance thực tế sau giao dịch = balance + hold còn lại
+        BigDecimal buyerTotalAfter = buyerBalanceAfter.add(buyer.getBalanceOnHold());
         saveWalletTransaction(buyer, auction, WalletTransaction.TransactionType.AUCTION_PAYMENT,
-                amount.negate(), buyerBalanceAfter,
+                amount.negate(), buyerTotalAfter,
                 "Thanh toán phiên đấu giá #" + auction.getAuctionId());
         saveWalletTransaction(seller, auction, WalletTransaction.TransactionType.AUCTION_RECEIVE,
                 amount, sellerBalanceAfter,

@@ -26,7 +26,8 @@ CREATE TABLE users (
                        avatar_url    VARCHAR(500),
                        is_active     TINYINT(1)   NOT NULL DEFAULT 1,
                        created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                       updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                       updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                       balance_on_hold DECIMAL(15,2) NOT NULL DEFAULT 0.00 CHECK (balance_on_hold >= 0) -- Số tiền đang giữ cho các phiên đấu giá đang tham gia
 );
 
 
