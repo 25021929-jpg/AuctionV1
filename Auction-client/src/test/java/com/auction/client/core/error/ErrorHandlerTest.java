@@ -14,6 +14,8 @@ class ErrorHandlerTest {
         assertEquals("Không kết nối được server.", message);
     }
 
+
+
     @Test
     void timeoutExceptionShouldReturnFriendlyMessage() {
         String message = ErrorHandler.getUserMessage(new RequestTimeoutException("Server phản hồi quá lâu."));
