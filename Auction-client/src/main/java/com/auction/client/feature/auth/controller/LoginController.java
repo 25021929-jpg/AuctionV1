@@ -1,21 +1,27 @@
 package com.auction.client.feature.auth.controller;
 
+import com.auction.client.core.error.ErrorHandler;
+import com.auction.client.core.session.UserSession;
 import com.auction.client.core.ui.FormHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import com.auction.client.core.ui.ScenePaths;
 import com.auction.client.core.ui.Toast;
 import com.auction.client.core.ui.UIAnimations;
-import com.auction.client.feature.auth.dto.request.LoginRequest;
 import com.auction.client.feature.auth.factory.AuthValidatorFactory;
-import com.auction.client.network.ServerCommunicator;
-import com.auction.client.network.SocketClient;
+import com.auction.client.feature.auth.service.AuthService;
+import com.auction.client.feature.auth.service.AuthServiceImpl;
 import com.auction.shared.dto.AuthResponse;
-import com.auction.shared.dto.Response;
+import com.auction.shared.dto.auth.request.LoginRequest;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Control;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -25,40 +31,28 @@ import java.util.Map;
 
 public class LoginController {
 
-    // ── FXML ─────────────────────────────────────────────────────
-    @FXML private TextField     identityField;
+    @FXML private TextField identityField;
     @FXML private PasswordField passwordField;
-    @FXML private VBox          formBox;
-    @FXML private Label         identityError;
-    @FXML private Label         passwordError;
-    @FXML private Button        loginButton;
+    @FXML private VBox formBox;
+    @FXML private Label identityError;
+    @FXML private Label passwordError;
+    @FXML private Button loginButton;
 
-    // ── Form helpers ──────────────────────────────────────────────
-    private final Map<Control, Label>  fieldErrorMap = new LinkedHashMap<>();
-    private final Map<String, Control> fieldMap      = new LinkedHashMap<>();
+    private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
+    private final Map<String, Control> fieldMap = new LinkedHashMap<>();
 
-    // ── Dependencies ──────────────────────────────────────────────
-    // Dùng Interface → dễ mock khi test
-    private final ServerCommunicator        communicator;
-    private final Validator<LoginRequest>   validator;
+    private final AuthService authService;
+    private final Validator<LoginRequest> validator;
 
-    // Constructor mặc định — JavaFX FXML dùng cái này
     public LoginController() {
-        this(
-                SocketClient.getInstance(),
-                AuthValidatorFactory.createLoginValidator()
-        );
+        this(new AuthServiceImpl(), AuthValidatorFactory.createLoginValidator());
     }
 
-    // Constructor cho test — inject từ ngoài vào
-    public LoginController(
-            ServerCommunicator communicator,
-            Validator<LoginRequest> validator) {
-        this.communicator = communicator;
-        this.validator    = validator;
+    public LoginController(AuthService authService, Validator<LoginRequest> validator) {
+        this.authService = authService;
+        this.validator = validator;
     }
 
-    // ── initialize ────────────────────────────────────────────────
     @FXML
     public void initialize() {
         UIAnimations.entrance(formBox);
@@ -75,14 +69,10 @@ public class LoginController {
         FormHelper.bindClearOnChange(fieldErrorMap);
     }
 
-    // ── handleLogin ───────────────────────────────────────────────
     @FXML
     private void handleLogin(ActionEvent event) {
-
-        // 1. Clear lỗi cũ
         FormHelper.clearAll(fieldErrorMap);
 
-        // 2. Build + Validate
         LoginRequest request = buildRequest();
         ValidationResult result = validator.validate(request);
         if (!result.valid()) {
@@ -90,83 +80,57 @@ public class LoginController {
             return;
         }
 
-        // 3. Kiểm tra đã kết nối server chưa
-        if (!SocketClient.getInstance().isConnected()) {
-            StackPane root = (StackPane) loginButton.getScene().getRoot();
-            Toast.show(root,
-                    "Đang kết nối server, vui lòng thử lại!",
-                    Toast.Type.WARNING, 2, null);
-            return;
-        }
-
-        // 4. Disable button tránh bấm nhiều lần
         loginButton.setDisable(true);
 
-        // 5. Gửi request trên background thread
         Thread thread = new Thread(() -> {
             try {
-                Response<AuthResponse> response =
-                        communicator.send("AUTH_LOGIN", request, AuthResponse.class);
+                AuthResponse response = authService.login(request);
+                UserSession.getInstance().start(response);
 
-                // 6. Kết quả → quay về JavaFX thread để cập nhật UI
                 Platform.runLater(() -> {
                     loginButton.setDisable(false);
-
-                    StackPane root = (StackPane) loginButton.getScene().getRoot();
-
-                    if (response.isSuccess()) {
-                        Toast.show(root, "✓ Đăng nhập thành công",
-                                Toast.Type.SUCCESS, 2, this::navigateToMain);
-                    } else {
-                        // Server trả về lỗi nghiệp vụ (sai mật khẩu, không tồn tại...)
-                        Toast.show(root, response.getMessage(),
-                                Toast.Type.ERROR, 3, null);
-                    }
+                    showToast("✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateHome);
                 });
-
             } catch (IOException e) {
-                // Lỗi mạng (mất kết nối, timeout...)
                 Platform.runLater(() -> {
                     loginButton.setDisable(false);
-                    StackPane root = (StackPane) loginButton.getScene().getRoot();
-                    Toast.show(root, "Lỗi kết nối, vui lòng thử lại!",
-                            Toast.Type.ERROR, 3, null);
+                    showToast(ErrorHandler.getUserMessage(e), Toast.Type.ERROR, 3, null);
                 });
             }
-        });
+        }, "auth-login-thread");
 
         thread.setDaemon(true);
         thread.start();
     }
 
-    // ── Navigate ──────────────────────────────────────────────────
-    private void navigateToMain() {
-        Platform.runLater(() ->
-                SceneNavigator.switchScene(
-                        "/com/auction/client/feature/auth/view/home-view.fxml"
-                )
-        );
+    private void navigateHome() {
+        /*
+         * Không điều hướng cứng theo role sau khi đăng nhập.
+         *
+         * Lý do:
+         * - Với mô hình hiện tại, một tài khoản có thể vừa bid vừa đăng sản phẩm bán.
+         * - Nếu tự chuyển BIDDER vào danh sách đấu giá và SELLER vào Seller Dashboard,
+         *   client đang ngầm coi BIDDER/SELLER là hai loại tài khoản loại trừ nhau.
+         * - Home là màn trung gian đúng hơn: user tự chọn workflow muốn làm tiếp.
+         */
+        SceneNavigator.switchScene(ScenePaths.HOME);
     }
 
     @FXML
     private void handleNavigateRegister(ActionEvent event) {
-        SceneNavigator.switchScene(
-                "/com/auction/client/feature/auth/view/register-view.fxml"
-        );
+        SceneNavigator.switchScene(ScenePaths.REGISTER);
     }
 
-    @FXML
-    private void handleNavigateForgotPassword(ActionEvent event) {
-        SceneNavigator.switchScene(
-                "/com/auction/client/feature/auth/view/forgot-password-view.fxml"
-        );
-    }
 
-    // ── Private helpers ───────────────────────────────────────────
     private LoginRequest buildRequest() {
         return new LoginRequest(
-                identityField.getText().trim(),
+                identityField.getText() == null ? "" : identityField.getText().trim(),
                 passwordField.getText()
         );
+    }
+
+    private void showToast(String message, Toast.Type type, int seconds, Runnable onFinished) {
+        StackPane root = (StackPane) loginButton.getScene().getRoot();
+        Toast.show(root, message, type, seconds, onFinished);
     }
 }

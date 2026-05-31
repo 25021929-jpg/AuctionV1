@@ -4,6 +4,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE auction_db;
 DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS wallet_transactions;
 DROP TABLE IF EXISTS item_images;
 DROP TABLE IF EXISTS bids;
 DROP TABLE IF EXISTS auction_sessions;
@@ -19,29 +20,16 @@ CREATE TABLE users (
                        email         VARCHAR(100) NOT NULL UNIQUE,
                        password_hash VARCHAR(255) NOT NULL,
                        role          ENUM('ADMIN','SELLER','BIDDER') NOT NULL DEFAULT 'BIDDER',
-                       balance       DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+                       balance       DECIMAL(15,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
                        phone         VARCHAR(20),
                        date_of_birth DATE NOT NULL,
                        avatar_url    VARCHAR(500),
                        is_active     TINYINT(1)   NOT NULL DEFAULT 1,
                        created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                       updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                       updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                       balance_on_hold DECIMAL(15,2) NOT NULL DEFAULT 0.00 CHECK (balance_on_hold >= 0) -- Số tiền đang giữ cho các phiên đấu giá đang tham gia
 );
 
--- ============================================================
--- 2. PASSWORD RESET TOKENS
--- ============================================================
-CREATE TABLE password_reset_tokens (
-                                       id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                       user_id BIGINT UNSIGNED NOT NULL,
-                                       token VARCHAR(255) NOT NULL UNIQUE,
-                                       expired_at TIMESTAMP NOT NULL,
-                                       used BOOLEAN DEFAULT FALSE,
-                                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-                                       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    -- CASCADE: xoá user → xoá luôn token (hợp lý)
-);
 
 CREATE TABLE categories (
                             category_id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -52,6 +40,14 @@ CREATE TABLE categories (
                             sort_order  INT NOT NULL DEFAULT 0,
                             FOREIGN KEY (parent_id) REFERENCES categories(category_id) ON DELETE SET NULL
 );
+
+-- Dữ liệu nền bắt buộc để seller có thể đăng sản phẩm ngay sau khi tạo schema.
+-- SellerService kiểm tra categoryId phải tồn tại trước khi tạo AuctionItem/AuctionSession.
+INSERT INTO categories (category_id, category_name, slug, description, sort_order)
+VALUES
+    (1, 'Electronics', 'electronics', 'Electronic devices and accessories', 1),
+    (2, 'Art', 'art', 'Artworks and collectibles', 2),
+    (3, 'Vehicle', 'vehicle', 'Vehicles and transportation items', 3);
 -- ============================================================
 -- 3. BẢNG ITEMS (hàng hóa)
 -- ============================================================
@@ -65,6 +61,7 @@ CREATE TABLE auction_items (
                                `condition`   ENUM('NEW','LIKE_NEW','GOOD','FAIR','POOR') NOT NULL DEFAULT 'GOOD', -- BẮT BUỘC phải có dấu huyền ở đây vì condition là một từ khóa của MySQL
                                status      ENUM('DRAFT','PENDING_REVIEW','APPROVED','REJECTED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
                                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                               updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
                                CONSTRAINT fk_auction_items_seller
                                    FOREIGN KEY (seller_id)
@@ -156,6 +153,22 @@ CREATE TABLE payments (
                           FOREIGN KEY (seller_id)  REFERENCES users(id)    ON DELETE RESTRICT
 );
 
+-- ============================================================
+-- 7. BẢNG WALLET_TRANSACTIONS (lịch sử biến động số dư)
+-- ============================================================
+CREATE TABLE wallet_transactions (
+                          transaction_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                          user_id        BIGINT UNSIGNED NOT NULL,
+                          auction_id     BIGINT UNSIGNED,
+                          type           ENUM('DEPOSIT','AUCTION_PAYMENT','AUCTION_RECEIVE') NOT NULL,
+                          amount         DECIMAL(15,2) NOT NULL,
+                          balance_after  DECIMAL(15,2) NOT NULL CHECK (balance_after >= 0),
+                          description    VARCHAR(500),
+                          created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+                          FOREIGN KEY (auction_id) REFERENCES auction_sessions(auction_id) ON DELETE SET NULL
+);
+
 --
 -- INDEX để tăng tốc truy vấn thường dùng
 --
@@ -169,6 +182,9 @@ CREATE TABLE payments (
 -- (UNIQUE constraint = UNIQUE index, dùng được như index bình thường)
 -- username cũng vậy — UNIQUE tự có index rồi, không cần thêm
 -- Index 2: Lọc user theo role + trạng thái (dùng cho admin panel)
+CREATE INDEX idx_wallet_transactions_user_time
+    ON wallet_transactions(user_id, created_at);
+
 CREATE INDEX idx_users_role_active
     ON users(role, is_active);
 -- Lý do: Admin thường query "Danh sách SELLER đang active"
@@ -188,21 +204,6 @@ CREATE INDEX idx_users_created
 -- ============================================================
 
 -- token đã là UNIQUE → tự có index, dùng cho WHERE token = ? khi xác thực
-
--- Index 1: Tìm token theo user
-CREATE INDEX idx_prt_user_id
-    ON password_reset_tokens(user_id);
--- Lý do: FK không tự tạo index trong MySQL!
--- Khi JOIN users với password_reset_tokens theo user_id
--- Khi kiểm tra "user này đã có token chưa" → WHERE user_id = ?
--- Không có index → full scan bảng token mỗi lần JOIN
-
--- Index 2: Dọn dẹp token hết hạn (Scheduled Task chạy hàng ngày)
-CREATE INDEX idx_prt_expired ON password_reset_tokens(used, expired_at);
--- Lý do: Scheduled job DELETE token hết hạn
--- DELETE FROM password_reset_tokens WHERE expired_at < NOW() AND used = 0
--- Nếu expired_at đứng trước, MySQL sẽ trèo vào index quét một dải các token đã hết hạn, và với từng dòng trong dải đó, nó phải dùng CPU để check xem used có bằng 0 hay không. Cột used lúc này không giúp MySQL "nhảy" (seek) được nữa.
--- Lợi ích: job dọn dẹp không cần full scan, chạy nhanh kể cả khi bảng có triệu dòng
 
 
 -- ============================================================

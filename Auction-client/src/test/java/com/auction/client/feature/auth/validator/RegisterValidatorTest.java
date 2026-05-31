@@ -1,6 +1,6 @@
 package com.auction.client.feature.auth.validator;
 
-import com.auction.client.feature.auth.dto.request.RegisterRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
 import com.auction.validation.ValidationResult;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -133,6 +133,17 @@ class RegisterValidatorTest {
     }
 
     // ── phoneNumber ──────────────────────────────────────
+
+    @Test
+    @DisplayName("Phone with spaces -> pass")
+    void validate_phoneWithSpaces_returnsOk() {
+        RegisterRequest req = new RegisterRequest(
+                "Nguyen Van A", "john123", "john@gmail.com",
+                "0912 345 678", "password123", "password123", VALID_DATE
+        );
+        ValidationResult result = validator.validate(req);
+        assertTrue(result.valid());
+    }
 
     @Test
     @DisplayName("Invalid phone -> error")

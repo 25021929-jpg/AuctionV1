@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.feature.auction.controller.AuctionListController"
+            prefWidth="1100" prefHeight="720"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
+
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="← Trang chủ" onAction="#handleBack" styleClass="btn-ghost"/>
+            <VBox spacing="3">
+                <Label text="Danh sách phiên đấu giá" styleClass="page-title"/>
+                <Label text="Chọn một phiên để xem chi tiết hoặc vào phòng đấu giá realtime." styleClass="page-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+            <Button fx:id="btnRefresh" text="Tải lại" onAction="#handleRefresh" styleClass="btn-primary"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="14" VBox.vgrow="ALWAYS" styleClass="panel">
+            <HBox spacing="14">
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="SCHEDULED" styleClass="stat-label"/>
+                    <Label text="Chưa tới giờ bắt đầu" styleClass="info-value"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="ACTIVE" styleClass="stat-label"/>
+                    <Label text="Đang mở đặt giá" styleClass="info-value"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="ENDED / CANCELLED" styleClass="stat-label"/>
+                    <Label text="Đã kết thúc hoặc đã hủy" styleClass="info-value"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="4">
+                <Label text="Các phiên đấu giá" styleClass="section-title"/>
+                <Label text="Bảng tự cập nhật khi đi qua mốc bắt đầu/kết thúc; double-click vào một dòng để xem chi tiết." styleClass="section-subtitle" wrapText="true"/>
+            </VBox>
+
+            <TableView fx:id="auctionTable" VBox.vgrow="ALWAYS" prefHeight="540">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
+                    <TableColumn fx:id="colName" text="Sản phẩm" prefWidth="260"/>
+                    <TableColumn fx:id="colPrice" text="Giá hiện tại" prefWidth="150"/>
+                    <TableColumn fx:id="colTotalBids" text="Lượt bid" prefWidth="90"/>
+                    <TableColumn fx:id="colStartTime" text="Bắt đầu" prefWidth="165"/>
+                    <TableColumn fx:id="colEndTime" text="Kết thúc" prefWidth="165"/>
+                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="130"/>
+                </columns>
+            </TableView>
+
+            <Label text="Gợi ý: đặt giá trong màn Phòng đấu giá để nhìn rõ số dư, bước giá tối thiểu và lịch sử bid." styleClass="muted-label" wrapText="true"/>
+        </VBox>
+    </center>
+</BorderPane>

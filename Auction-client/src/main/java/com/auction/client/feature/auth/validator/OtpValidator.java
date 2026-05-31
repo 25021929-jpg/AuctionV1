@@ -1,6 +1,6 @@
 package com.auction.client.feature.auth.validator;
 
-import com.auction.client.feature.auth.dto.request.OtpRequest;
+import com.auction.shared.dto.auth.request.OtpRequest;
 import com.auction.validation.FieldError;
 import com.auction.validation.FieldValidator;
 import com.auction.validation.ValidationResult;

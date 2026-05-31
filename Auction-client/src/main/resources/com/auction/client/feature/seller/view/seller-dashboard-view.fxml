@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.feature.seller.controller.SellerDashboardController"
+            prefWidth="1150" prefHeight="740"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
+
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Button text="← Trang chủ" onAction="#handleBack" styleClass="btn-ghost"/>
+            <VBox spacing="3">
+                <Label text="Quản lý sản phẩm" styleClass="page-title"/>
+                <Label text="Tạo phiên đấu giá, theo dõi trạng thái và hủy phiên khi cần." styleClass="page-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+            <Button text="Ví / Nạp tiền" onAction="#handleOpenWallet" styleClass="btn-secondary"/>
+            <Button fx:id="btnRefresh" text="Tải lại" onAction="#handleRefresh" styleClass="btn-ghost"/>
+            <Button fx:id="btnAdd" text="+ Thêm phiên" onAction="#handleAdd" styleClass="btn-primary"/>
+            <Button fx:id="btnEdit" text="Sửa" onAction="#handleEdit" styleClass="btn-secondary"/>
+            <Button fx:id="btnDelete" text="Hủy phiên" onAction="#handleDelete" styleClass="btn-danger"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="14" VBox.vgrow="ALWAYS" styleClass="panel">
+            <HBox spacing="14">
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Loại sản phẩm" styleClass="stat-label"/>
+                    <Label text="Lấy từ bảng categories: Electronics / Art / Vehicle" styleClass="info-value" wrapText="true"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Thời gian" styleClass="stat-label"/>
+                    <Label text="Hiển thị cả giờ bắt đầu và giờ kết thúc" styleClass="info-value" wrapText="true"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Hủy phiên" styleClass="stat-label"/>
+                    <Label text="Không xóa cứng; chuyển trạng thái sang CANCELLED" styleClass="info-value" wrapText="true"/>
+                </VBox>
+            </HBox>
+
+            <VBox spacing="4">
+                <Label text="Danh sách phiên của seller" styleClass="section-title"/>
+                <Label text="Trạng thái tự cập nhật khi đi qua mốc bắt đầu/kết thúc; vẫn có thể bấm Tải lại để đồng bộ ngay." styleClass="section-subtitle" wrapText="true"/>
+            </VBox>
+
+            <TableView fx:id="tblItems" VBox.vgrow="ALWAYS" prefHeight="520">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
+                    <TableColumn fx:id="colName" text="Tên sản phẩm" prefWidth="220"/>
+                    <TableColumn fx:id="colCategory" text="Loại" prefWidth="140"/>
+                    <TableColumn fx:id="colStartPrice" text="Giá khởi điểm" prefWidth="145"/>
+                    <TableColumn fx:id="colCurrentPrice" text="Giá hiện tại" prefWidth="145"/>
+                    <TableColumn fx:id="colStatus" text="Trạng thái" prefWidth="120"/>
+                    <TableColumn fx:id="colStartTime" text="Bắt đầu" prefWidth="160"/>
+                    <TableColumn fx:id="colEndTime" text="Kết thúc" prefWidth="160"/>
+                </columns>
+            </TableView>
+
+            <Label text="Lưu ý: khi phiên kết thúc, seller sẽ nhận thông báo bán thành công nếu có người thắng; nếu không có bid, hệ thống sẽ báo chưa có người mua." styleClass="muted-label" wrapText="true"/>
+        </VBox>
+    </center>
+</BorderPane>

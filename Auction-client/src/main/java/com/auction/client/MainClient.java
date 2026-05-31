@@ -1,12 +1,14 @@
 package com.auction.client;
 
+import com.auction.client.core.session.ClientSessionManager;
 import com.auction.client.core.ui.AlertHelper;
 import com.auction.client.core.ui.SceneNavigator;
+import com.auction.client.core.ui.ScenePaths;
+import com.auction.client.core.event.EventBus;
+import com.auction.client.core.event.EventType;
 import com.auction.client.network.SocketClient;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -14,38 +16,40 @@ import java.io.IOException;
 public class MainClient extends Application {
 
     @Override
-    public void start(Stage stage) throws IOException {
-        // 1. CUNG CẤP STAGE CHO NAVIGATOR (BẮT BUỘC PHẢI CÓ DÒNG NÀY)
+    public void start(Stage stage) {
         SceneNavigator.setStage(stage);
+        stage.setTitle("Auction Client");
+        stage.setOnCloseRequest(event -> ClientSessionManager.shutdownApplicationSession());
 
-        // 2. Load màn hình login đầu tiên
-        FXMLLoader fxmlLoader = new FXMLLoader(MainClient.class.getResource("/com/auction/client/feature/auth/view/login-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load());
-        stage.setScene(scene);
-        stage.show();
+        registerGlobalEventHandlers();
+        SceneNavigator.switchScene(ScenePaths.LOGIN);
+        connectInBackground();
+    }
 
-        // 3. Connect trên background thread
-        //    KHÔNG block JavaFX thread
+    private void registerGlobalEventHandlers() {
+        EventBus.getInstance().subscribe(EventType.CONNECTION_LOST, evt ->
+                Platform.runLater(() ->
+                        AlertHelper.showError(
+                                "Mất kết nối",
+                                "Kết nối đến server đã bị ngắt. Vui lòng kiểm tra lại mạng/server."
+                        )
+                )
+        );
+    }
+
+    private void connectInBackground() {
         Thread connectThread = new Thread(() -> {
             try {
                 SocketClient.getInstance().connect();
-                System.out.println("Đã kết nối đến server!!!!");
-
-                // Có thể notify LoginController enable button ở đây
-                Platform.runLater(() -> {
-                    // LoginController tự check isConnected()
-                    // nên không cần làm gì thêm ở đây
-                });
-
             } catch (IOException e) {
                 Platform.runLater(() ->
                         AlertHelper.showError(
                                 "Kết nối thất bại",
-                                "Không thể kết nối đến server.\nVui lòng kiểm tra lại!"
+                                "Không thể kết nối đến server. Vui lòng kiểm tra lại server rồi thử đăng nhập lại."
                         )
                 );
             }
-        });
+        }, "socket-connect-thread");
 
         connectThread.setDaemon(true);
         connectThread.start();
@@ -53,8 +57,7 @@ public class MainClient extends Application {
 
     @Override
     public void stop() {
-        // App tắt → đóng kết nối
-        SocketClient.getInstance().disconnect();
+        ClientSessionManager.shutdownApplicationSession();
     }
 
     public static void main(String[] args) {

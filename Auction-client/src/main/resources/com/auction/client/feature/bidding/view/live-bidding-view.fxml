@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.feature.bidding.controller.LiveBiddingController"
+      prefWidth="1100" prefHeight="760" spacing="16"
+      styleClass="app-background"
+      stylesheets="@/com/auction/client/css/app-style.css">
+
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Button text="← Quay lại" onAction="#handleBack" styleClass="btn-ghost"/>
+        <VBox spacing="3">
+            <Label text="Phòng đấu giá trực tiếp" styleClass="page-title"/>
+            <Label text="Theo dõi giá, lịch sử đặt giá, số dư và kết quả realtime." styleClass="page-subtitle"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Ví / Nạp tiền" onAction="#handleOpenWallet" styleClass="btn-secondary"/>
+        <Label text="Realtime" styleClass="field-label"/>
+    </HBox>
+
+    <HBox spacing="14">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Trạng thái phiên" styleClass="stat-label"/>
+            <Label fx:id="lblAuctionStatus" text="-" styleClass="info-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Bắt đầu" styleClass="stat-label"/>
+            <Label fx:id="lblStartTime" text="-" styleClass="info-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Kết thúc" styleClass="stat-label"/>
+            <Label fx:id="lblEndTime" text="-" styleClass="info-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Số dư tài khoản" styleClass="stat-label"/>
+            <Label fx:id="lblBalance" text="Số dư: 0" styleClass="price-value"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="14">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Giá hiện tại" styleClass="stat-label"/>
+            <Label fx:id="lblCurrentPrice" text="-" styleClass="price-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Bước giá tối thiểu" styleClass="stat-label"/>
+            <Label fx:id="lblMinBidStep" text="-" styleClass="info-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Giá tối thiểu được đặt" styleClass="stat-label"/>
+            <Label fx:id="lblMinimumBid" text="-" styleClass="info-value"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+        <VBox spacing="14" HBox.hgrow="ALWAYS" styleClass="panel">
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <TextField fx:id="bidAmountField" promptText="Nhập số nguyên, không vượt quá số dư" HBox.hgrow="ALWAYS"/>
+                <ProgressIndicator fx:id="placingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+                <Button fx:id="btnPlaceBid" text="Đặt giá" onAction="#handlePlaceBid" styleClass="btn-primary"/>
+            </HBox>
+
+            <LineChart fx:id="priceChart" VBox.vgrow="ALWAYS" prefHeight="410" animated="false" createSymbols="true">
+                <xAxis><CategoryAxis label="Thời gian"/></xAxis>
+                <yAxis><NumberAxis label="Giá"/></yAxis>
+            </LineChart>
+        </VBox>
+
+        <VBox spacing="12" prefWidth="390" styleClass="panel">
+            <VBox spacing="2">
+                <Label text="Lịch sử đặt giá" styleClass="section-title"/>
+                <Label text="Tải từ database khi mở màn và cập nhật khi có bid mới." styleClass="section-subtitle" wrapText="true"/>
+            </VBox>
+
+            <TableView fx:id="bidHistoryTable" VBox.vgrow="ALWAYS" prefHeight="430">
+                <placeholder><Label text="Chưa có lượt đặt giá nào." styleClass="muted-label"/></placeholder>
+                <columns>
+                    <TableColumn fx:id="colBidTime" text="Thời gian" prefWidth="120"/>
+                    <TableColumn fx:id="colBidder" text="Người đặt" prefWidth="100"/>
+                    <TableColumn fx:id="colBidAmount" text="Giá đặt" prefWidth="105"/>
+                    <TableColumn fx:id="colBidWinning" text="TT" prefWidth="55"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </HBox>
+
+    <Label text="Gợi ý: giá đặt phải ≥ giá hiện tại + bước giá tối thiểu, không vượt số dư. Khi phiên kết thúc, hệ thống tự thông báo người thắng/thua và cập nhật ví." styleClass="muted-label" wrapText="true"/>
+</VBox>

@@ -1,19 +1,21 @@
 package com.auction.server.feature.auth.controller;
 
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.*;
 import com.auction.server.feature.auth.service.AuthService;
 import com.auction.shared.dto.Response;
+import com.auction.shared.dto.auth.request.LoginRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
+import com.auction.shared.protocol.JsonSupport;
 import com.google.gson.Gson;
 
 public class AuthController {
 
     private final AuthService authService;
     private final Gson gson;
-
-    public AuthController() {
-        this.authService = new AuthService();
-        this.gson = new Gson();
+    // SỬ dụng Dependency INJECTION dễ mock test,...
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+        this.gson = JsonSupport.createGson();
     }
 
     public Response<com.auction.shared.dto.AuthResponse> register(String body) {
@@ -28,6 +30,7 @@ public class AuthController {
             return Response.fail(e.getMessage());
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.fail("Internal server error");
         }
     }
@@ -44,40 +47,7 @@ public class AuthController {
             return Response.fail(e.getMessage());
 
         } catch (Exception e) {
-            return Response.fail("Internal server error");
-        }
-    }
-
-    public Response<String> forgotPassword(String body) {
-        try {
-            ForgotPasswordRequest request = gson.fromJson(body, ForgotPasswordRequest.class);
-
-            String resetToken = authService.forgotPassword(request);
-
-            // Tạm thời trả token để test.
-            // Sau này có email thật thì không trả token trực tiếp nữa.
-            return Response.success("Reset token created", resetToken);
-
-        } catch (AuthException e) {
-            return Response.fail(e.getMessage());
-
-        } catch (Exception e) {
-            return Response.fail("Internal server error");
-        }
-    }
-
-    public Response<String> resetPassword(String body) {
-        try {
-            ResetPasswordRequest request = gson.fromJson(body, ResetPasswordRequest.class);
-
-            authService.resetPassword(request);
-
-            return Response.success("Password reset success", null);
-
-        } catch (AuthException e) {
-            return Response.fail(e.getMessage());
-
-        } catch (Exception e) {
+            e.printStackTrace();
             return Response.fail("Internal server error");
         }
     }

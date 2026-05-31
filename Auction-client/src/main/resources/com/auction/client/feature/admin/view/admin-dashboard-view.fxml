@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.feature.admin.controller.AdminDashboardController"
+      prefWidth="1050" prefHeight="720" spacing="18"
+      styleClass="app-background"
+      stylesheets="@/com/auction/client/css/app-style.css">
+
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Button text="← Trang chủ" onAction="#handleBack" styleClass="btn-ghost"/>
+        <VBox spacing="3">
+            <Label text="Quản trị hệ thống" styleClass="page-title"/>
+            <Label text="Theo dõi sự kiện realtime và thao tác nhanh cho admin." styleClass="page-subtitle"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Phiên đấu giá" onAction="#handleOpenAuctions" styleClass="btn-secondary"/>
+        <Button text="Xóa log" onAction="#handleClearLog" styleClass="btn-ghost"/>
+        <Button text="Đăng xuất" onAction="#handleLogout" styleClass="btn-danger"/>
+    </HBox>
+
+    <HBox spacing="14">
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Phiên đăng nhập" styleClass="stat-label"/>
+            <Label fx:id="lblSessionInfo" text="Session:" styleClass="info-value"/>
+        </VBox>
+        <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+            <Label text="Chức năng chính" styleClass="stat-label"/>
+            <Label text="Theo dõi event từ server" styleClass="info-value"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="12" VBox.vgrow="ALWAYS" styleClass="panel">
+        <VBox spacing="2">
+            <Label text="Server Event Log" styleClass="section-title"/>
+            <Label text="Danh sách event realtime, không cần polling." styleClass="section-subtitle"/>
+        </VBox>
+
+        <ListView fx:id="lvEventLog" VBox.vgrow="ALWAYS" prefHeight="460"/>
+
+        <Label text="Ghi chú: màn admin hiện tại ưu tiên theo dõi realtime/event. Các API quản trị chi tiết có thể bổ sung sau khi server chốt." wrapText="true" styleClass="muted-label"/>
+    </VBox>
+
+</VBox>

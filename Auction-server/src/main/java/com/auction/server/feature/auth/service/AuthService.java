@@ -1,462 +1,249 @@
 package com.auction.server.feature.auth.service;
 
-import com.auction.server.exception.DataAccessException;
+import com.auction.server.database.DbExecutor;
+import com.auction.server.database.HibernateUtil;
 import com.auction.server.feature.auth.AuthException;
-import com.auction.server.feature.auth.dto.*;
-import com.auction.server.feature.auth.repository.PasswordResetRepository;
+import com.auction.server.feature.auth.repository.HibernateUserRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
 import com.auction.server.feature.auth.util.PasswordUtil;
-import com.auction.server.feature.auth.util.ResetTokenUtil;
-import com.auction.shared.model.PasswordResetToken;
-import com.auction.server.model.User;
+import com.auction.shared.dto.AuthResponse;
+import com.auction.shared.dto.UserInfo;
+import com.auction.shared.dto.auth.request.LoginRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
+import com.auction.server.entity.User;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.math.BigDecimal;
 
+/**
+ * AuthService: xử lý nghiệp vụ đăng ký và đăng nhập.
+ *
+ * Nguyên tắc thiết kế:
+ *   - Không biết về Session/Transaction — DbExecutor lo phần đó
+ *   - Không lộ passwordHash ra ngoài — dùng UserInfo DTO
+ *   - Không tiết lộ thông tin nhạy cảm trong message lỗi
+ *   - Validate format trước khi mở transaction
+ *     → tránh tốn DB connection khi input sai
+ *
+ * Tối ưu connection pool:
+ *   - Bcrypt (~100ms CPU) được đưa RA NGOÀI transaction
+ *   - DB connection chỉ bị giữ khi thực sự cần query (~2-4ms)
+ */
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PasswordResetRepository passwordResetRepository;
 
+    // ─── Constructor chính: inject dependency (DIP)
+    // Dùng khi test: truyền InMemoryUserRepository để mock
+    public AuthService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    // ─── Constructor tiện lợi: dùng khi production
+    // RequestDispatcher gọi new AuthService()
     public AuthService() {
-        this.userRepository = new UserRepository();
-        this.passwordResetRepository =
-                new PasswordResetRepository();
+        this(new HibernateUserRepository(HibernateUtil.getSessionFactory()));
     }
 
     // =====================================================
-    // REGISTER
+    // REGISTER (ĐĂNG KÝ)
     // =====================================================
-    public com.auction.shared.dto.AuthResponse register(
-            RegisterRequest request
-    ) {
 
+    /**
+     * Luồng xử lý nguyên tử (Atomic Register):
+     * 1. Validate format & Chuẩn hóa (Ngoài TX)
+     * 2. Hash password thô (Ngoài TX - Tốn 100ms CPU nhưng Connection Pool rảnh hoàn toàn)
+     * 3. [TX Duy Nhất] Kiểm tra trùng + Lưu DB (Connection giữ ~2-3ms rồi đóng ngay)
+     */
+    public AuthResponse register(RegisterRequest request) {
+
+        // Bước 1: Validate format ngoài transaction
         validateRegister(request);
 
-        // Chuẩn hóa dữ liệu trước khi xử lý
-        String fullName =
-                request.getFullName().trim();
+        // Bước 2: Chuẩn hóa dữ liệu ngoài transaction
+        final String fullName = request.getFullName().trim();
+        final String username = request.getUsername().trim();
+        final String email    = request.getEmail().trim().toLowerCase();
+        final String phone    = request.getPhone().trim();
+        final String password = request.getPassword();
+        final LocalDate dob   = LocalDate.parse(request.getDateOfBirth().trim());
+        final User.Role role   = parseRegisterRole(request.getRole());
 
-        String username =
-                request.getUsername().trim();
+        // Bước 3: Hash mật khẩu TRƯỚC KHI mở Transaction
+        // Chấp nhận tốn 100ms CPU ngay cả khi trùng tài khoản, đổi lại an toàn tuyệt đối
+        final String passwordHash = PasswordUtil.hashPassword(password);
 
-        String email =
-                request.getEmail().trim().toLowerCase();
+        // Bước 4: Mở 1 Transaction duy nhất: Vừa check trùng vừa ghi dữ liệu
+        // Triệt tiêu hoàn toàn khoảng trống Race Condition giữa 2 TX độc lập
+        return DbExecutor.runAndReturn(() -> {
 
-        String phone =
-                request.getPhone().trim();
-
-        String dob =
-                request.getDateOfBirth().trim();
-
-        String password =
-                request.getPassword();
-
-        try {
-
-            // Kiểm tra username đã tồn tại chưa
             if (userRepository.existsByUsername(username)) {
-
-                throw new AuthException(
-                        "Username already exists"
-                );
+                throw new AuthException("Lỗi trùng tên đăng nhập");
             }
-
-            // Kiểm tra email đã tồn tại chưa
             if (userRepository.existsByEmail(email)) {
-
-                throw new AuthException(
-                        "Email already exists"
-                );
+                throw new AuthException("Lỗi trùng tên Email");
             }
 
-            // Hash password trước khi lưu DB
-            String passwordHash =
-                    PasswordUtil.hashPassword(password);
+            User user = new User();
+            user.setFullName(fullName);
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPhone(phone);
+            user.setDateOfBirth(dob);
+            user.setPasswordHash(passwordHash);
+            user.setRole(role);
+            user.setBalance(BigDecimal.ZERO);
 
-            User user = new User(
-                    null,
-                    fullName,
-                    username,
-                    email,
-                    phone,
-                    dob,
-                    passwordHash,
-                    "BIDDER"
-            );
-
-            // Lưu database
-            User saved =
-                    userRepository.save(user);
-
-            // Convert User -> UserInfo an toàn
-            com.auction.shared.dto.UserInfo userInfo =
-                    toUserInfo(saved);
-
-            return com.auction.shared.dto.AuthResponse
-                    .fromUserInfo(userInfo);
-
-        } catch (DataAccessException e) {
-
-            throw new AuthException(
-                    "System error while registering"
-            );
-        }
+            User saved = userRepository.save(user);
+            return AuthResponse.fromUserInfo(toUserInfo(saved));
+        });
     }
 
     // =====================================================
     // LOGIN
     // =====================================================
-    public com.auction.shared.dto.AuthResponse login(
-            LoginRequest request
-    ) {
 
+    /**
+     * Đăng nhập bằng username HOẶC email.
+     *
+     * Luồng (tối ưu connection pool — hot path):
+     *   1. validate format     — ngoài transaction
+     *   2. [TX read-only] tìm user — connection giữ ~1ms rồi trả về pool
+     *   3. verifyPassword()    — NGOÀI transaction, CPU ~100ms, DB connection rảnh
+     *
+     * Bảo mật:
+     *   - Không phân biệt "sai username" hay "sai password"
+     *     → chống Account Enumeration Attack
+     *
+     * @throws AuthException nếu sai thông tin đăng nhập
+     */
+    public AuthResponse login(LoginRequest request) {
+
+        // Validate format — không cần DB connection
         validateLogin(request);
 
-        String loginId =
-                request.identity().trim();
+        final String loginId = request.identity().trim();
+        final String emailLoginId = loginId.toLowerCase();
 
-        String password =
-                request.password();
+        // [TX read-only] chỉ query — DbExecutor.query() tắt dirty checking
+        // connection giữ ~1ms rồi trả về pool ngay
+        User user = DbExecutor.query(() ->
+                userRepository.findByUsername(loginId)
+                        // Email đã được lưu lowercase khi đăng ký, nên login bằng email cũng normalize.
+                        .or(() -> userRepository.findByEmail(emailLoginId))
+                        .orElse(null)
+        );
 
-        try {
-
-            // Tìm bằng username HOẶC email
-            User user =
-                    userRepository.findByLoginId(
-                            loginId
-                    );
-
-            // Không nói rõ sai username/email
-            if (user == null) {
-
-                throw new AuthException(
-                        "Invalid username/email or password"
-                );
-            }
-
-            // So sánh password thật với hash
-            boolean match =
-                    PasswordUtil.verifyPassword(
-                            password,
-                            user.getPasswordHash()
-                    );
-
-            if (!match) {
-
-                throw new AuthException(
-                        "Invalid username/email or password"
-                );
-            }
-
-            com.auction.shared.dto.UserInfo userInfo =
-                    toUserInfo(user);
-
-            return com.auction.shared.dto.AuthResponse
-                    .fromUserInfo(userInfo);
-
-        } catch (DataAccessException e) {
-
-            throw new AuthException(
-                    "System error while login"
-            );
+        // verifyPassword NGOÀI transaction — CPU ~100ms
+        // DB connection đã rảnh, phục vụ request khác
+        //
+        // Không nói rõ "sai username" hay "sai password" — bảo mật hơn
+        if (user == null
+                || Boolean.FALSE.equals(user.getIsActive())
+                || !PasswordUtil.verifyPassword(request.password(), user.getPasswordHash())) {
+            throw new AuthException("Sai tên đăng nhập hoặc mật khẩu");
         }
+
+        // Trả UserInfo — không có passwordHash
+        return AuthResponse.fromUserInfo(toUserInfo(user));
     }
 
     // =====================================================
-    // FORGOT PASSWORD
+    // PRIVATE — VALIDATE
     // =====================================================
-    public String forgotPassword(
-            ForgotPasswordRequest request
-    ) {
 
-        if (request == null
-                || isBlank(request.getEmail())) {
-
-            throw new AuthException(
-                    "Email required"
-            );
-        }
-
-        try {
-
-            User user =
-                    userRepository.findByEmail(
-                            request.getEmail()
-                                    .trim()
-                                    .toLowerCase()
-                    );
-
-            // Không báo email tồn tại hay không
-            // để tránh dò tài khoản
-            if (user == null) {
-
-                return "Reset token generated";
-            }
-
-            // Tạo token reset password
-            String token =
-                    ResetTokenUtil.generateToken();
-
-            // Token hết hạn sau 15 phút
-            LocalDateTime expiredAt =
-                    LocalDateTime.now()
-                            .plusMinutes(15);
-
-            passwordResetRepository.saveToken(
-                    user.getId(),
-                    token,
-                    expiredAt
-            );
-
-            // Sau này:
-            // gửi email tại đây
-
-            return token;
-
-        } catch (DataAccessException e) {
-
-            throw new AuthException(
-                    "System error while resetting password"
-            );
-        }
-    }
-
-    // =====================================================
-    // RESET PASSWORD
-    // =====================================================
-    public void resetPassword(
-            ResetPasswordRequest request
-    ) {
-
-        validateResetPassword(request);
-
-        try {
-
-            PasswordResetToken token =
-                    passwordResetRepository
-                            .findByToken(
-                                    request.getToken()
-                            );
-
-            if (token == null) {
-
-                throw new AuthException(
-                        "Invalid token"
-                );
-            }
-
-            // Token đã dùng chưa
-            if (token.isUsed()) {
-
-                throw new AuthException(
-                        "Token already used"
-                );
-            }
-
-            // Token hết hạn chưa
-            if (token.getExpiredAt()
-                    .isBefore(
-                            LocalDateTime.now()
-                    )) {
-
-                throw new AuthException(
-                        "Token expired"
-                );
-            }
-
-            // Hash password mới
-            String newHash =
-                    PasswordUtil.hashPassword(
-                            request.getNewPassword()
-                    );
-
-            // Update password
-            userRepository.updatePassword(
-                    token.getUserId(),
-                    newHash
-            );
-
-            // Đánh dấu token đã dùng
-            passwordResetRepository.markUsed(
-                    token.getId()
-            );
-
-        } catch (DataAccessException e) {
-
-            throw new AuthException(
-                    "System error while resetting password"
-            );
-        }
-    }
-
-    // =====================================================
-    // VALIDATE REGISTER
-    // =====================================================
-    private void validateRegister(
-            RegisterRequest request
-    ) {
-
+    /**
+     * Validate format request đăng ký.
+     * Gọi TRƯỚC transaction — không tốn DB connection nếu input sai.
+     */
+    private void validateRegister(RegisterRequest request) {
         if (request == null) {
-
-            throw new AuthException(
-                    "Invalid request"
-            );
+            throw new AuthException("Invalid request");
         }
-
         if (isBlank(request.getFullName())) {
-
-            throw new AuthException(
-                    "Full name required"
-            );
+            throw new AuthException("Full name required");
         }
-
         if (isBlank(request.getUsername())) {
-
-            throw new AuthException(
-                    "Username required"
-            );
+            throw new AuthException("Username required");
         }
-
         if (isBlank(request.getEmail())) {
-
-            throw new AuthException(
-                    "Email required"
-            );
+            throw new AuthException("Email required");
         }
-
         if (isBlank(request.getPhone())) {
-
-            throw new AuthException(
-                    "Phone required"
-            );
+            throw new AuthException("Phone required");
         }
-
         if (isBlank(request.getDateOfBirth())) {
-
-            throw new AuthException(
-                    "Date of birth required"
-            );
+            throw new AuthException("Date of birth required");
         }
-
         if (isBlank(request.getPassword())) {
-
-            throw new AuthException(
-                    "Password required"
-            );
+            throw new AuthException("Password required");
         }
-
         if (request.getPassword().length() < 6) {
-
-            throw new AuthException(
-                    "Password must be at least 6 characters"
-            );
+            throw new AuthException("Password must be at least 6 characters");
         }
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new AuthException("Password confirmation does not match");
+        }
+        parseRegisterRole(request.getRole());
+    }
 
-        if (!request.getPassword()
-                .equals(
-                        request.getConfirmPassword()
-                )) {
 
-            throw new AuthException(
-                    "Password confirmation does not match"
-            );
+    /**
+     * Chỉ cho phép người dùng tự đăng ký vai trò nghiệp vụ thông thường.
+     * ADMIN không được tạo từ form đăng ký public.
+     */
+    private User.Role parseRegisterRole(String rawRole) {
+        if (isBlank(rawRole)) {
+            return User.Role.BIDDER;
+        }
+        try {
+            User.Role parsed = User.Role.valueOf(rawRole.trim().toUpperCase());
+            if (parsed == User.Role.ADMIN) {
+                throw new AuthException("Không thể tự đăng ký tài khoản ADMIN");
+            }
+            return parsed;
+        } catch (IllegalArgumentException ex) {
+            throw new AuthException("Role đăng ký không hợp lệ");
         }
     }
 
-    // =====================================================
-    // VALIDATE LOGIN
-    // =====================================================
-    private void validateLogin(
-            LoginRequest request
-    ) {
-
+    /** Validate format request đăng nhập. */
+    private void validateLogin(LoginRequest request) {
         if (request == null) {
-
-            throw new AuthException(
-                    "Invalid request"
-            );
+            throw new AuthException("Invalid request");
         }
-
         if (isBlank(request.identity())) {
-
-            throw new AuthException(
-                    "Username or email required"
-            );
+            throw new AuthException("Username or email required");
         }
-
         if (isBlank(request.password())) {
-
-            throw new AuthException(
-                    "Password required"
-            );
+            throw new AuthException("Password required");
         }
     }
 
     // =====================================================
-    // VALIDATE RESET PASSWORD
+    // PRIVATE — HELPER
     // =====================================================
-    private void validateResetPassword(
-            ResetPasswordRequest request
-    ) {
 
-        if (request == null) {
-
-            throw new AuthException(
-                    "Invalid request"
-            );
-        }
-
-        if (isBlank(request.getToken())) {
-
-            throw new AuthException(
-                    "Token required"
-            );
-        }
-
-        if (isBlank(request.getNewPassword())) {
-
-            throw new AuthException(
-                    "New password required"
-            );
-        }
-
-        if (request.getNewPassword().length() < 6) {
-
-            throw new AuthException(
-                    "Password must be at least 6 characters"
-            );
-        }
-
-        if (!request.getNewPassword()
-                .equals(
-                        request.getConfirmPassword()
-                )) {
-
-            throw new AuthException(
-                    "Password confirmation does not match"
-            );
-        }
-    }
-
-    // =====================================================
-    // HELPER
-    // =====================================================
+    /** Kiểm tra chuỗi null hoặc rỗng sau khi trim */
     private boolean isBlank(String s) {
-
-        return s == null
-                || s.trim().isEmpty();
+        return s == null || s.trim().isEmpty();
     }
-    // Chuyển User -> UserInfo an toàn để trả về client
-    private com.auction.shared.dto.UserInfo toUserInfo(User user) {
+
+    /**
+     * Convert User entity → UserInfo DTO an toàn để trả về client.
+     * User entity chứa passwordHash — không bao giờ được ra ngoài Service.
+     */
+    private UserInfo toUserInfo(User user) {
         if (user == null) return null;
-        return new com.auction.shared.dto.UserInfo(
+        return new UserInfo(
                 user.getId(),
                 user.getFullName(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhone(),
-                user.getDateOfBirth(),
-                user.getRole()
+                user.getDateOfBirth() != null ? user.getDateOfBirth().toString() : null,
+                user.getRole() != null ? user.getRole().name() : null,
+                user.getBalance()
         );
     }
 }

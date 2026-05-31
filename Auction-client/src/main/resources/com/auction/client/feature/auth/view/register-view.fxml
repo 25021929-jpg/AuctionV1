@@ -4,6 +4,7 @@
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -30,21 +31,7 @@
         <Label styleClass="subtitle" text="Tạo tài khoản mới" />
 
         <Pane prefWidth="180" style="-fx-max-width: 180;" styleClass="divider" />
-
-        <VBox spacing="12" style="-fx-padding: 8 0 0 0;">
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-text-fill: #1565FF; -fx-font-size: 16px;" text="①" />
-                <Label style="-fx-text-fill: #B8C8DC;" styleClass="subtitle" text="Nhập thông tin cá nhân" />
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;" text="②" />
-                <Label styleClass="subtitle" text="Đặt mật khẩu bảo mật" />
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label style="-fx-text-fill: #2A4A6A; -fx-font-size: 16px;" text="③" />
-                <Label styleClass="subtitle" text="Xác nhận và hoàn tất" />
-            </HBox>
-        </VBox>
+        <Label styleClass="subtitle" text="Đăng ký nhanh trong một biểu mẫu" />
     </VBox>
 
     <!-- RIGHT — Form -->
@@ -93,6 +80,19 @@
                     <Label fx:id="dobError" managed="false" styleClass="error-message" visible="false" />
                 </VBox>
             </HBox>
+
+            <!-- Role -->
+            <VBox spacing="7">
+                <Label styleClass="field-label" text="VAI TRÒ TÀI KHOẢN" />
+                <HBox spacing="12">
+                    <RadioButton fx:id="bidderRoleRadio" selected="true" text="BIDDER - Người mua/đặt giá"
+                                 style="-fx-text-fill: #DDEBFF; -fx-font-weight: bold;" />
+                    <RadioButton fx:id="sellerRoleRadio" text="SELLER - Người bán/đăng sản phẩm"
+                                 style="-fx-text-fill: #DDEBFF; -fx-font-weight: bold;" />
+                </HBox>
+                <Label text="Chọn SELLER nếu bạn cần đăng sản phẩm; chọn BIDDER nếu chỉ cần tham gia đặt giá."
+                       wrapText="true" style="-fx-text-fill: #8FA7C1; -fx-font-size: 11px;" />
+            </VBox>
 
             <!-- Row 3 -->
             <HBox spacing="14">

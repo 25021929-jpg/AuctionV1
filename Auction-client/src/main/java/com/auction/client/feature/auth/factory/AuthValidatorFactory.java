@@ -1,10 +1,10 @@
 package com.auction.client.feature.auth.factory;
 
-import com.auction.client.feature.auth.dto.request.ForgotPasswordRequest;
-import com.auction.client.feature.auth.dto.request.LoginRequest;
-import com.auction.client.feature.auth.dto.request.OtpRequest;
-import com.auction.client.feature.auth.dto.request.RegisterRequest;
-import com.auction.client.feature.auth.dto.request.ResetPasswordRequest;
+import com.auction.shared.dto.auth.request.ForgotPasswordRequest;
+import com.auction.shared.dto.auth.request.LoginRequest;
+import com.auction.shared.dto.auth.request.OtpRequest;
+import com.auction.shared.dto.auth.request.RegisterRequest;
+import com.auction.shared.dto.auth.request.ResetPasswordRequest;
 import com.auction.client.feature.auth.validator.ForgotPasswordValidator;
 import com.auction.client.feature.auth.validator.LoginValidator;
 import com.auction.client.feature.auth.validator.OtpValidator;

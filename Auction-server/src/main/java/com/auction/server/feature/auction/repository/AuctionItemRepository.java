@@ -1,85 +1,63 @@
 package com.auction.server.feature.auction.repository;
 
-import com.auction.server.exception.DataAccessException;
-import com.auction.server.database.DatabaseConnection;
+import com.auction.server.entity.AuctionItem;
+import java.util.List;
+import java.util.Optional;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+/**
+ * Contract cho mọi thao tác DB liên quan đến bảng auction_items.
+ *
+ * Service chỉ biết interface này.
+ * Mọi chi tiết Hibernate, Session, SQL đều ẩn trong Implementation.
+ */
+public interface AuctionItemRepository {
 
-public class AuctionItemRepository {
+    // ===== READ =====
 
-    public int save(
-            int sellerId,
-            int categoryId,
-            String itemName,
-            String description
-    ) {
-        String sql = """
-                INSERT INTO auction_items (
-                    seller_id,
-                    category_id,
-                    item_name,
-                    description
-                )
-                VALUES (?, ?, ?, ?)
-                """;
+    /** Tìm item theo id — trả Optional vì có thể không tồn tại */
+    Optional<AuctionItem> findById(Long id);
 
-        try (
-                Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(
-                        sql,
-                        Statement.RETURN_GENERATED_KEYS
-                )
-        ) {
-            statement.setInt(1, sellerId);
-            statement.setInt(2, categoryId);
-            statement.setString(3, itemName);
-            statement.setString(4, description);
+    /**
+     * Tìm item kèm ảnh + seller + category.
+     * Dùng cho: trang detail item, admin duyệt item.
+     */
+    Optional<AuctionItem> findByIdWithDetails(Long id);
 
-            int affectedRows = statement.executeUpdate();
+    /**
+     * Danh sách item của một seller, lọc theo status, phân trang.
+     * Dùng cho: trang quản lý của người bán.
+     */
+    List<AuctionItem> findBySeller(Long sellerId,
+                                   AuctionItem.ItemStatus status,
+                                   int page, int size);
 
-            if (affectedRows == 0) {
-                throw new DataAccessException("Create auction item failed",null);
-            }
+    /**
+     * Danh sách item theo danh mục, chỉ APPROVED.
+     * Dùng cho: trang danh mục sản phẩm.
+     */
+    List<AuctionItem> findByCategory(Integer categoryId,
+                                     int page, int size);
 
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                }
-            }
+    /**
+     * Tìm kiếm item theo tên — không phân biệt hoa thường.
+     * Dùng cho: thanh search.
+     */
+    List<AuctionItem> searchByName(String keyword, int page, int size);
 
-            throw new DataAccessException("Create auction item failed, no ID returned",null);
+    /**
+     * Danh sách item chờ duyệt — admin xử lý.
+     * Không cần phân trang vì admin thường xử lý hết.
+     */
+    List<AuctionItem> findPendingReview();
 
-        } catch (Exception e) {
-            throw new DataAccessException("Error while saving auction item", e);
-        }
-    }
+    // ===== WRITE =====
 
-    public boolean existsById(int itemId) {
-        String sql = """
-                SELECT COUNT(*)
-                FROM auction_items
-                WHERE item_id = ?
-                """;
+    /** Lưu item mới hoặc cập nhật */
+    AuctionItem save(AuctionItem item);
 
-        try (
-                Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql)
-        ) {
-            statement.setInt(1, itemId);
-
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return resultSet.getInt(1) > 0;
-                }
-            }
-
-            return false;
-
-        } catch (Exception e) {
-            throw new DataAccessException("Error while checking auction item", e);
-        }
-    }
+    /**
+     * Lấy proxy của item — không hit DB.
+     * Dùng khi cần set FK mà không cần load toàn bộ item.
+     */
+    AuctionItem getReference(Long id);
 }

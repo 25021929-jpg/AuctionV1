@@ -9,6 +9,7 @@ public class RegisterRequest {
     private String dateOfBirth; // dạng yyyy-MM-dd
     private String password;
     private String confirmPassword;
+    private String role; // BIDDER hoặc SELLER
 
     public RegisterRequest() {}
 
@@ -19,4 +20,5 @@ public class RegisterRequest {
     public String getDateOfBirth() { return dateOfBirth; }
     public String getPassword() { return password; }
     public String getConfirmPassword() { return confirmPassword; }
+    public String getRole() { return role; }
 }

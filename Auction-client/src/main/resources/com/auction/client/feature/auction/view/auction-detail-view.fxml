@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.feature.auction.controller.AuctionDetailController"
+      prefWidth="1050" prefHeight="720" spacing="18"
+      styleClass="app-background"
+      stylesheets="@/com/auction/client/css/app-style.css">
+
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Button text="← Danh sách" onAction="#handleBack" styleClass="btn-ghost"/>
+        <VBox spacing="3">
+            <Label text="Chi tiết phiên đấu giá" styleClass="page-title"/>
+            <Label text="Kiểm tra thông tin sản phẩm, thời gian và trạng thái trước khi vào phòng realtime." styleClass="page-subtitle"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <ProgressIndicator fx:id="loadingIndicator" maxWidth="22" maxHeight="22" visible="false"/>
+        <Button fx:id="btnRefresh" text="Tải lại" onAction="#handleRefresh" styleClass="btn-ghost"/>
+    </HBox>
+
+    <VBox spacing="18" VBox.vgrow="ALWAYS" styleClass="panel">
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblItemName" text="Tên sản phẩm" wrapText="true" styleClass="section-title"/>
+                <Label fx:id="lblDescription" text="Mô tả sản phẩm" wrapText="true" styleClass="page-subtitle"/>
+            </VBox>
+            <VBox spacing="4" alignment="CENTER_RIGHT" minWidth="230">
+                <Label text="Giá hiện tại" styleClass="stat-label"/>
+                <Label fx:id="lblCurrentPrice" text="-" styleClass="price-value"/>
+            </VBox>
+        </HBox>
+
+        <Separator/>
+
+        <HBox spacing="14">
+            <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                <Label text="Trạng thái" styleClass="stat-label"/>
+                <Label fx:id="lblStatus" text="-" styleClass="info-value"/>
+            </VBox>
+            <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                <Label text="Bắt đầu" styleClass="stat-label"/>
+                <Label fx:id="lblStartTime" text="-" styleClass="info-value"/>
+            </VBox>
+            <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                <Label text="Kết thúc" styleClass="stat-label"/>
+                <Label fx:id="lblEndTime" text="-" styleClass="info-value"/>
+            </VBox>
+        </HBox>
+
+        <GridPane hgap="18" vgap="14">
+            <columnConstraints>
+                <ColumnConstraints minWidth="150"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+                <ColumnConstraints minWidth="150"/>
+                <ColumnConstraints hgrow="ALWAYS"/>
+            </columnConstraints>
+
+            <Label text="Loại sản phẩm" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="info-label"/>
+            <Label fx:id="lblCategory" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="info-value"/>
+
+            <Label text="Người bán" GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="info-label"/>
+            <Label fx:id="lblSeller" text="-" GridPane.rowIndex="0" GridPane.columnIndex="3" styleClass="info-value"/>
+
+            <Label text="Giá khởi điểm" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="info-label"/>
+            <Label fx:id="lblStartPrice" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="info-value"/>
+
+            <Label text="Người dẫn đầu" GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="info-label"/>
+            <Label fx:id="lblLeader" text="-" GridPane.rowIndex="1" GridPane.columnIndex="3" styleClass="info-value"/>
+
+            <Label text="Số lượt đặt giá" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="info-label"/>
+            <Label fx:id="lblTotalBids" text="0" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="info-value"/>
+        </GridPane>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <HBox spacing="12" alignment="CENTER_RIGHT">
+            <Label text="Seller không được tự đấu giá sản phẩm của mình; bidder cần đủ số dư trước khi đặt giá." styleClass="muted-label" wrapText="true"/>
+            <Button fx:id="btnGoLive" text="Vào phòng đấu giá realtime" onAction="#handleGoToLiveBidding" styleClass="btn-primary"/>
+        </HBox>
+    </VBox>
+</VBox>

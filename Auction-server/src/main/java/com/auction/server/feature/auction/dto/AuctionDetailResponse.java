@@ -3,17 +3,24 @@ package com.auction.server.feature.auction.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * DTO trả về danh sách phiên đấu giá.
+ */
+
 public class AuctionDetailResponse {
 
-    private int auctionId;
-    private int itemId;
+    private Long auctionId;
+    private Long itemId;
     private String itemName;
     private String description;
     private String categoryName;
     private String sellerName;
+    private String leaderUsername;
 
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
+    private BigDecimal minBidStep;
+    private Integer totalBids;
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -24,8 +31,8 @@ public class AuctionDetailResponse {
     }
 
     public AuctionDetailResponse(
-            int auctionId,
-            int itemId,
+            Long auctionId,
+            Long itemId,
             String itemName,
             String description,
             String categoryName,
@@ -49,19 +56,19 @@ public class AuctionDetailResponse {
         this.status = status;
     }
 
-    public int getAuctionId() {
+    public Long getAuctionId() {
         return auctionId;
     }
 
-    public void setAuctionId(int auctionId) {
+    public void setAuctionId(Long auctionId) {
         this.auctionId = auctionId;
     }
 
-    public int getItemId() {
+    public Long getItemId() {
         return itemId;
     }
 
-    public void setItemId(int itemId) {
+    public void setItemId(Long itemId) {
         this.itemId = itemId;
     }
 
@@ -97,6 +104,14 @@ public class AuctionDetailResponse {
         this.sellerName = sellerName;
     }
 
+    public String getLeaderUsername() {
+        return leaderUsername;
+    }
+
+    public void setLeaderUsername(String leaderUsername) {
+        this.leaderUsername = leaderUsername;
+    }
+
     public BigDecimal getStartingPrice() {
         return startingPrice;
     }
@@ -111,6 +126,22 @@ public class AuctionDetailResponse {
 
     public void setCurrentPrice(BigDecimal currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+    public BigDecimal getMinBidStep() {
+        return minBidStep;
+    }
+
+    public void setMinBidStep(BigDecimal minBidStep) {
+        this.minBidStep = minBidStep;
+    }
+
+    public Integer getTotalBids() {
+        return totalBids;
+    }
+
+    public void setTotalBids(Integer totalBids) {
+        this.totalBids = totalBids;
     }
 
     public LocalDateTime getStartTime() {
