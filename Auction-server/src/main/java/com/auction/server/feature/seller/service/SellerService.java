@@ -148,7 +148,7 @@ public class SellerService {
             ensureEditable(auction);
 
             // Soft delete: keep historical consistency for bids/payments and hide it from seller workflows.
-            auction.setStatus(AuctionSession.AuctionStatus.CANCELED);
+            auction.setStatus(AuctionSession.AuctionStatus.CANCELLED);
             auction.getItem().setStatus(AuctionItem.ItemStatus.ARCHIVED);
             auctionItemRepository.save(auction.getItem());
             auctionSessionRepository.save(auction);

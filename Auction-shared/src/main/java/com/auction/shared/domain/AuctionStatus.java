@@ -8,7 +8,7 @@ package com.auction.shared.domain;
  *     <li>SCHEDULED: phiên đã tạo nhưng chưa tới giờ bắt đầu.</li>
  *     <li>ACTIVE: phiên đang mở, bidder được phép đặt giá.</li>
  *     <li>ENDED: phiên đã kết thúc tự nhiên theo thời gian.</li>
- *     <li>CANCELED: phiên bị hủy thủ công bởi seller/admin.</li>
+ *     <li>CANCELLED: phiên bị hủy thủ công bởi seller/admin.</li>
  * </ul>
  *
  * <p>Không đặt PAID trong AuctionStatus vì trạng thái thanh toán thuộc bảng
@@ -25,7 +25,7 @@ public enum AuctionStatus {
     ENDED,
 
     /** Phiên đã hủy. */
-    CANCELED;
+    CANCELLED;
 
     /**
      * Parse status từ string một cách an toàn.
@@ -33,7 +33,7 @@ public enum AuctionStatus {
      * <p>Hệ enum cũ đã được bỏ, nhưng method này vẫn map các chuỗi legacy
      * sang status chuẩn để tránh vỡ dữ liệu/test cũ khi còn log hoặc response cũ:
      * OPEN -> SCHEDULED, RUNNING -> ACTIVE, FINISHED/PAID -> ENDED,
-     * CANCELLED -> CANCELED.
+     * CANCELED -> CANCELLED.
      *
      * @param raw status có thể null hoặc khác format
      * @return AuctionStatus hoặc null nếu không parse được
@@ -47,7 +47,7 @@ public enum AuctionStatus {
             case "OPEN" -> SCHEDULED;
             case "RUNNING" -> ACTIVE;
             case "FINISHED", "PAID" -> ENDED;
-            case "CANCELLED" -> CANCELED;
+            case "CANCELED" -> CANCELLED;
             default -> {
                 try {
                     yield AuctionStatus.valueOf(s);
@@ -69,6 +69,6 @@ public enum AuctionStatus {
      * @return true nếu phiên không còn nhận bid và cần làm mới ví/lịch sử giao dịch.
      */
     public boolean isFinishedLike() {
-        return this == ENDED || this == CANCELED;
+        return this == ENDED || this == CANCELLED;
     }
 }
