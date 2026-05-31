@@ -93,6 +93,24 @@ public class HibernateAuctionSessionRepository
     }
 
     @Override
+    public List<AuctionSession> findEndedAwaitingSettlement() {
+        return sessionFactory.getCurrentSession()
+                .createQuery(
+                        """
+                        FROM AuctionSession a
+                        WHERE a.status = :status
+                          AND a.winner IS NOT NULL
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM Payment p
+                              WHERE p.auctionSession = a
+                          )
+                        """, AuctionSession.class)
+                .setParameter("status", AuctionSession.AuctionStatus.ENDED)
+                .getResultList();
+    }
+
+    @Override
     public List<AuctionSession> findScheduledToStart() {
         return sessionFactory.getCurrentSession()
                 .createQuery(
