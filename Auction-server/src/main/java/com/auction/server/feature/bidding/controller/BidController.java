@@ -97,8 +97,12 @@ public class BidController {
         data.addProperty("auctionSessionId", response.getAuctionSessionId());
         data.addProperty("bidId", response.getBidId());
         data.addProperty("bidderId", response.getBidderId());
+        data.addProperty("bidderUsername", response.getBidderUsername());
         data.add("bidAmount", gson.toJsonTree(response.getBidAmount()));
         data.add("currentPrice", gson.toJsonTree(response.getBidAmount()));
+        if (response.getBidTime() != null) {
+            data.addProperty("bidTime", response.getBidTime().toString());
+        }
         data.addProperty("timestamp", System.currentTimeMillis());
         data.add("bid", gson.toJsonTree(response));
 

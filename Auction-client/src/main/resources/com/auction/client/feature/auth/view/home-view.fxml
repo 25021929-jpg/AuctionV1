@@ -1,93 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.auction.client.feature.auth.controller.HomeController"
-           style="-fx-background-color: #7FC8F7;">
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.feature.auth.controller.HomeController"
+            prefWidth="1100" prefHeight="720"
+            styleClass="app-background"
+            stylesheets="@/com/auction/client/css/app-style.css">
 
-    <!-- Card container -->
-    <VBox maxWidth="520"
-          spacing="14"
-          style="-fx-background-color: rgba(255,255,255,0.92);
-                 -fx-background-radius: 18;
-                 -fx-border-radius: 18;
-                 -fx-border-color: rgba(255,255,255,0.55);
-                 -fx-border-width: 1;
-                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 18, 0.15, 0, 6);">
-        <padding>
-            <Insets top="22" right="22" bottom="22" left="22"/>
-        </padding>
+    <left>
+        <VBox prefWidth="270" spacing="18" styleClass="sidebar">
+            <VBox spacing="10" alignment="CENTER_LEFT">
+                <ImageView fitHeight="60" fitWidth="60" preserveRatio="true">
+                    <image><Image url="@/com/auction/client/css/logo.png"/></image>
+                </ImageView>
+                <VBox spacing="2">
+                    <Label text="TVP AUCTION" styleClass="sidebar-brand-title"/>
+                    <Label text="Đấu giá trực tuyến" styleClass="sidebar-brand-subtitle"/>
+                </VBox>
+            </VBox>
 
-        <!-- Header -->
-        <VBox spacing="4">
-            <Label text="Home"
-                   style="-fx-font-size: 22px; -fx-font-weight: 800; -fx-text-fill: #0B2545;"/>
-            <Label fx:id="lblWelcome" text="Chọn chức năng bạn muốn sử dụng"
-                   style="-fx-font-size: 13px; -fx-text-fill: rgba(11,37,69,0.75);"/>
+            <Pane styleClass="divider"/>
+
+            <VBox spacing="8">
+                <Button text="Danh sách phiên đấu giá" onAction="#handleOpenAuctionList"
+                        maxWidth="1.7976931348623157E308" styleClass="side-nav-button"/>
+                <Button text="Ví tài khoản / Nạp tiền" onAction="#handleOpenWallet"
+                        maxWidth="1.7976931348623157E308" styleClass="side-nav-button"/>
+            </VBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <VBox spacing="10" styleClass="sidebar-user-card">
+                <Label fx:id="lblWelcome" text="Chọn chức năng bạn muốn sử dụng" styleClass="info-value" wrapText="true"/>
+                <Label fx:id="lblBalance" text="Số dư: 0" styleClass="price-value" wrapText="true"/>
+            </VBox>
+
+            <Button text="Đăng xuất" onAction="#handleLogout"
+                    maxWidth="1.7976931348623157E308" styleClass="logout-button"/>
         </VBox>
+    </left>
 
-        <Separator opacity="0.35"/>
+    <center>
+        <VBox spacing="18" styleClass="content-area">
+            <VBox spacing="4">
+                <Label text="Trang chủ" styleClass="page-title"/>
+                <Label text="Chọn chức năng phù hợp với vai trò tài khoản của bạn." styleClass="page-subtitle"/>
+            </VBox>
 
-        <!-- Main actions -->
-        <VBox spacing="10">
-            <Button text="Danh sách phiên đấu giá"
-                    onAction="#handleOpenAuctionList"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: #1F7AE0;
-                           -fx-text-fill: white;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;"/>
+            <HBox spacing="14">
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Đấu giá realtime" styleClass="stat-label"/>
+                    <Label text="Theo dõi phiên và đặt giá trực tiếp" styleClass="info-value" wrapText="true"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Ví tài khoản" styleClass="stat-label"/>
+                    <Label text="Nạp tiền, xem số dư và lịch sử giao dịch" styleClass="info-value" wrapText="true"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
+                    <Label text="Thông báo kết thúc" styleClass="stat-label"/>
+                    <Label text="Seller và bidder nhận kết quả khi phiên kết thúc" styleClass="info-value" wrapText="true"/>
+                </VBox>
+            </HBox>
 
-            <Button fx:id="btnSeller" text="Seller Dashboard"
-                    onAction="#handleOpenSeller"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: rgba(31,122,224,0.12);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;
-                           -fx-border-color: rgba(31,122,224,0.25);
-                           -fx-border-radius: 12;
-                           -fx-border-width: 1;"/>
+            <VBox spacing="14" styleClass="panel" VBox.vgrow="ALWAYS">
+                <VBox spacing="3">
+                    <Label text="Thao tác nhanh" styleClass="section-title"/>
+                    <Label text="Các nút bên dưới đã được lọc theo role; seller/admin mới thấy chức năng quản lý phù hợp." styleClass="section-subtitle" wrapText="true"/>
+                </VBox>
 
-            <Button fx:id="btnAdmin" text="Admin Dashboard"
-                    onAction="#handleOpenAdmin"
-                    maxWidth="1.7976931348623157E308"
-                    style="-fx-background-color: rgba(31,122,224,0.12);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 14;
-                           -fx-border-color: rgba(31,122,224,0.25);
-                           -fx-border-radius: 12;
-                           -fx-border-width: 1;"/>
+                <GridPane hgap="14" vgap="14">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                    </columnConstraints>
+
+                    <Button text="Danh sách phiên đấu giá" onAction="#handleOpenAuctionList"
+                            maxWidth="1.7976931348623157E308" styleClass="btn-primary"
+                            GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Button text="Ví tài khoản / Nạp tiền" onAction="#handleOpenWallet"
+                            maxWidth="1.7976931348623157E308" styleClass="btn-secondary"
+                            GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                    <Button fx:id="btnSeller" text="Seller Dashboard" onAction="#handleOpenSeller"
+                            maxWidth="1.7976931348623157E308" styleClass="btn-secondary"
+                            GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <Button fx:id="btnAdmin" text="Admin Dashboard" onAction="#handleOpenAdmin"
+                            maxWidth="1.7976931348623157E308" styleClass="btn-secondary"
+                            GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <Label text="Ghi chú: seller không được tự đấu giá sản phẩm của mình; bidder phải nạp tiền trước nếu số dư không đủ." styleClass="muted-label" wrapText="true"/>
+            </VBox>
         </VBox>
-
-        <Region prefHeight="6"/>
-
-        <Separator opacity="0.35"/>
-
-        <!-- Footer -->
-        <HBox spacing="10">
-            <Region HBox.hgrow="ALWAYS"/>
-
-            <Button text="Đăng xuất"
-                    onAction="#handleLogout"
-                    style="-fx-background-color: rgba(0,0,0,0.08);
-                           -fx-text-fill: #0B2545;
-                           -fx-font-weight: 700;
-                           -fx-background-radius: 10;
-                           -fx-padding: 8 12;"/>
-        </HBox>
-
-    </VBox>
-</StackPane>
+    </center>
+</BorderPane>

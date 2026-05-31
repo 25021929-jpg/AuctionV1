@@ -8,9 +8,13 @@ import com.auction.client.network.ServerCommunicator;
 import com.auction.client.network.SocketClient;
 import com.auction.shared.dto.Response;
 import com.auction.shared.dto.auction.AuctionIdRequest;
+import com.auction.shared.dto.bidding.BidHistoryRequest;
+import com.auction.shared.dto.bidding.BidResultDto;
 import com.auction.shared.dto.bidding.PlaceBidRequest;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.math.BigDecimal;
 
 /** BidService implementation. */
@@ -55,4 +59,18 @@ public class BidServiceImpl implements BidService {
         ResponseUtils.unwrap(ActionConstants.BID_PLACE_BID, response);
         return true;
     }
+
+
+    @Override
+    public List<BidResultDto> getBidHistory(long auctionId, int limit) throws IOException {
+        BidHistoryRequest request = new BidHistoryRequest(auctionId, limit);
+        Response<BidResultDto[]> response = communicator.send(
+                ActionConstants.BID_GET_HISTORY,
+                request,
+                BidResultDto[].class
+        );
+        BidResultDto[] history = ResponseUtils.unwrap(ActionConstants.BID_GET_HISTORY, response);
+        return history == null ? List.of() : Arrays.asList(history);
+    }
+
 }

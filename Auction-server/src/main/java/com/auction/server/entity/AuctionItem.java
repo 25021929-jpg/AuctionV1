@@ -33,7 +33,7 @@ public class AuctionItem {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "condition", nullable = false, length = 10)
+    @Column(name = "`condition`", nullable = false, length = 10)
     private ItemCondition condition = ItemCondition.GOOD;
 
     @Enumerated(EnumType.STRING)

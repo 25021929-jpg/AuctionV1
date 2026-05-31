@@ -45,6 +45,18 @@ public class HibernateCategoryRepository
                 .findFirst();
     }
 
+
+    @Override
+    public List<Category> findAllSorted() {
+        return sessionFactory.getCurrentSession()
+                .createQuery(
+                        """
+                        FROM Category c
+                        ORDER BY c.sortOrder ASC, c.name ASC
+                        """, Category.class)
+                .getResultList();
+    }
+
     /**
      * Danh mục gốc — parent IS NULL.
      *
@@ -126,27 +138,6 @@ public class HibernateCategoryRepository
     public Category save(Category category) {
         return (Category) sessionFactory.getCurrentSession()
                 .merge(category);
-    }
-
-    @Override
-    public void ensureDefaultCategories() {
-        /*
-         * Seller create/update needs auction_items.category_id to reference a real row.
-         * Existing developer databases may have the schema but no seed data, so the
-         * seller screen would fail with "Category not found: 1". INSERT IGNORE keeps
-         * this idempotent: it creates the defaults once and does nothing afterward.
-         */
-        sessionFactory.getCurrentSession()
-                .createNativeMutationQuery("""
-                        INSERT IGNORE INTO categories
-                            (category_id, category_name, slug, description, sort_order)
-                        VALUES
-                            (1, 'Phone', 'phone', 'Mobile phones and accessories', 1),
-                            (2, 'Laptop', 'laptop', 'Laptops and computers', 2),
-                            (3, 'Watch', 'watch', 'Smart watches and mechanical watches', 3),
-                            (4, 'Motorbike', 'motorbike', 'Used motorbikes', 4)
-                        """)
-                .executeUpdate();
     }
 
     @Override

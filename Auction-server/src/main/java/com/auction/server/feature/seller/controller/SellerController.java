@@ -41,7 +41,8 @@ public class SellerController {
         } catch (SellerException e) {
             return Response.fail(e.getMessage());
         } catch (Exception e) {
-            return Response.fail("System error while loading seller items");
+            e.printStackTrace();
+            return Response.fail("System error while loading seller items: " + rootMessage(e));
         }
     }
 
@@ -54,7 +55,8 @@ public class SellerController {
         } catch (SellerException e) {
             return Response.fail(e.getMessage());
         } catch (Exception e) {
-            return Response.fail("System error while creating seller item");
+            e.printStackTrace();
+            return Response.fail("System error while creating seller item: " + rootMessage(e));
         }
     }
 
@@ -65,7 +67,8 @@ public class SellerController {
         } catch (SellerException e) {
             return Response.fail(e.getMessage());
         } catch (Exception e) {
-            return Response.fail("System error while updating seller item");
+            e.printStackTrace();
+            return Response.fail("System error while updating seller item: " + rootMessage(e));
         }
     }
 
@@ -78,8 +81,18 @@ public class SellerController {
         } catch (SellerException e) {
             return Response.fail(e.getMessage());
         } catch (Exception e) {
-            return Response.fail("System error while deleting seller item");
+            e.printStackTrace();
+            return Response.fail("System error while deleting seller item: " + rootMessage(e));
         }
+    }
+
+    private String rootMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current.getCause() != null) {
+            current = current.getCause();
+        }
+        String message = current.getMessage();
+        return message == null || message.isBlank() ? current.getClass().getSimpleName() : message;
     }
 
     private long getLong(JsonObject obj, String field, long defaultValue) {

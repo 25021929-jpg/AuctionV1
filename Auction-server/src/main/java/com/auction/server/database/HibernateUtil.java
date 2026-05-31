@@ -68,6 +68,7 @@ public class HibernateUtil {
         config.addAnnotatedClass(AuctionSession.class);
         config.addAnnotatedClass(Bid.class);
         config.addAnnotatedClass(Payment.class);
+        config.addAnnotatedClass(WalletTransaction.class);
 
         // Kích hoạt cỗ máy: Đọc toàn bộ cấu hình trên để sinh ra SessionFactory.
         // Quá trình này nặng nhất, nên chỉ chạy duy nhất 1 lần lúc startup server.

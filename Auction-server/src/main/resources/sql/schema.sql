@@ -4,6 +4,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE auction_db;
 DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS wallet_transactions;
 DROP TABLE IF EXISTS item_images;
 DROP TABLE IF EXISTS bids;
 DROP TABLE IF EXISTS auction_sessions;
@@ -19,7 +20,7 @@ CREATE TABLE users (
                        email         VARCHAR(100) NOT NULL UNIQUE,
                        password_hash VARCHAR(255) NOT NULL,
                        role          ENUM('ADMIN','SELLER','BIDDER') NOT NULL DEFAULT 'BIDDER',
-                       balance       DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+                       balance       DECIMAL(15,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
                        phone         VARCHAR(20),
                        date_of_birth DATE NOT NULL,
                        avatar_url    VARCHAR(500),
@@ -43,10 +44,9 @@ CREATE TABLE categories (
 -- SellerService kiểm tra categoryId phải tồn tại trước khi tạo AuctionItem/AuctionSession.
 INSERT INTO categories (category_id, category_name, slug, description, sort_order)
 VALUES
-    (1, 'Phone', 'phone', 'Mobile phones and accessories', 1),
-    (2, 'Laptop', 'laptop', 'Laptops and computers', 2),
-    (3, 'Watch', 'watch', 'Smart watches and mechanical watches', 3),
-    (4, 'Motorbike', 'motorbike', 'Used motorbikes', 4);
+    (1, 'Electronics', 'electronics', 'Electronic devices and accessories', 1),
+    (2, 'Art', 'art', 'Artworks and collectibles', 2),
+    (3, 'Vehicle', 'vehicle', 'Vehicles and transportation items', 3);
 -- ============================================================
 -- 3. BẢNG ITEMS (hàng hóa)
 -- ============================================================
@@ -91,7 +91,7 @@ CREATE TABLE auction_sessions (
                                   end_time DATETIME NOT NULL,
                                   winner_id       BIGINT UNSIGNED,                    -- NULL cho đến khi kết thúc
                                   total_bids      INT UNSIGNED     NOT NULL DEFAULT 0, -- đếm cache, tránh COUNT(*)
-                                  status          ENUM('SCHEDULED','ACTIVE','ENDED','CANCELLED') NOT NULL DEFAULT 'SCHEDULED',
+                                  status          ENUM('SCHEDULED','ACTIVE','ENDED','CANCELED') NOT NULL DEFAULT 'SCHEDULED',
                                   version         INT UNSIGNED     NOT NULL DEFAULT 0, -- cho Optimistic Locking
                                   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                   updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -152,6 +152,22 @@ CREATE TABLE payments (
                           FOREIGN KEY (seller_id)  REFERENCES users(id)    ON DELETE RESTRICT
 );
 
+-- ============================================================
+-- 7. BẢNG WALLET_TRANSACTIONS (lịch sử biến động số dư)
+-- ============================================================
+CREATE TABLE wallet_transactions (
+                          transaction_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                          user_id        BIGINT UNSIGNED NOT NULL,
+                          auction_id     BIGINT UNSIGNED,
+                          type           ENUM('DEPOSIT','AUCTION_PAYMENT','AUCTION_RECEIVE') NOT NULL,
+                          amount         DECIMAL(15,2) NOT NULL,
+                          balance_after  DECIMAL(15,2) NOT NULL CHECK (balance_after >= 0),
+                          description    VARCHAR(500),
+                          created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+                          FOREIGN KEY (auction_id) REFERENCES auction_sessions(auction_id) ON DELETE SET NULL
+);
+
 --
 -- INDEX để tăng tốc truy vấn thường dùng
 --
@@ -165,6 +181,9 @@ CREATE TABLE payments (
 -- (UNIQUE constraint = UNIQUE index, dùng được như index bình thường)
 -- username cũng vậy — UNIQUE tự có index rồi, không cần thêm
 -- Index 2: Lọc user theo role + trạng thái (dùng cho admin panel)
+CREATE INDEX idx_wallet_transactions_user_time
+    ON wallet_transactions(user_id, created_at);
+
 CREATE INDEX idx_users_role_active
     ON users(role, is_active);
 -- Lý do: Admin thường query "Danh sách SELLER đang active"

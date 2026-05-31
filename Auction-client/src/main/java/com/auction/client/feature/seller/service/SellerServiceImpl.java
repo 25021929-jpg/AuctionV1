@@ -5,6 +5,7 @@ import com.auction.client.core.error.ApiException;
 import com.auction.client.core.error.ResponseUtils;
 import com.auction.client.core.session.UserSession;
 import com.auction.shared.dto.seller.SellerItemDto;
+import com.auction.shared.dto.category.CategoryDto;
 import com.auction.client.feature.seller.mapper.SellerItemDtoMapper;
 import com.auction.client.network.SocketClient;
 import com.auction.shared.dto.Response;
@@ -29,6 +30,42 @@ import java.util.List;
  */
 public class SellerServiceImpl implements SellerService {
 
+
+
+    @Override
+    public List<CategoryDto> listCategories() throws IOException {
+        JsonObject request = new JsonObject();
+        Response<JsonElement> res = SocketClient.getInstance()
+                .send(ActionConstants.CATEGORY_GET_LIST, request, JsonElement.class);
+
+        JsonElement data = ResponseUtils.unwrap(ActionConstants.CATEGORY_GET_LIST, res);
+        JsonArray arr;
+        if (data != null && data.isJsonArray()) {
+            arr = data.getAsJsonArray();
+        } else if (data != null && data.isJsonObject() && data.getAsJsonObject().has("categories")) {
+            JsonElement categories = data.getAsJsonObject().get("categories");
+            arr = categories != null && categories.isJsonArray() ? categories.getAsJsonArray() : new JsonArray();
+        } else {
+            return Collections.emptyList();
+        }
+
+        List<CategoryDto> out = new ArrayList<>();
+        for (JsonElement el : arr) {
+            if (!el.isJsonObject()) continue;
+            JsonObject obj = el.getAsJsonObject();
+            CategoryDto dto = new CategoryDto();
+            dto.setCategoryId(readLong(obj, "categoryId"));
+            dto.setCategoryName(readString(obj, "categoryName"));
+            dto.setSlug(readString(obj, "slug"));
+            if (obj.has("parentId") && !obj.get("parentId").isJsonNull()) {
+                dto.setParentId(obj.get("parentId").getAsLong());
+            }
+            if (dto.getCategoryId() > 0 && dto.getCategoryName() != null && !dto.getCategoryName().isBlank()) {
+                out.add(dto);
+            }
+        }
+        return out;
+    }
 
     @Override
     public List<SellerItemDto> listMyItems() throws IOException {
@@ -106,6 +143,15 @@ public class SellerServiceImpl implements SellerService {
         request.setStartPrice(item.getStartPrice());
         request.setStartTime(item.getStartTime());
         request.setEndTime(item.getEndTime());
+    }
+
+
+    private String readString(JsonObject obj, String key) {
+        return obj.has(key) && !obj.get(key).isJsonNull() ? obj.get(key).getAsString() : null;
+    }
+
+    private long readLong(JsonObject obj, String key) {
+        return obj.has(key) && !obj.get(key).isJsonNull() ? obj.get(key).getAsLong() : 0L;
     }
 
     private long requireCurrentUserId(String action) throws ApiException {

@@ -29,6 +29,9 @@ public final class AuctionDtoMapper {
         dto.setAuctionId(orZero(JsonRead.optLong(o, "auctionId", "id")));
         dto.setItemName(nn(JsonRead.optString(o, "itemName", "name", "title")));
         dto.setCurrentPrice(orZero(JsonRead.optBigDecimal(o, "currentPrice", "currentBid", "highestBid", "price")));
+        dto.setMinBidStep(JsonRead.optBigDecimal(o, "minBidStep", "bidStep", "minimumBidStep"));
+        Long total = JsonRead.optLong(o, "totalBids", "bidCount", "numberOfBids");
+        dto.setTotalBids(total == null ? 0 : total.intValue());
         dto.setStatus(AuctionStatus.fromString(JsonRead.optString(o, "status", "state")));
 
         LocalDateTime end = JsonRead.optDateTime(o, "endTime", "endsAt", "endAt");
@@ -48,6 +51,9 @@ public final class AuctionDtoMapper {
         dto.setSellerName(nn(JsonRead.optString(o, "sellerName", "seller", "ownerName")));
         dto.setStartPrice(orZero(JsonRead.optBigDecimal(o, "startPrice", "startingPrice", "reservePrice")));
         dto.setCurrentPrice(orZero(JsonRead.optBigDecimal(o, "currentPrice", "currentBid", "highestBid", "price")));
+        dto.setMinBidStep(JsonRead.optBigDecimal(o, "minBidStep", "bidStep", "minimumBidStep"));
+        Long total = JsonRead.optLong(o, "totalBids", "bidCount", "numberOfBids");
+        dto.setTotalBids(total == null ? 0 : total.intValue());
         dto.setStatus(AuctionStatus.fromString(JsonRead.optString(o, "status", "state")));
         dto.setLeaderUsername(nn(JsonRead.optString(o, "leaderUsername", "leader", "highestBidder")));
         dto.setStartTime(JsonRead.optDateTime(o, "startTime", "startsAt", "startAt"));

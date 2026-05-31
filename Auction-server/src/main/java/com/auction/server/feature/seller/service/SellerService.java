@@ -50,23 +50,32 @@ public class SellerService {
         validateSellerId(sellerId);
         validatePage(page, size);
 
-        return DbExecutor.query(() ->
-                auctionSessionRepository.findBySeller(sellerId, page, size)
+        /*
+         * Seller Dashboard cũng là một nơi hiển thị trạng thái phiên đấu giá.
+         * Không được chỉ phụ thuộc vào scheduler nền, vì nếu seller mở dashboard
+         * đúng lúc vừa qua startTime thì màn hình vẫn có thể đang đọc trạng thái
+         * SCHEDULED cũ. Bước này chỉ chuyển SCHEDULED -> ACTIVE khi đã tới giờ
+         * bắt đầu và endTime vẫn còn ở tương lai; tuyệt đối không chốt ENDED ở đây
+         * vì kết thúc phiên phải đi qua AuctionStatusScheduler để xử lý ví/thanh toán.
+         */
+        refreshStartedAuctions();
+
+        return DbExecutor.query(() -> {
+                ensureSellerRole(sellerId);
+                return auctionSessionRepository.findBySeller(sellerId, page, size)
                         .stream()
                         .map(this::toDto)
-                        .toList()
-        );
+                        .toList();
+        });
     }
 
     public SellerItemDto createItem(CreateSellerItemRequest request) {
         validateCreate(request);
 
         return DbExecutor.runAndReturn(() -> {
-            categoryRepository.ensureDefaultCategories();
             categoryRepository.findById(toCategoryId(request.getCategoryId()))
                     .orElseThrow(() -> new SellerException("Category not found: " + request.getCategoryId()));
-            userRepository.findById(request.getSellerId())
-                    .orElseThrow(() -> new SellerException("Seller not found: " + request.getSellerId()));
+            ensureSellerRole(request.getSellerId());
 
             // getReference avoids loading full User/Category rows when we only need foreign keys.
             User seller = userRepository.getReference(request.getSellerId());
@@ -91,7 +100,7 @@ public class SellerService {
             auction.setMinBidStep(DEFAULT_MIN_BID_STEP);
             auction.setStartTime(request.getStartTime());
             auction.setEndTime(request.getEndTime());
-            auction.setStatus(initialAuctionStatus(request.getStartTime()));
+            auction.setStatus(initialAuctionStatus(request.getStartTime(), request.getEndTime()));
 
             return toDto(auctionSessionRepository.save(auction));
         });
@@ -101,10 +110,10 @@ public class SellerService {
         validateUpdate(request);
 
         return DbExecutor.runAndReturn(() -> {
+            ensureSellerRole(request.getSellerId());
             AuctionSession auction = findOwnedAuction(request.getSellerId(), request.getItemId(), request.getAuctionId());
             ensureEditable(auction);
 
-            categoryRepository.ensureDefaultCategories();
             categoryRepository.findById(toCategoryId(request.getCategoryId()))
                     .orElseThrow(() -> new SellerException("Category not found: " + request.getCategoryId()));
 
@@ -117,7 +126,7 @@ public class SellerService {
             auction.setCurrentPrice(request.getStartPrice());
             auction.setStartTime(request.getStartTime());
             auction.setEndTime(request.getEndTime());
-            auction.setStatus(initialAuctionStatus(request.getStartTime()));
+            auction.setStatus(initialAuctionStatus(request.getStartTime(), request.getEndTime()));
 
             auctionItemRepository.save(item);
             return toDto(auctionSessionRepository.save(auction));
@@ -131,6 +140,7 @@ public class SellerService {
         validateSellerId(request.sellerId());
 
         DbExecutor.run(() -> {
+            ensureSellerRole(request.sellerId());
             AuctionSession auction = findAuctionForDelete(request);
             if (!auction.getItem().getSeller().getId().equals(request.sellerId())) {
                 throw new SellerException("You can only delete your own items");
@@ -138,7 +148,7 @@ public class SellerService {
             ensureEditable(auction);
 
             // Soft delete: keep historical consistency for bids/payments and hide it from seller workflows.
-            auction.setStatus(AuctionSession.AuctionStatus.CANCELLED);
+            auction.setStatus(AuctionSession.AuctionStatus.CANCELED);
             auction.getItem().setStatus(AuctionItem.ItemStatus.ARCHIVED);
             auctionItemRepository.save(auction.getItem());
             auctionSessionRepository.save(auction);
@@ -188,6 +198,31 @@ public class SellerService {
         }
     }
 
+    /**
+     * Đồng bộ tức thời các phiên đã tới giờ bắt đầu.
+     *
+     * <p>Luật thời gian đúng:
+     * <ul>
+     *   <li>startTime &lt;= now và endTime &gt; now: phiên phải ACTIVE.</li>
+     *   <li>endTime &lt;= now: không xử lý ở đây, để scheduler chốt ENDED kèm ví.</li>
+     * </ul>
+     * Cách này tránh lỗi Seller Dashboard vẫn thấy SCHEDULED dù đã qua giờ bắt đầu.
+     */
+    private void refreshStartedAuctions() {
+        DbExecutor.runAndReturn(() -> {
+            LocalDateTime now = LocalDateTime.now();
+            List<Long> shouldStart = auctionSessionRepository.findScheduledToStart()
+                    .stream()
+                    .filter(auction -> auction.getEndTime() != null && auction.getEndTime().isAfter(now))
+                    .map(AuctionSession::getAuctionId)
+                    .toList();
+            if (!shouldStart.isEmpty()) {
+                auctionSessionRepository.bulkUpdateStatus(shouldStart, AuctionSession.AuctionStatus.ACTIVE);
+            }
+            return null;
+        });
+    }
+
     private SellerItemDto toDto(AuctionSession auction) {
         // Seller UI needs one row containing both product fields and auction fields,
         // so this mapper flattens AuctionItem + AuctionSession into SellerItemDto.
@@ -212,8 +247,12 @@ public class SellerService {
         return dto;
     }
 
-    private AuctionSession.AuctionStatus initialAuctionStatus(LocalDateTime startTime) {
-        return LocalDateTime.now().isBefore(startTime)
+    private AuctionSession.AuctionStatus initialAuctionStatus(LocalDateTime startTime, LocalDateTime endTime) {
+        LocalDateTime now = LocalDateTime.now();
+        if (endTime != null && !endTime.isAfter(now)) {
+            return AuctionSession.AuctionStatus.ENDED;
+        }
+        return now.isBefore(startTime)
                 ? AuctionSession.AuctionStatus.SCHEDULED
                 : AuctionSession.AuctionStatus.ACTIVE;
     }
@@ -238,8 +277,17 @@ public class SellerService {
         if (request.getStartTime() == null || request.getEndTime() == null) {
             throw new SellerException("Start time and end time are required");
         }
+        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        /*
+         * Cho phép tạo phiên bắt đầu ngay: nếu startTime <= now và endTime vẫn ở
+         * tương lai, initialAuctionStatus() sẽ đưa phiên vào ACTIVE. Không chặn
+         * startTime ở quá khứ để tránh lỗi logic khi Seller muốn mở phiên ngay.
+         */
         if (!request.getEndTime().isAfter(request.getStartTime())) {
             throw new SellerException("End time must be after start time");
+        }
+        if (!request.getEndTime().isAfter(now)) {
+            throw new SellerException("End time must be after current time");
         }
     }
 
@@ -253,6 +301,18 @@ public class SellerService {
     private void validateSellerId(long sellerId) {
         if (sellerId <= 0) {
             throw new SellerException("Seller id is required");
+        }
+    }
+
+
+    private void ensureSellerRole(long sellerId) {
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new SellerException("Seller not found: " + sellerId));
+        if (seller.getRole() != User.Role.SELLER && seller.getRole() != User.Role.ADMIN) {
+            throw new SellerException("Only SELLER accounts can manage auction items");
+        }
+        if (Boolean.FALSE.equals(seller.getIsActive())) {
+            throw new SellerException("Seller account is disabled");
         }
     }
 

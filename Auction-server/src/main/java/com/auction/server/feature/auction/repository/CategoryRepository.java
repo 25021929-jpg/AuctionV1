@@ -23,6 +23,9 @@ public interface CategoryRepository {
     /** Tìm theo slug — dùng cho URL: /category/dien-thoai */
     Optional<Category> findBySlug(String slug);
 
+    /** Lấy tất cả danh mục có thể chọn, đọc trực tiếp từ bảng categories. */
+    List<Category> findAllSorted();
+
     /** Lấy tất cả danh mục gốc (parent = null) */
     List<Category> findRootCategories();
 
@@ -39,9 +42,6 @@ public interface CategoryRepository {
     List<Category> findAllWithChildren();
 
     Category save(Category category);
-
-    /** Ensure baseline categories exist for seller item creation in old/local databases. */
-    void ensureDefaultCategories();
 
     /** Proxy — không hit DB, dùng để set FK */
     Category getReference(Integer id);

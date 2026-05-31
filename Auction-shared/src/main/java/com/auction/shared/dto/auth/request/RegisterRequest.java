@@ -18,6 +18,8 @@ public class RegisterRequest {
     private String dateOfBirth;
     private String password;
     private String confirmPassword;
+    /** Role người dùng chọn khi đăng ký: BIDDER hoặc SELLER. */
+    private String role;
 
     /** Không serialize field này; chỉ để client validate tuổi bằng LocalDate. */
     private transient LocalDate birthDate;
@@ -36,6 +38,14 @@ public class RegisterRequest {
         this.dateOfBirth = birthDate == null ? null : birthDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
         this.password = password;
         this.confirmPassword = confirmPassword;
+        this.role = "BIDDER";
+    }
+
+    /** Constructor đầy đủ khi client cho phép chọn vai trò lúc đăng ký. */
+    public RegisterRequest(String fullName, String username, String email, String phoneNumber,
+                           String password, String confirmPassword, LocalDate birthDate, String role) {
+        this(fullName, username, email, phoneNumber, password, confirmPassword, birthDate);
+        this.role = role;
     }
 
     public String getFullName() { return fullName; }
@@ -55,6 +65,8 @@ public class RegisterRequest {
     public void setPassword(String password) { this.password = password; }
     public String getConfirmPassword() { return confirmPassword; }
     public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     // Record-like accessors để thay thế DTO cũ của client.
     public String fullName() { return fullName; }
@@ -65,6 +77,7 @@ public class RegisterRequest {
     public String dateOfBirth() { return dateOfBirth; }
     public String password() { return password; }
     public String confirmPassword() { return confirmPassword; }
+    public String role() { return role; }
     public LocalDate birthDate() { return birthDate; }
 
     private void syncBirthDateFromString() {

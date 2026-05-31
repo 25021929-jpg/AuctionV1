@@ -4,6 +4,7 @@ import com.auction.server.feature.auction.controller.AuctionController;
 import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.bidding.controller.BidController;
 import com.auction.server.feature.seller.controller.SellerController;
+import com.auction.server.feature.wallet.controller.WalletController;
 import com.auction.shared.dto.Response;
 import com.auction.shared.protocol.ActionConstants;
 import com.auction.shared.protocol.WireMessage;
@@ -16,15 +17,18 @@ public class RequestDispatcher {
     private final AuctionController auctionController;
     private final BidController bidController;
     private final SellerController sellerController;
+    private final WalletController walletController;
 
     public RequestDispatcher(AuthController authController,
                              AuctionController auctionController,
                              BidController bidController,
-                             SellerController sellerController) {
+                             SellerController sellerController,
+                             WalletController walletController) {
         this.authController = authController;
         this.auctionController = auctionController;
         this.bidController = bidController;
         this.sellerController = sellerController;
+        this.walletController = walletController;
     }
 
     public Response<?> dispatch(WireMessage request) {
@@ -64,6 +68,9 @@ public class RequestDispatcher {
                 case ActionConstants.AUCTION_GET_DETAIL:
                     return auctionController.getAuctionDetail(requestBody);
 
+                case ActionConstants.CATEGORY_GET_LIST:
+                    return auctionController.getCategories(requestBody);
+
                 case ActionConstants.AUCTION_SUBSCRIBE:
                     return subscribeAuction(request, clientHandler);
 
@@ -73,8 +80,17 @@ public class RequestDispatcher {
                 case ActionConstants.BID_PLACE_BID:
                     return bidController.placeBid(requestBody);
 
-                case "BID_HISTORY":
+                case ActionConstants.BID_GET_HISTORY:
                     return bidController.getBidHistory(requestBody);
+
+                case ActionConstants.WALLET_GET_SUMMARY:
+                    return walletController.getSummary(requestBody);
+
+                case ActionConstants.WALLET_DEPOSIT:
+                    return walletController.deposit(requestBody);
+
+                case ActionConstants.WALLET_GET_TRANSACTIONS:
+                    return walletController.getTransactions(requestBody);
 
                 case ActionConstants.SELLER_ITEM_LIST_MY:
                     return sellerController.listMyItems(requestBody);

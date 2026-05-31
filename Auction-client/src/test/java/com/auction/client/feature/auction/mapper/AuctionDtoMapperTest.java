@@ -16,14 +16,14 @@ class AuctionDtoMapperTest {
         o.addProperty("id", 99);
         o.addProperty("title", "Macbook");
         o.addProperty("highestBid", 1500);
-        o.addProperty("state", "RUNNING");
+        o.addProperty("state", "ACTIVE");
         o.addProperty("endAt", "2026-05-25T12:00:00");
 
         AuctionSummaryDto dto = AuctionDtoMapper.toSummary(o);
         assertEquals(99, dto.getAuctionId());
         assertEquals("Macbook", dto.getItemName());
         assertEquals(1500.0, dto.getCurrentPrice().doubleValue());
-        assertEquals(AuctionStatus.RUNNING, dto.getStatus());
+        assertEquals(AuctionStatus.ACTIVE, dto.getStatus());
         assertNotNull(dto.getEndTime());
     }
 

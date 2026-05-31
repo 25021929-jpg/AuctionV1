@@ -8,6 +8,7 @@ import com.auction.server.feature.auction.repository.HibernateAuctionItemReposit
 import com.auction.server.feature.auction.repository.HibernateAuctionSessionRepository;
 import com.auction.server.feature.auction.repository.HibernateCategoryRepository;
 import com.auction.server.feature.auction.service.AuctionService;
+import com.auction.server.feature.auction.scheduler.AuctionStatusScheduler;
 import com.auction.server.feature.auth.controller.AuthController;
 import com.auction.server.feature.auth.repository.HibernateUserRepository;
 import com.auction.server.feature.auth.service.AuthService;
@@ -17,6 +18,9 @@ import com.auction.server.feature.bidding.repository.HibernatePaymentRepository;
 import com.auction.server.feature.bidding.service.BidService;
 import com.auction.server.feature.seller.controller.SellerController;
 import com.auction.server.feature.seller.service.SellerService;
+import com.auction.server.feature.wallet.controller.WalletController;
+import com.auction.server.feature.wallet.repository.HibernateWalletTransactionRepository;
+import com.auction.server.feature.wallet.service.WalletService;
 import com.auction.server.network.RequestDispatcher; // THÊM IMPORT
 import com.auction.server.network.ServerSocketManager;
 import org.hibernate.SessionFactory;
@@ -60,21 +64,29 @@ public class MainServer {
         HibernateUserRepository userRepo                     = new HibernateUserRepository(sessionFactory);
         HibernateBidRepository bidRepo                       = new HibernateBidRepository(sessionFactory);
         HibernatePaymentRepository paymentRepo               = new HibernatePaymentRepository(sessionFactory);
+        HibernateWalletTransactionRepository walletTransactionRepo = new HibernateWalletTransactionRepository(sessionFactory);
 
         // BƯỚC 2: Khởi tạo tầng lõi xử lý nghiệp vụ - SERVICES (Bơm các Repository tương ứng vào)
         AuctionService auctionService = new AuctionService(auctionSessionRepo, auctionItemRepo, categoryRepo, userRepo);
-        BidService bidService         = new BidService(auctionSessionRepo, bidRepo, paymentRepo,userRepo);
+        BidService bidService         = new BidService(auctionSessionRepo, bidRepo, paymentRepo, userRepo, walletTransactionRepo);
         AuthService authService       = new AuthService(userRepo); // Đảm bảo lớp AuthService của bạn cũng dùng Constructor DI
         SellerService sellerService   = new SellerService(auctionSessionRepo, auctionItemRepo, categoryRepo, userRepo);
+        WalletService walletService   = new WalletService(userRepo, walletTransactionRepo);
 
         // BƯỚC 3: Khởi tạo tầng giao tiếp API - CONTROLLERS (Bơm các Service tương ứng vào)
         AuctionController auctionController = new AuctionController(auctionService);
         BidController bidController         = new BidController(bidService);
         AuthController authController       = new AuthController(authService);
         SellerController sellerController   = new SellerController(sellerService);
+        WalletController walletController   = new WalletController(walletService);
 
         // BƯỚC 4: Khởi tạo cổng điều phối mạng trung tâm - DISPATCHER
-        RequestDispatcher dispatcher = new RequestDispatcher(authController, auctionController, bidController, sellerController);
+        RequestDispatcher dispatcher = new RequestDispatcher(authController, auctionController, bidController, sellerController, walletController);
+
+        // BƯỚC 5: Scheduler realtime cập nhật trạng thái SCHEDULED -> ACTIVE -> ENDED mỗi giây.
+        AuctionStatusScheduler statusScheduler = new AuctionStatusScheduler(auctionSessionRepo, paymentRepo, bidRepo, userRepo, walletTransactionRepo);
+        statusScheduler.start();
+        Runtime.getRuntime().addShutdownHook(new Thread(statusScheduler::stop));
 
         // =========================================================================
         // KHỞI CHẠY TẦNG MẠNG SOCKET

@@ -12,12 +12,15 @@ class SellerItemFormValidatorTest {
 
     @Test
     void validInputPasses() {
+        LocalDateTime startTime = LocalDateTime.now().plusDays(1);
+        LocalDateTime endTime = startTime.plusHours(2);
+
         ValidationResult result = SellerItemFormValidator.validate(
                 "Laptop đấu giá",
                 "Máy còn tốt",
                 "1000000",
-                LocalDateTime.parse("2026-05-26T20:00:00"),
-                LocalDateTime.parse("2026-05-27T20:00:00")
+                startTime,
+                endTime
         );
 
         assertTrue(result.valid());
@@ -30,7 +33,7 @@ class SellerItemFormValidatorTest {
                 "Mô tả",
                 "1000000",
                 null,
-                LocalDateTime.parse("2026-05-27T20:00:00")
+                LocalDateTime.now().plusDays(1)
         );
 
         assertFalse(result.valid());
@@ -44,7 +47,7 @@ class SellerItemFormValidatorTest {
                 "Mô tả",
                 "0",
                 null,
-                LocalDateTime.parse("2026-05-27T20:00:00")
+                LocalDateTime.now().plusDays(1)
         );
 
         assertFalse(result.valid());
@@ -52,13 +55,33 @@ class SellerItemFormValidatorTest {
     }
 
     @Test
-    void startAfterEndFails() {
+    void startInPastWithFutureEndPassesForImmediateAuction() {
+        LocalDateTime startTime = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime endTime = LocalDateTime.now().plusHours(1);
+
         ValidationResult result = SellerItemFormValidator.validate(
                 "Laptop",
                 "Mô tả",
                 "1000000",
-                LocalDateTime.parse("2026-05-28T20:00:00"),
-                LocalDateTime.parse("2026-05-27T20:00:00")
+                startTime,
+                endTime,
+                true
+        );
+
+        assertTrue(result.valid());
+    }
+
+    @Test
+    void startAfterEndFails() {
+        LocalDateTime startTime = LocalDateTime.now().plusDays(2);
+        LocalDateTime endTime = startTime.minusHours(1);
+
+        ValidationResult result = SellerItemFormValidator.validate(
+                "Laptop",
+                "Mô tả",
+                "1000000",
+                startTime,
+                endTime
         );
 
         assertFalse(result.valid());

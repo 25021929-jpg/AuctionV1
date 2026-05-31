@@ -20,6 +20,8 @@ import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -36,6 +38,8 @@ public class RegisterController {
     @FXML private TextField fullNameField, usernameField;
     @FXML private TextField emailField, phoneField;
     @FXML private DatePicker dobField;
+    @FXML private RadioButton bidderRoleRadio;
+    @FXML private RadioButton sellerRoleRadio;
     @FXML private PasswordField passwordField, confirmPasswordField;
     @FXML private Button registerBtn;
     @FXML private VBox formBox;
@@ -64,6 +68,7 @@ public class RegisterController {
     public void initialize() {
         UIAnimations.entrance(formBox);
         setupDatePicker();
+        setupRoleButtons();
         setupFormHelper();
     }
 
@@ -85,6 +90,17 @@ public class RegisterController {
                 }
             }
         });
+    }
+
+
+    private void setupRoleButtons() {
+        if (bidderRoleRadio == null || sellerRoleRadio == null) {
+            return;
+        }
+        ToggleGroup group = new ToggleGroup();
+        bidderRoleRadio.setToggleGroup(group);
+        sellerRoleRadio.setToggleGroup(group);
+        bidderRoleRadio.setSelected(true);
     }
 
     private void setupFormHelper() {
@@ -148,8 +164,17 @@ public class RegisterController {
                 valueOf(phoneField),
                 passwordField.getText(),
                 confirmPasswordField.getText(),
-                dobField.getValue()
+                dobField.getValue(),
+                selectedRole()
         );
+    }
+
+
+    private String selectedRole() {
+        if (sellerRoleRadio != null && sellerRoleRadio.isSelected()) {
+            return "SELLER";
+        }
+        return "BIDDER";
     }
 
     private String valueOf(TextField field) {

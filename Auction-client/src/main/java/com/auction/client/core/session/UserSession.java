@@ -3,6 +3,7 @@ package com.auction.client.core.session;
 import com.auction.shared.domain.UserRole;
 import com.auction.shared.dto.AuthResponse;
 import com.auction.shared.dto.UserInfo;
+import java.math.BigDecimal;
 
 /**
  * Lưu trạng thái đăng nhập hiện tại ở phía client.
@@ -45,6 +46,18 @@ public final class UserSession {
 
     public String getUsername() {
         return currentUser == null ? null : currentUser.getUsername();
+    }
+
+    public BigDecimal getBalance() {
+        return currentUser == null || currentUser.getBalance() == null
+                ? BigDecimal.ZERO
+                : currentUser.getBalance();
+    }
+
+    public void updateBalance(BigDecimal newBalance) {
+        if (currentUser != null) {
+            currentUser.setBalance(newBalance);
+        }
     }
 
     public UserRole getRole() {
