@@ -161,7 +161,7 @@ public class RegisterController {
                 valueOf(fullNameField),
                 valueOf(usernameField),
                 valueOf(emailField),
-                valueOf(phoneField),
+                normalizedPhone(),
                 passwordField.getText(),
                 confirmPasswordField.getText(),
                 dobField.getValue(),
@@ -180,6 +180,10 @@ public class RegisterController {
     private String valueOf(TextField field) {
         String value = field.getText();
         return value == null ? "" : value.trim();
+    }
+
+    private String normalizedPhone() {
+        return valueOf(phoneField).replaceAll("[\\s.-]", "");
     }
 
     private void commitDatePickerValue() {

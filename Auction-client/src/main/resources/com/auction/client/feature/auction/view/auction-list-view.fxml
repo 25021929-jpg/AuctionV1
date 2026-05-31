@@ -39,7 +39,7 @@
                     <Label text="Đang mở đặt giá" styleClass="info-value"/>
                 </VBox>
                 <VBox spacing="4" HBox.hgrow="ALWAYS" styleClass="panel-soft">
-                    <Label text="ENDED / CANCELED" styleClass="stat-label"/>
+                    <Label text="ENDED / CANCELLED" styleClass="stat-label"/>
                     <Label text="Đã kết thúc hoặc đã hủy" styleClass="info-value"/>
                 </VBox>
             </HBox>

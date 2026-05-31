@@ -135,6 +135,17 @@ class RegisterValidatorTest {
     // ── phoneNumber ──────────────────────────────────────
 
     @Test
+    @DisplayName("Phone with spaces -> pass")
+    void validate_phoneWithSpaces_returnsOk() {
+        RegisterRequest req = new RegisterRequest(
+                "Nguyen Van A", "john123", "john@gmail.com",
+                "0912 345 678", "password123", "password123", VALID_DATE
+        );
+        ValidationResult result = validator.validate(req);
+        assertTrue(result.valid());
+    }
+
+    @Test
     @DisplayName("Invalid phone -> error")
     void validate_invalidPhone_returnsError() {
         RegisterRequest req = new RegisterRequest(

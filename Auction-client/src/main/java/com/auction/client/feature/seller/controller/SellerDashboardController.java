@@ -244,7 +244,7 @@ public class SellerDashboardController implements Initializable, DisposableContr
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Xác nhận hủy phiên");
         confirm.setHeaderText("Hủy phiên đấu giá: " + safe(selected.getName()));
-        confirm.setContentText("Hệ thống sẽ chuyển phiên sang trạng thái CANCELED, không xóa cứng dữ liệu để giữ lịch sử.");
+        confirm.setContentText("Hệ thống sẽ chuyển phiên sang trạng thái CANCELLED, không xóa cứng dữ liệu để giữ lịch sử.");
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 

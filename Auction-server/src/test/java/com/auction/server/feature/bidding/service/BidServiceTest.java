@@ -2,7 +2,6 @@ package com.auction.server.feature.bidding.service;
 
 import com.auction.server.entity.AuctionSession;
 import com.auction.server.entity.User;
-import com.auction.server.entity.WalletTransaction;
 import com.auction.server.feature.auction.repository.AuctionSessionRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
 import com.auction.server.feature.bidding.BidException;
@@ -44,7 +43,7 @@ class BidServiceTest {
     @Mock private BidRepository            bidRepository;
     @Mock private PaymentRepository        paymentRepository;
     @Mock private UserRepository           userRepository;
-    @Mock private WalletTransactionRepository        walletTransactionRepository;
+    @Mock private WalletTransactionRepository walletTransactionRepository;
     private BidService bidService;
 
     @BeforeEach
