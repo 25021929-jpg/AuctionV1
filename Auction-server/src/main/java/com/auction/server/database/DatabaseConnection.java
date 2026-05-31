@@ -72,12 +72,6 @@ public class DatabaseConnection {
 
         config.setPoolName("AuctionPool");
 
-        // 3. KÍCH HOẠT VŨ KHÍ BÍ MẬT: Tối ưu hóa tối đa cho MySQL
-        config.addDataSourceProperty("cachePrepStmts", "true"); // Bật cache câu lệnh ở phía Client
-        config.addDataSourceProperty("prepStmtCacheSize", "250"); // Số lượng câu SQL được cache
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048"); // Giới hạn độ dài câu SQL được cache
-        config.addDataSourceProperty("useServerPrepStmts", "true"); // BẮT BUỘC: Ép MySQL biên dịch trước để chống SQL Injection và tăng tốc
-
         dataSource = new HikariDataSource(config);
         System.out.println("HikariCP pool started (AuctionPool)");
     }

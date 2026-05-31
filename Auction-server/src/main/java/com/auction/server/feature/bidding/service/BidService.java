@@ -132,7 +132,10 @@ public class BidService {
             }
 
             if (bidAmount.compareTo(bidder.getBalance()) > 0) {
-                throw new BidException("Số dư không đủ. Bạn cần nạp thêm tiền trước khi đặt giá này");
+                throw new BidException(
+                        "Số dư khả dụng không đủ. Hiện có: " + bidder.getBalance().toPlainString()
+                                + " (không tính " + bidder.getBalanceOnHold().toPlainString() + " đang giữ ở phiên khác)"
+                );
             }
 
             // Bước 3c: Kiểm tra người đặt không phải winner hiện tại
@@ -148,6 +151,30 @@ public class BidService {
             //   → dữ liệu sai, khó xác định bid nào đang thắng
             // Dùng HQL UPDATE trong cùng session → cùng transaction với lock
             bidRepository.clearWinningBids(request.getAuctionSessionId());
+
+            // ── ESCROW: Hoàn tiền người đang giữ giá cao nhất (nếu có) ──────────────
+            // Trước khi bid mới thắng, người cũ đang bị hold tiền cần được hoàn lại
+            // để họ có thể dùng tiền đó đặt phiên khác.
+            User previousWinner = auction.getWinner();
+            if (previousWinner != null) {
+                // Load với lock để tránh race condition cập nhật balance
+                User prevWinnerLocked = userRepository.findByIdWithLock(previousWinner.getId())
+                        .orElse(null);
+                if (prevWinnerLocked != null) {
+                    BigDecimal prevBidAmount = auction.getCurrentPrice(); // giá cũ = số tiền đang bị hold
+                    BigDecimal prevHold = prevWinnerLocked.getBalanceOnHold();
+                    BigDecimal releaseAmount = prevBidAmount.min(prevHold); // không hoàn quá số đang hold
+                    prevWinnerLocked.setBalanceOnHold(prevHold.subtract(releaseAmount));
+                    prevWinnerLocked.setBalance(prevWinnerLocked.getBalance().add(releaseAmount));
+                    userRepository.save(prevWinnerLocked);
+                }
+            }
+
+            // ── ESCROW: Giữ tiền của bidder mới ──────────────────────────────────────
+            // Trừ từ balance sang balance_on_hold — tiền vẫn thuộc về user nhưng bị khóa
+            bidder.setBalance(bidder.getBalance().subtract(bidAmount));
+            bidder.setBalanceOnHold(bidder.getBalanceOnHold().add(bidAmount));
+            userRepository.save(bidder);
 
             // Bước 5: Lấy User proxy — KHÔNG query DB
             // getReference() trả về proxy chỉ có id
