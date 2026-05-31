@@ -91,7 +91,7 @@ CREATE TABLE auction_sessions (
                                   end_time DATETIME NOT NULL,
                                   winner_id       BIGINT UNSIGNED,                    -- NULL cho đến khi kết thúc
                                   total_bids      INT UNSIGNED     NOT NULL DEFAULT 0, -- đếm cache, tránh COUNT(*)
-                                  status          ENUM('SCHEDULED','ACTIVE','ENDED','CANCELED') NOT NULL DEFAULT 'SCHEDULED',
+                                  status          ENUM('SCHEDULED','ACTIVE','ENDED','CANCELLED') NOT NULL DEFAULT 'SCHEDULED',
                                   version         INT UNSIGNED     NOT NULL DEFAULT 0, -- cho Optimistic Locking
                                   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                   updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
