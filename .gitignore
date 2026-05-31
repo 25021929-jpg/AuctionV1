@@ -1,9 +1,9 @@
 # =========================
 # Java / Maven
 # =========================
-target/
+**/target/*
+!**/target/*.jar
 *.class
-*.jar
 *.war
 *.ear
 *.log
