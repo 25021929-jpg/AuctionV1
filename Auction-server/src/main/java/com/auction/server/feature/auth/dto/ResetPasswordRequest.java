@@ -2,13 +2,21 @@ package com.auction.server.feature.auth.dto;
 
 public class ResetPasswordRequest {
 
-    private String token;
-    private String newPassword;
-    private String confirmPassword;
+  private String token;
+  private String newPassword;
+  private String confirmPassword;
 
-    public ResetPasswordRequest() {}
+  public ResetPasswordRequest() {}
 
-    public String getToken() { return token; }
-    public String getNewPassword() { return newPassword; }
-    public String getConfirmPassword() { return confirmPassword; }
+  public String getToken() {
+    return token;
+  }
+
+  public String getNewPassword() {
+    return newPassword;
+  }
+
+  public String getConfirmPassword() {
+    return confirmPassword;
+  }
 }

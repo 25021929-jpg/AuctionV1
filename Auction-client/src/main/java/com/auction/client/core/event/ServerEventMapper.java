@@ -9,18 +9,18 @@ import com.auction.shared.protocol.ActionConstants;
  */
 public final class ServerEventMapper {
 
-    private ServerEventMapper() {}
+  private ServerEventMapper() {}
 
-    public static EventType map(String action) {
-        if (action == null) return EventType.NETWORK_EVENT;
+  public static EventType map(String action) {
+    if (action == null) return EventType.NETWORK_EVENT;
 
-        if (ActionConstants.EVENT_BID_UPDATED.equals(action)) {
-            return EventType.BID_UPDATED;
-        }
-        if (ActionConstants.EVENT_AUCTION_STATUS_CHANGED.equals(action)) {
-            return EventType.AUCTION_STATUS_CHANGED;
-        }
-
-        return EventType.NETWORK_EVENT;
+    if (ActionConstants.EVENT_BID_UPDATED.equals(action)) {
+      return EventType.BID_UPDATED;
     }
+    if (ActionConstants.EVENT_AUCTION_STATUS_CHANGED.equals(action)) {
+      return EventType.AUCTION_STATUS_CHANGED;
+    }
+
+    return EventType.NETWORK_EVENT;
+  }
 }

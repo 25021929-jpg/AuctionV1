@@ -14,6 +14,9 @@ import com.auction.shared.dto.AuthResponse;
 import com.auction.shared.dto.auth.request.LoginRequest;
 import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,112 +28,112 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public class LoginController {
 
-    @FXML private TextField identityField;
-    @FXML private PasswordField passwordField;
-    @FXML private VBox formBox;
-    @FXML private Label identityError;
-    @FXML private Label passwordError;
-    @FXML private Button loginButton;
+  @FXML private TextField identityField;
+  @FXML private PasswordField passwordField;
+  @FXML private VBox formBox;
+  @FXML private Label identityError;
+  @FXML private Label passwordError;
+  @FXML private Button loginButton;
 
-    private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
-    private final Map<String, Control> fieldMap = new LinkedHashMap<>();
+  private final Map<Control, Label> fieldErrorMap = new LinkedHashMap<>();
+  private final Map<String, Control> fieldMap = new LinkedHashMap<>();
 
-    private final AuthService authService;
-    private final Validator<LoginRequest> validator;
+  private final AuthService authService;
+  private final Validator<LoginRequest> validator;
 
-    public LoginController() {
-        this(new AuthServiceImpl(), AuthValidatorFactory.createLoginValidator());
+  public LoginController() {
+    this(new AuthServiceImpl(), AuthValidatorFactory.createLoginValidator());
+  }
+
+  public LoginController(AuthService authService, Validator<LoginRequest> validator) {
+    this.authService = authService;
+    this.validator = validator;
+  }
+
+  @FXML
+  public void initialize() {
+    UIAnimations.entrance(formBox);
+    setupFormHelper();
+  }
+
+  private void setupFormHelper() {
+    fieldErrorMap.put(identityField, identityError);
+    fieldErrorMap.put(passwordField, passwordError);
+
+    fieldMap.put("identity", identityField);
+    fieldMap.put("password", passwordField);
+
+    FormHelper.bindClearOnChange(fieldErrorMap);
+  }
+
+  @FXML
+  private void handleLogin(ActionEvent event) {
+    FormHelper.clearAll(fieldErrorMap);
+
+    LoginRequest request = buildRequest();
+    ValidationResult result = validator.validate(request);
+    if (!result.valid()) {
+      FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
+      return;
     }
 
-    public LoginController(AuthService authService, Validator<LoginRequest> validator) {
-        this.authService = authService;
-        this.validator = validator;
-    }
+    loginButton.setDisable(true);
 
-    @FXML
-    public void initialize() {
-        UIAnimations.entrance(formBox);
-        setupFormHelper();
-    }
-
-    private void setupFormHelper() {
-        fieldErrorMap.put(identityField, identityError);
-        fieldErrorMap.put(passwordField, passwordError);
-
-        fieldMap.put("identity", identityField);
-        fieldMap.put("password", passwordField);
-
-        FormHelper.bindClearOnChange(fieldErrorMap);
-    }
-
-    @FXML
-    private void handleLogin(ActionEvent event) {
-        FormHelper.clearAll(fieldErrorMap);
-
-        LoginRequest request = buildRequest();
-        ValidationResult result = validator.validate(request);
-        if (!result.valid()) {
-            FormHelper.applyErrors(result, fieldMap, fieldErrorMap);
-            return;
-        }
-
-        loginButton.setDisable(true);
-
-        Thread thread = new Thread(() -> {
-            try {
+    Thread thread =
+        new Thread(
+            () -> {
+              try {
                 AuthResponse response = authService.login(request);
                 UserSession.getInstance().start(response);
 
-                Platform.runLater(() -> {
-                    loginButton.setDisable(false);
-                    showToast("✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateHome);
-                });
-            } catch (IOException e) {
-                Platform.runLater(() -> {
-                    loginButton.setDisable(false);
-                    showToast(ErrorHandler.getUserMessage(e), Toast.Type.ERROR, 3, null);
-                });
-            }
-        }, "auth-login-thread");
+                Platform.runLater(
+                    () -> {
+                      loginButton.setDisable(false);
+                      showToast(
+                          "✓ Đăng nhập thành công", Toast.Type.SUCCESS, 2, this::navigateHome);
+                    });
+              } catch (IOException e) {
+                Platform.runLater(
+                    () -> {
+                      loginButton.setDisable(false);
+                      showToast(ErrorHandler.getUserMessage(e), Toast.Type.ERROR, 3, null);
+                    });
+              }
+            },
+            "auth-login-thread");
 
-        thread.setDaemon(true);
-        thread.start();
-    }
+    thread.setDaemon(true);
+    thread.start();
+  }
 
-    private void navigateHome() {
-        /*
-         * Không điều hướng cứng theo role sau khi đăng nhập.
-         *
-         * Lý do:
-         * - Với mô hình hiện tại, một tài khoản có thể vừa bid vừa đăng sản phẩm bán.
-         * - Nếu tự chuyển BIDDER vào danh sách đấu giá và SELLER vào Seller Dashboard,
-         *   client đang ngầm coi BIDDER/SELLER là hai loại tài khoản loại trừ nhau.
-         * - Home là màn trung gian đúng hơn: user tự chọn workflow muốn làm tiếp.
-         */
-        SceneNavigator.switchScene(ScenePaths.HOME);
-    }
+  private void navigateHome() {
+    /*
+     * Không điều hướng cứng theo role sau khi đăng nhập.
+     *
+     * Lý do:
+     * - Với mô hình hiện tại, một tài khoản có thể vừa bid vừa đăng sản phẩm bán.
+     * - Nếu tự chuyển BIDDER vào danh sách đấu giá và SELLER vào Seller Dashboard,
+     *   client đang ngầm coi BIDDER/SELLER là hai loại tài khoản loại trừ nhau.
+     * - Home là màn trung gian đúng hơn: user tự chọn workflow muốn làm tiếp.
+     */
+    SceneNavigator.switchScene(ScenePaths.HOME);
+  }
 
-    @FXML
-    private void handleNavigateRegister(ActionEvent event) {
-        SceneNavigator.switchScene(ScenePaths.REGISTER);
-    }
+  @FXML
+  private void handleNavigateRegister(ActionEvent event) {
+    SceneNavigator.switchScene(ScenePaths.REGISTER);
+  }
 
+  private LoginRequest buildRequest() {
+    return new LoginRequest(
+        identityField.getText() == null ? "" : identityField.getText().trim(),
+        passwordField.getText());
+  }
 
-    private LoginRequest buildRequest() {
-        return new LoginRequest(
-                identityField.getText() == null ? "" : identityField.getText().trim(),
-                passwordField.getText()
-        );
-    }
-
-    private void showToast(String message, Toast.Type type, int seconds, Runnable onFinished) {
-        StackPane root = (StackPane) loginButton.getScene().getRoot();
-        Toast.show(root, message, type, seconds, onFinished);
-    }
+  private void showToast(String message, Toast.Type type, int seconds, Runnable onFinished) {
+    StackPane root = (StackPane) loginButton.getScene().getRoot();
+    Toast.show(root, message, type, seconds, onFinished);
+  }
 }

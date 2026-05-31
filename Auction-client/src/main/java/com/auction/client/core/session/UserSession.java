@@ -8,96 +8,96 @@ import java.math.BigDecimal;
 /**
  * Lưu trạng thái đăng nhập hiện tại ở phía client.
  *
- * <p>Client chỉ lưu DTO an toàn nhận từ server, không lưu entity/domain có thể chứa dữ liệu nhạy cảm.
+ * <p>Client chỉ lưu DTO an toàn nhận từ server, không lưu entity/domain có thể chứa dữ liệu nhạy
+ * cảm.
  */
 public final class UserSession {
 
-    private static final UserSession INSTANCE = new UserSession();
+  private static final UserSession INSTANCE = new UserSession();
 
-    private UserInfo currentUser;
-    private String token;
+  private UserInfo currentUser;
+  private String token;
 
-    private UserSession() {
+  private UserSession() {}
+
+  public static UserSession getInstance() {
+    return INSTANCE;
+  }
+
+  public UserInfo getCurrentUser() {
+    return currentUser;
+  }
+
+  public void start(AuthResponse authResponse) {
+    if (authResponse == null) {
+      clear();
+      return;
     }
+    setCurrentUser(authResponse.getUser());
+  }
 
-    public static UserSession getInstance() {
-        return INSTANCE;
-    }
+  public void setCurrentUser(UserInfo currentUser) {
+    this.currentUser = currentUser;
+  }
 
-    public UserInfo getCurrentUser() {
-        return currentUser;
-    }
+  public Long getUserId() {
+    return currentUser == null ? null : currentUser.getId();
+  }
 
-    public void start(AuthResponse authResponse) {
-        if (authResponse == null) {
-            clear();
-            return;
-        }
-        setCurrentUser(authResponse.getUser());
-    }
+  public String getUsername() {
+    return currentUser == null ? null : currentUser.getUsername();
+  }
 
-    public void setCurrentUser(UserInfo currentUser) {
-        this.currentUser = currentUser;
-    }
+  public BigDecimal getBalance() {
+    return currentUser == null || currentUser.getBalance() == null
+        ? BigDecimal.ZERO
+        : currentUser.getBalance();
+  }
 
-    public Long getUserId() {
-        return currentUser == null ? null : currentUser.getId();
+  public void updateBalance(BigDecimal newBalance) {
+    if (currentUser != null) {
+      currentUser.setBalance(newBalance);
     }
+  }
 
-    public String getUsername() {
-        return currentUser == null ? null : currentUser.getUsername();
+  public UserRole getRole() {
+    if (currentUser == null) {
+      return null;
     }
+    return UserRole.fromString(currentUser.getRole());
+  }
 
-    public BigDecimal getBalance() {
-        return currentUser == null || currentUser.getBalance() == null
-                ? BigDecimal.ZERO
-                : currentUser.getBalance();
-    }
+  public boolean hasRole(UserRole role) {
+    return role != null && role == getRole();
+  }
 
-    public void updateBalance(BigDecimal newBalance) {
-        if (currentUser != null) {
-            currentUser.setBalance(newBalance);
-        }
-    }
+  public boolean isLoggedIn() {
+    return currentUser != null;
+  }
 
-    public UserRole getRole() {
-        if (currentUser == null) {
-            return null;
-        }
-        return UserRole.fromString(currentUser.getRole());
-    }
+  public String getToken() {
+    return token;
+  }
 
-    public boolean hasRole(UserRole role) {
-        return role != null && role == getRole();
-    }
+  public void setToken(String token) {
+    this.token = token;
+  }
 
-    public boolean isLoggedIn() {
-        return currentUser != null;
+  public String displayName() {
+    if (currentUser == null) {
+      return "Khách";
     }
+    if (currentUser.getFullName() != null && !currentUser.getFullName().isBlank()) {
+      return currentUser.getFullName();
+    }
+    if (currentUser.getUsername() != null && !currentUser.getUsername().isBlank()) {
+      return currentUser.getUsername();
+    }
+    return "Người dùng #" + currentUser.getId();
+  }
 
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String displayName() {
-        if (currentUser == null) {
-            return "Khách";
-        }
-        if (currentUser.getFullName() != null && !currentUser.getFullName().isBlank()) {
-            return currentUser.getFullName();
-        }
-        if (currentUser.getUsername() != null && !currentUser.getUsername().isBlank()) {
-            return currentUser.getUsername();
-        }
-        return "Người dùng #" + currentUser.getId();
-    }
-
-    public void clear() {
-        this.currentUser = null;
-        this.token = null;
-    }
+  public void clear() {
+    this.currentUser = null;
+    this.token = null;
+  }
 }

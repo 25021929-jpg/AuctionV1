@@ -6,8 +6,8 @@ import com.auction.client.core.session.UserSession;
 import com.auction.client.core.ui.AlertHelper;
 import com.auction.client.core.ui.SceneNavigator;
 import com.auction.client.core.ui.ScenePaths;
-import com.auction.shared.domain.UserRole;
 import com.auction.client.feature.wallet.ui.WalletDialog;
+import com.auction.shared.domain.UserRole;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -15,79 +15,80 @@ import javafx.scene.control.Label;
 /** Home theo role: chỉ hiện chức năng phù hợp với người đang đăng nhập. */
 public class HomeController {
 
-    @FXML private Label lblWelcome;
-    @FXML private Label lblBalance;
-    @FXML private Button btnSeller;
-    @FXML private Button btnAdmin;
+  @FXML private Label lblWelcome;
+  @FXML private Label lblBalance;
+  @FXML private Button btnSeller;
+  @FXML private Button btnAdmin;
 
-    @FXML
-    public void initialize() {
-        UserSession session = UserSession.getInstance();
-        if (!session.isLoggedIn()) {
-            lblWelcome.setText("Bạn chưa đăng nhập.");
-            setVisibleAndManaged(btnSeller, false);
-            setVisibleAndManaged(btnAdmin, false);
-            return;
-        }
-
-        UserRole role = session.getRole();
-        lblWelcome.setText("Xin chào, " + session.displayName() + " (" + roleText(role) + ")");
-        if (lblBalance != null) {
-            lblBalance.setText("Số dư: " + session.getBalance().stripTrailingZeros().toPlainString());
-        }
-        // Seller Dashboard chỉ hiện với SELLER/ADMIN để khớp cơ chế chọn role khi đăng ký.
-        setVisibleAndManaged(btnSeller, role == UserRole.SELLER || role == UserRole.ADMIN);
-
-        // Admin vẫn là quyền quản trị riêng, nên chỉ ADMIN mới thấy Admin Dashboard.
-        setVisibleAndManaged(btnAdmin, role == UserRole.ADMIN);
+  @FXML
+  public void initialize() {
+    UserSession session = UserSession.getInstance();
+    if (!session.isLoggedIn()) {
+      lblWelcome.setText("Bạn chưa đăng nhập.");
+      setVisibleAndManaged(btnSeller, false);
+      setVisibleAndManaged(btnAdmin, false);
+      return;
     }
 
-    @FXML
-    public void handleOpenAuctionList() {
-        SceneNavigator.switchScene(ScenePaths.AUCTION_LIST);
+    UserRole role = session.getRole();
+    lblWelcome.setText("Xin chào, " + session.displayName() + " (" + roleText(role) + ")");
+    if (lblBalance != null) {
+      lblBalance.setText("Số dư: " + session.getBalance().stripTrailingZeros().toPlainString());
     }
+    // Seller Dashboard chỉ hiện với SELLER/ADMIN để khớp cơ chế chọn role khi đăng ký.
+    setVisibleAndManaged(btnSeller, role == UserRole.SELLER || role == UserRole.ADMIN);
 
-    @FXML
-    public void handleOpenWallet() {
-        WalletDialog.showWallet();
-        if (lblBalance != null) {
-            lblBalance.setText("Số dư: " + UserSession.getInstance().getBalance().stripTrailingZeros().toPlainString());
-        }
-    }
+    // Admin vẫn là quyền quản trị riêng, nên chỉ ADMIN mới thấy Admin Dashboard.
+    setVisibleAndManaged(btnAdmin, role == UserRole.ADMIN);
+  }
 
-    @FXML
-    public void handleOpenSeller() {
-        try {
-            AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
-            SceneNavigator.switchScene(ScenePaths.SELLER_DASHBOARD);
-        } catch (Exception ex) {
-            AlertHelper.showException("Không có quyền", ex);
-        }
-    }
+  @FXML
+  public void handleOpenAuctionList() {
+    SceneNavigator.switchScene(ScenePaths.AUCTION_LIST);
+  }
 
-    @FXML
-    public void handleOpenAdmin() {
-        try {
-            AccessGuard.requireRole(UserRole.ADMIN);
-            SceneNavigator.switchScene(ScenePaths.ADMIN_DASHBOARD);
-        } catch (Exception ex) {
-            AlertHelper.showException("Không có quyền", ex);
-        }
+  @FXML
+  public void handleOpenWallet() {
+    WalletDialog.showWallet();
+    if (lblBalance != null) {
+      lblBalance.setText(
+          "Số dư: " + UserSession.getInstance().getBalance().stripTrailingZeros().toPlainString());
     }
+  }
 
-    @FXML
-    public void handleLogout() {
-        ClientSessionManager.logoutToLogin();
+  @FXML
+  public void handleOpenSeller() {
+    try {
+      AccessGuard.requireAnyRole(UserRole.SELLER, UserRole.ADMIN);
+      SceneNavigator.switchScene(ScenePaths.SELLER_DASHBOARD);
+    } catch (Exception ex) {
+      AlertHelper.showException("Không có quyền", ex);
     }
+  }
 
-    private void setVisibleAndManaged(Button button, boolean value) {
-        if (button != null) {
-            button.setVisible(value);
-            button.setManaged(value);
-        }
+  @FXML
+  public void handleOpenAdmin() {
+    try {
+      AccessGuard.requireRole(UserRole.ADMIN);
+      SceneNavigator.switchScene(ScenePaths.ADMIN_DASHBOARD);
+    } catch (Exception ex) {
+      AlertHelper.showException("Không có quyền", ex);
     }
+  }
 
-    private String roleText(UserRole role) {
-        return role == null ? "UNKNOWN" : role.name();
+  @FXML
+  public void handleLogout() {
+    ClientSessionManager.logoutToLogin();
+  }
+
+  private void setVisibleAndManaged(Button button, boolean value) {
+    if (button != null) {
+      button.setVisible(value);
+      button.setManaged(value);
     }
+  }
+
+  private String roleText(UserRole role) {
+    return role == null ? "UNKNOWN" : role.name();
+  }
 }

@@ -7,21 +7,19 @@ import com.auction.validation.ValidationResult;
 import com.auction.validation.Validator;
 import com.auction.validation.rules.NotBlankRule;
 import com.auction.validation.rules.OtpFormatRule;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class OtpValidator implements Validator<OtpRequest> {
 
-    @Override
-    public ValidationResult validate(OtpRequest request) {
-        List<FieldError> errors = new ArrayList<>();
+  @Override
+  public ValidationResult validate(OtpRequest request) {
+    List<FieldError> errors = new ArrayList<>();
 
-        new FieldValidator<>("otp", request.otp(),
-                new NotBlankRule(),
-                new OtpFormatRule()
-        ).validate().ifPresent(errors::add);
+    new FieldValidator<>("otp", request.otp(), new NotBlankRule(), new OtpFormatRule())
+        .validate()
+        .ifPresent(errors::add);
 
-        return ValidationResult.from(errors);
-    }
+    return ValidationResult.from(errors);
+  }
 }

@@ -6,97 +6,138 @@ import java.time.LocalDateTime;
 /**
  * DTO trả về dữ liệu bid sau khi đặt giá thành công.
  *
- * Tại sao Service trả DTO thay vì Entity (Bid)?
+ * <p>Tại sao Service trả DTO thay vì Entity (Bid)?
  *
- *   1. Tránh LazyInitializationException:
- *      Entity Bid có @ManyToOne(fetch=LAZY) đến AuctionSession, User.
- *      Session đóng sau khi Service commit.
- *      Controller cố serialize Entity → gọi getter lazy → session đã chết → crash.
- *      DTO chỉ chứa primitive/value → không có lazy relationship → an toàn.
+ * <p>1. Tránh LazyInitializationException: Entity Bid có @ManyToOne(fetch=LAZY) đến AuctionSession,
+ * User. Session đóng sau khi Service commit. Controller cố serialize Entity → gọi getter lazy →
+ * session đã chết → crash. DTO chỉ chứa primitive/value → không có lazy relationship → an toàn.
  *
- *   2. Tránh vòng lặp JSON vô tận:
- *      Bid → AuctionSession → List<Bid> → Bid → AuctionSession → ...
- *      JSON serializer gặp vòng lặp → StackOverflowError.
- *      DTO không có circular reference → an toàn.
+ * <p>2. Tránh vòng lặp JSON vô tận: Bid → AuctionSession → List<Bid> → Bid → AuctionSession → ...
+ * JSON serializer gặp vòng lặp → StackOverflowError. DTO không có circular reference → an toàn.
  *
- *   3. Tách biệt DB model và API model:
- *      Đổi tên cột trong DB → chỉ sửa Entity + DTO mapping.
- *      Controller/Client không bị ảnh hưởng.
+ * <p>3. Tách biệt DB model và API model: Đổi tên cột trong DB → chỉ sửa Entity + DTO mapping.
+ * Controller/Client không bị ảnh hưởng.
  *
- *   4. Chỉ trả dữ liệu cần thiết:
- *      Entity có nhiều field nội bộ (version, isActive...).
- *      DTO chỉ trả field client thực sự cần.
+ * <p>4. Chỉ trả dữ liệu cần thiết: Entity có nhiều field nội bộ (version, isActive...). DTO chỉ trả
+ * field client thực sự cần.
  *
- * Tại sao không có field "message"?
- *   message ("Bid placed successfully") là metadata của HTTP response.
- *   Không phải domain data của Bid.
- *   Tầng Controller/Response wrapper lo phần này.
- *   Service chỉ trả dữ liệu thuần — không quan tâm HTTP.
+ * <p>Tại sao không có field "message"? message ("Bid placed successfully") là metadata của HTTP
+ * response. Không phải domain data của Bid. Tầng Controller/Response wrapper lo phần này. Service
+ * chỉ trả dữ liệu thuần — không quan tâm HTTP.
  */
 public class BidResponse {
 
-    // Long cho mọi ID — khớp BIGINT trong DB, tránh overflow
-    private Long bidId;
-    private Long auctionSessionId;
-    private Long bidderId;
+  // Long cho mọi ID — khớp BIGINT trong DB, tránh overflow
+  private Long bidId;
+  private Long auctionSessionId;
+  private Long bidderId;
 
-    // Username dùng cho hiển thị lịch sử bid ở client; tránh bắt client query user thêm.
-    private String bidderUsername;
+  // Username dùng cho hiển thị lịch sử bid ở client; tránh bắt client query user thêm.
+  private String bidderUsername;
 
-    // BigDecimal cho tiền — chính xác tuyệt đối
-    private BigDecimal bidAmount;
+  // BigDecimal cho tiền — chính xác tuyệt đối
+  private BigDecimal bidAmount;
 
-    // Thêm bidTime: client cần biết bid được ghi lúc nào
-    // Dùng cho: hiển thị "Đặt giá lúc 14:30:05", sort theo thời gian
-    private LocalDateTime bidTime;
+  // Thêm bidTime: client cần biết bid được ghi lúc nào
+  // Dùng cho: hiển thị "Đặt giá lúc 14:30:05", sort theo thời gian
+  private LocalDateTime bidTime;
 
-    // isWinning: client biết ngay bid này có đang thắng không
-    // Dùng cho: UI highlight bid thắng, thông báo "Bạn đang thắng!"
-    private Boolean isWinning;
+  // isWinning: client biết ngay bid này có đang thắng không
+  // Dùng cho: UI highlight bid thắng, thông báo "Bạn đang thắng!"
+  private Boolean isWinning;
 
-    public BidResponse() {}
+  public BidResponse() {}
 
-    public BidResponse(Long bidId, Long auctionSessionId, Long bidderId,
-                       BigDecimal bidAmount, LocalDateTime bidTime,
-                       Boolean isWinning) {
-        this(bidId, auctionSessionId, bidderId, null, bidAmount, bidTime, isWinning);
-    }
+  public BidResponse(
+      Long bidId,
+      Long auctionSessionId,
+      Long bidderId,
+      BigDecimal bidAmount,
+      LocalDateTime bidTime,
+      Boolean isWinning) {
+    this(bidId, auctionSessionId, bidderId, null, bidAmount, bidTime, isWinning);
+  }
 
-    public BidResponse(Long bidId, Long auctionSessionId, Long bidderId, String bidderUsername,
-                       BigDecimal bidAmount, LocalDateTime bidTime,
-                       Boolean isWinning) {
-        this.bidId            = bidId;
-        this.auctionSessionId = auctionSessionId;
-        this.bidderId         = bidderId;
-        this.bidderUsername   = bidderUsername;
-        this.bidAmount        = bidAmount;
-        this.bidTime          = bidTime;
-        this.isWinning        = isWinning;
-    }
+  public BidResponse(
+      Long bidId,
+      Long auctionSessionId,
+      Long bidderId,
+      String bidderUsername,
+      BigDecimal bidAmount,
+      LocalDateTime bidTime,
+      Boolean isWinning) {
+    this.bidId = bidId;
+    this.auctionSessionId = auctionSessionId;
+    this.bidderId = bidderId;
+    this.bidderUsername = bidderUsername;
+    this.bidAmount = bidAmount;
+    this.bidTime = bidTime;
+    this.isWinning = isWinning;
+  }
 
-    // Getters & Setters
-    public Long getBidId()                       { return bidId; }
-    public void setBidId(Long bidId)             { this.bidId = bidId; }
+  // Getters & Setters
+  public Long getBidId() {
+    return bidId;
+  }
 
-    public Long getAuctionSessionId()            { return auctionSessionId; }
-    public void setAuctionSessionId(Long id)     { this.auctionSessionId = id; }
+  public void setBidId(Long bidId) {
+    this.bidId = bidId;
+  }
 
-    public Long getBidderId()                    { return bidderId; }
-    public void setBidderId(Long bidderId)       { this.bidderId = bidderId; }
+  public Long getAuctionSessionId() {
+    return auctionSessionId;
+  }
 
-    public String getBidderUsername()            { return bidderUsername; }
-    public void setBidderUsername(String name)   { this.bidderUsername = name; }
+  public void setAuctionSessionId(Long id) {
+    this.auctionSessionId = id;
+  }
 
-    /** Alias để client/shared DTO có thể đọc cùng một id phiên. */
-    public Long getAuctionId()                   { return auctionSessionId; }
-    public void setAuctionId(Long auctionId)     { this.auctionSessionId = auctionId; }
+  public Long getBidderId() {
+    return bidderId;
+  }
 
-    public BigDecimal getBidAmount()             { return bidAmount; }
-    public void setBidAmount(BigDecimal amount)  { this.bidAmount = amount; }
+  public void setBidderId(Long bidderId) {
+    this.bidderId = bidderId;
+  }
 
-    public LocalDateTime getBidTime()            { return bidTime; }
-    public void setBidTime(LocalDateTime time)   { this.bidTime = time; }
+  public String getBidderUsername() {
+    return bidderUsername;
+  }
 
-    public Boolean getIsWinning()                { return isWinning; }
-    public void setIsWinning(Boolean isWinning)  { this.isWinning = isWinning; }
+  public void setBidderUsername(String name) {
+    this.bidderUsername = name;
+  }
+
+  /** Alias để client/shared DTO có thể đọc cùng một id phiên. */
+  public Long getAuctionId() {
+    return auctionSessionId;
+  }
+
+  public void setAuctionId(Long auctionId) {
+    this.auctionSessionId = auctionId;
+  }
+
+  public BigDecimal getBidAmount() {
+    return bidAmount;
+  }
+
+  public void setBidAmount(BigDecimal amount) {
+    this.bidAmount = amount;
+  }
+
+  public LocalDateTime getBidTime() {
+    return bidTime;
+  }
+
+  public void setBidTime(LocalDateTime time) {
+    this.bidTime = time;
+  }
+
+  public Boolean getIsWinning() {
+    return isWinning;
+  }
+
+  public void setIsWinning(Boolean isWinning) {
+    this.isWinning = isWinning;
+  }
 }
