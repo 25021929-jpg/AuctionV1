@@ -20,6 +20,35 @@
             <artifactId>Auction-shared</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- JavaFX với classifier để bao gồm native libraries vào fat JAR -->
+        <!-- Phải khai báo version trực tiếp vì Maven không kế thừa dependencyManagement khi có classifier -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+
+        <!-- JavaFX không có classifier (cần để compile) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -28,6 +57,7 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
         </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -57,10 +87,50 @@
 
     </dependencies>
 
+    <profiles>
+        <!-- Tự động detect OS/arch để lấy đúng native JavaFX libs -->
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os><family>unix</family><name>Linux</name></os>
+            </activation>
+            <properties><javafx.platform>linux</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>linux-aarch64</id>
+            <activation>
+                <os><family>unix</family><name>Linux</name><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>linux-aarch64</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>win</id>
+            <activation>
+                <os><family>windows</family></os>
+            </activation>
+            <properties><javafx.platform>win</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os><family>mac</family></os>
+            </activation>
+            <properties><javafx.platform>mac</javafx.platform></properties>
+        </profile>
+        <profile>
+            <id>mac-aarch64</id>
+            <activation>
+                <os><family>mac</family><arch>aarch64</arch></os>
+            </activation>
+            <properties><javafx.platform>mac-aarch64</javafx.platform></properties>
+        </profile>
+    </profiles>
+
     <build>
+        <finalName>Auction-client</finalName>
         <plugins>
 
-            <!-- JavaFX plugin — thêm encoding vào options -->
+            <!-- JavaFX plugin — dùng để chạy khi dev (mvn javafx:run) -->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -74,36 +144,14 @@
                 </configuration>
             </plugin>
 
-            <!-- Compiler plugin — sửa source/target + encoding -->
+            <!-- Compiler plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <release>17</release>      <!-- ← đổi từ source/target sang release -->
-                    <encoding>UTF-8</encoding> <!-- ← thêm encoding -->
+                    <release>17</release>
+                    <encoding>UTF-8</encoding>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <outputFile>${project.build.directory}/client.jar</outputFile>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.auction.client.MainClient</mainClass>
-                                </transformer>
-                            </transformers>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -114,35 +162,50 @@
                 </configuration>
             </plugin>
 
+            <!--
+                maven-shade-plugin: tạo fat JAR cho Client (JavaFX)
+                ─────────────────────────────────────────────────────
+                QUAN TRỌNG: Dùng ClientLauncher (KHÔNG phải MainClient) làm Main-Class.
+                Lý do: JavaFX Application không thể là entry point trực tiếp trong fat JAR
+                       vì class loader sẽ không tìm thấy JavaFX runtime.
+                       ClientLauncher là class thường gọi MainClient.main() — workaround chuẩn.
+            -->
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.9</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <!-- Loại bỏ signature files để tránh lỗi SecurityException -->
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <transformers>
+                        <!-- Set Main-Class = ClientLauncher (wrapper, KHÔNG phải Application) -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>com.auction.client.ClientLauncher</mainClass>
+                        </transformer>
+                        <!-- Merge service descriptors (cần cho Hibernate, drivers...) -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <!-- Merge NOTICE/LICENSE files tránh conflict -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+                    </transformers>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>prepare-agent</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- Surefire 3.x bắt buộc để chạy JUnit 5 với mvn test -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <argLine>@{argLine}</argLine>
-                </configuration>
             </plugin>
 
         </plugins>
