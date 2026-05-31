@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * test cho AuctionResponse, AuctionDetailResponse, BidResponse
  * Coverage test cho các Response DTO.
  * Verify: constructor đầy đủ, no-arg constructor, getter/setter đúng giá trị.
  */
@@ -35,7 +34,7 @@ class ResponseDtoTest {
         }
 
         @Test
-        @DisplayName("Full constructor gán đúng tất cả field")
+        @DisplayName("Full constructor gán đúng tất cả field (bao gồm minBidStep, totalBids)")
         void fullConstructor_setsAllFields() {
             LocalDateTime start = LocalDateTime.of(2026, 6, 1, 10, 0);
             LocalDateTime end   = LocalDateTime.of(2026, 6, 4, 10, 0);
@@ -43,6 +42,7 @@ class ResponseDtoTest {
             AuctionResponse dto = new AuctionResponse(
                     1L, 10L, "Đồng hồ Seiko",
                     new BigDecimal("500000"), new BigDecimal("520000"),
+                    new BigDecimal("1000"), 5,
                     start, end, "ACTIVE"
             );
 
@@ -51,6 +51,8 @@ class ResponseDtoTest {
             assertThat(dto.getItemName()).isEqualTo("Đồng hồ Seiko");
             assertThat(dto.getStartingPrice()).isEqualByComparingTo("500000");
             assertThat(dto.getCurrentPrice()).isEqualByComparingTo("520000");
+            assertThat(dto.getMinBidStep()).isEqualByComparingTo("1000");
+            assertThat(dto.getTotalBids()).isEqualTo(5);
             assertThat(dto.getStartTime()).isEqualTo(start);
             assertThat(dto.getEndTime()).isEqualTo(end);
             assertThat(dto.getStatus()).isEqualTo("ACTIVE");
@@ -65,6 +67,8 @@ class ResponseDtoTest {
             dto.setItemName("Tranh sơn dầu");
             dto.setStartingPrice(new BigDecimal("1000000"));
             dto.setCurrentPrice(new BigDecimal("1500000"));
+            dto.setMinBidStep(new BigDecimal("50000"));
+            dto.setTotalBids(10);
             dto.setStartTime(LocalDateTime.of(2026, 7, 1, 9, 0));
             dto.setEndTime(LocalDateTime.of(2026, 7, 7, 9, 0));
             dto.setStatus("SCHEDULED");
@@ -74,16 +78,28 @@ class ResponseDtoTest {
             assertThat(dto.getItemName()).isEqualTo("Tranh sơn dầu");
             assertThat(dto.getStartingPrice()).isEqualByComparingTo("1000000");
             assertThat(dto.getCurrentPrice()).isEqualByComparingTo("1500000");
+            assertThat(dto.getMinBidStep()).isEqualByComparingTo("50000");
+            assertThat(dto.getTotalBids()).isEqualTo(10);
             assertThat(dto.getStatus()).isEqualTo("SCHEDULED");
         }
 
         @Test
-        @DisplayName("Field mặc định là null khi dùng no-arg constructor")
+        @DisplayName("minBidStep và totalBids mặc định null khi dùng no-arg constructor")
         void defaultFieldsAreNull() {
             AuctionResponse dto = new AuctionResponse();
             assertThat(dto.getAuctionId()).isNull();
             assertThat(dto.getItemName()).isNull();
+            assertThat(dto.getMinBidStep()).isNull();
+            assertThat(dto.getTotalBids()).isNull();
             assertThat(dto.getStatus()).isNull();
+        }
+
+        @Test
+        @DisplayName("totalBids = 0 khi chưa có ai đặt giá")
+        void totalBids_zeroWhenNoBids() {
+            AuctionResponse dto = new AuctionResponse();
+            dto.setTotalBids(0);
+            assertThat(dto.getTotalBids()).isZero();
         }
     }
 

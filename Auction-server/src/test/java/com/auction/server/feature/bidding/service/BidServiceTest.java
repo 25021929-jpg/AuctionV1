@@ -2,12 +2,14 @@ package com.auction.server.feature.bidding.service;
 
 import com.auction.server.entity.AuctionSession;
 import com.auction.server.entity.User;
+import com.auction.server.entity.WalletTransaction;
 import com.auction.server.feature.auction.repository.AuctionSessionRepository;
 import com.auction.server.feature.auth.repository.UserRepository;
 import com.auction.server.feature.bidding.BidException;
 import com.auction.server.feature.bidding.dto.PlaceBidRequest;
 import com.auction.server.feature.bidding.repository.BidRepository;
 import com.auction.server.feature.bidding.repository.PaymentRepository;
+import com.auction.server.feature.wallet.repository.WalletTransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,7 +44,7 @@ class BidServiceTest {
     @Mock private BidRepository            bidRepository;
     @Mock private PaymentRepository        paymentRepository;
     @Mock private UserRepository           userRepository;
-
+    @Mock private WalletTransactionRepository        walletTransactionRepository;
     private BidService bidService;
 
     @BeforeEach
@@ -51,7 +53,8 @@ class BidServiceTest {
                 auctionSessionRepository,
                 bidRepository,
                 paymentRepository,
-                userRepository
+                userRepository,
+                walletTransactionRepository
         );
     }
 
