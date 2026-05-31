@@ -21,5 +21,8 @@ Trường,Vũ: UI View Đăng ký/Đăng nhập
 Phát
 Controller và Service đăng ký / đăng nhập 
 
+Phúc
+Database, client/feature
+
 Chung
 viết README, task-allocation.md
